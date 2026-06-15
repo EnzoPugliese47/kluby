@@ -7,7 +7,12 @@ import { authenticate, authorize } from "../middlewares/auth";
 
 const router = Router();
 
-router.patch("/:id", authenticate, authorize("CLUB_ADMIN", "SUPER_ADMIN"), updateTable);
-router.delete("/:id", authenticate, authorize("CLUB_ADMIN", "SUPER_ADMIN"), deactivateTable);
+const staffOrAdmin = [
+  authenticate,
+  authorize("STAFF", "CLUB_ADMIN", "SUPER_ADMIN"),
+];
+
+router.patch("/:id", ...staffOrAdmin, updateTable);
+router.delete("/:id", ...staffOrAdmin, deactivateTable);
 
 export default router;

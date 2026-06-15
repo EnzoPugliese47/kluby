@@ -149,6 +149,44 @@
       .pick-list { max-height: 260px; overflow: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
       .pick-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; }
       .pick-row small { color: var(--muted); display: block; }
+
+      /* Modal ancho + diseñador de mesas */
+      .modal.wide { max-width: 640px; }
+      .designer-map { position: relative; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #0c0c14; user-select: none; }
+      .designer-map img { display: block; width: 100%; height: auto; -webkit-user-drag: none; }
+      .dpin {
+        position: absolute; transform: translate(-50%, -50%);
+        min-width: 26px; height: 26px; padding: 0 5px; border-radius: 7px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: 800; border: 2px solid #fff; cursor: grab;
+        background: rgba(124,92,255,0.92); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.5); touch-action: none;
+      }
+      .dpin.dragging { cursor: grabbing; transform: translate(-50%, -50%) scale(1.15); z-index: 5; }
+      .dpin.taken { background: rgba(255,77,141,0.92); }
+      .designer-map.default-canvas, .floor-map.default-canvas {
+        aspect-ratio: 1725 / 2490;
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+        background: linear-gradient(180deg, #14141f, #0c0c14);
+        border: 2px dashed var(--border);
+        min-height: 120px;
+      }
+      .canvas-label {
+        position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+        font-size: 11px; color: var(--muted); pointer-events: none; z-index: 1;
+        background: rgba(0,0,0,0.35); padding: 4px 10px; border-radius: 6px;
+      }
+      .club-logo { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); background: var(--surface-2); }
+      .club-logo.lg { width: 56px; height: 56px; }
+      .club-logo.placeholder { display: grid; place-items: center; font-weight: 800; font-size: 18px; color: var(--primary); }
+      .clubs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+      .club-admin-card { padding: 16px; display: flex; gap: 14px; align-items: center; }
+      .club-admin-card .info { flex: 1; min-width: 0; }
+      .club-admin-card .info b { display: block; margin-bottom: 4px; }
+      .club-admin-card .info small { color: var(--muted); font-size: 12px; }
+      .stats-club-pick { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+      .stats-club-pick .field { flex: 1; min-width: 220px; }
     </style>
   </head>
   <body>
@@ -184,6 +222,7 @@
         </div>
         <div class="tabs" id="tabs">
           <button class="tab" id="tab-stats" onclick="showView('stats')">Estadísticas</button>
+          <button class="tab" id="tab-clubs" onclick="showView('clubs')">Boliches</button>
           <button class="tab active" id="tab-users" onclick="showView('users')">Usuarios</button>
           <button class="tab" id="tab-events" onclick="showView('events')">Eventos</button>
         </div>
@@ -200,13 +239,15 @@
 
       <!-- VISTA: ESTADÍSTICAS -->
       <div class="container view" id="view-stats">
-        <div class="controls">
+        <div class="controls stats-club-pick">
+          <div id="stats-club-logo-wrap"></div>
           <div class="field">
-            <label for="club-select">Boliche</label>
-            <select id="club-select" onchange="loadDashboard()"></select>
+            <label for="club-select">Boliche para estadísticas</label>
+            <select id="club-select" onchange="onStatsClubChange()"></select>
           </div>
           <button class="ghost" onclick="loadDashboard()">↻ Actualizar</button>
         </div>
+        <p class="role-pill" style="margin:-8px 0 18px">Las estadísticas corresponden al boliche seleccionado arriba.</p>
 
         <div class="kpis" id="kpis"></div>
 
@@ -246,6 +287,16 @@
         </div>
       </div>
 
+      <!-- VISTA: BOLICHES (admin) -->
+      <div class="container view" id="view-clubs">
+        <div class="controls">
+          <div class="field" style="flex:1"><label>Boliches registrados</label><p class="role-pill" style="margin-top:4px">Agregá locales con su logo (máx. 500×500 px).</p></div>
+          <button class="btn-sm btn-accent" onclick="openClubForm()">+ Agregar boliche</button>
+          <button class="ghost" onclick="loadClubsAdmin()">↻ Actualizar</button>
+        </div>
+        <div id="clubs-admin" class="clubs-grid"><div class="empty">Cargando...</div></div>
+      </div>
+
       <!-- VISTA: USUARIOS -->
       <div class="container view active" id="view-users">
         <div class="controls">
@@ -265,7 +316,7 @@
         <div class="controls">
           <div class="field">
             <label for="event-club-select">Boliche</label>
-            <select id="event-club-select" onchange="loadEvents()"></select>
+            <select id="event-club-select" onchange="onEventClubChange()"></select>
           </div>
           <button class="btn-sm" onclick="openEventForm()">+ Agregar evento</button>
           <button class="ghost" onclick="loadEvents()">↻ Actualizar</button>
@@ -339,32 +390,44 @@
       }
 
       const isAdmin = () => ["CLUB_ADMIN", "SUPER_ADMIN"].includes(currentUser?.role);
+      let _clubsCache = [];
 
       async function enterApp() {
         document.getElementById("login-view").style.display = "none";
         document.getElementById("app-view").style.display = "block";
         document.getElementById("who-name").textContent = currentUser?.fullName || "—";
         document.getElementById("who-role").textContent = currentUser?.role || "—";
-        // Las estadísticas son solo para administradores.
         document.getElementById("tab-stats").style.display = isAdmin() ? "" : "none";
+        document.getElementById("tab-clubs").style.display = isAdmin() ? "" : "none";
         await loadClubs();
         showView(isAdmin() ? "stats" : "users");
       }
 
       function showView(name) {
         if (name === "stats" && !isAdmin()) name = "users";
-        ["stats", "users", "events"].forEach((v) => {
+        if (name === "clubs" && !isAdmin()) name = "users";
+        ["stats", "clubs", "users", "events"].forEach((v) => {
           document.getElementById("view-" + v).classList.toggle("active", v === name);
           document.getElementById("tab-" + v).classList.toggle("active", v === name);
         });
         if (name === "stats") loadDashboard();
+        if (name === "clubs") loadClubsAdmin();
         if (name === "users") loadUsers();
         if (name === "events") loadEvents();
       }
 
+      function clubLogoHtml(url, name, cls = "club-logo") {
+        if (url) return `<img class="${cls}" src="${esc(url)}" alt="${esc(name)}" />`;
+        const initial = (name || "K").charAt(0).toUpperCase();
+        return `<div class="${cls} placeholder">${esc(initial)}</div>`;
+      }
+
       async function loadClubs() {
         const clubs = await api("/clubs");
-        ["club-select", "event-club-select"].forEach((selId) => {
+        _clubsCache = clubs;
+        const savedStats = localStorage.getItem("kluby_stats_club");
+        const savedEvents = localStorage.getItem("kluby_events_club");
+        const fillSelect = (selId, saved) => {
           const sel = document.getElementById(selId);
           if (!sel) return;
           sel.innerHTML = "";
@@ -375,7 +438,136 @@
             opt.textContent = c.name + " · " + c.city;
             sel.appendChild(opt);
           });
-        });
+          if (saved && clubs.some((c) => c.id === saved)) sel.value = saved;
+        };
+        fillSelect("club-select", savedStats);
+        fillSelect("event-club-select", savedEvents);
+        updateStatsClubLogo();
+      }
+
+      function onStatsClubChange() {
+        const id = document.getElementById("club-select").value;
+        localStorage.setItem("kluby_stats_club", id);
+        updateStatsClubLogo();
+        loadDashboard();
+      }
+
+      function updateStatsClubLogo() {
+        const wrap = document.getElementById("stats-club-logo-wrap");
+        if (!wrap) return;
+        const id = document.getElementById("club-select")?.value;
+        const club = _clubsCache.find((c) => c.id === id);
+        wrap.innerHTML = club ? clubLogoHtml(club.imageUrl, club.name, "club-logo lg") : clubLogoHtml(null, "K", "club-logo lg");
+      }
+
+      // ---------- BOLICHES (admin) ----------
+      async function loadClubsAdmin() {
+        const el = document.getElementById("clubs-admin");
+        try {
+          const clubs = await api("/clubs");
+          _clubsCache = clubs;
+          if (!clubs.length) { el.innerHTML = '<div class="empty">Todavía no hay boliches. Agregá el primero.</div>'; return; }
+          el.innerHTML = clubs.map((c) => `
+            <div class="card club-admin-card">
+              ${clubLogoHtml(c.imageUrl, c.name)}
+              <div class="info">
+                <b>${esc(c.name)}</b>
+                <small>📍 ${esc(c.address)}, ${esc(c.city)}</small>
+                ${c.musicGenre ? `<small>🎵 ${esc(c.musicGenre)}</small>` : ""}
+              </div>
+              <button class="btn-sm btn-danger" onclick='deleteClub(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Eliminar</button>
+            </div>`).join("");
+        } catch (e) {
+          if (String(e.message).includes("401")) return logout();
+          el.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+
+      let _clubLogo = null;
+      function openClubForm() {
+        _clubLogo = null;
+        openModal(`
+          <h3>Nuevo boliche</h3>
+          <p class="sub">El logo debe ser como máximo 500×500 píxeles.</p>
+          <label style="margin-top:0">Nombre</label>
+          <input id="c-name" placeholder="Ej. Club VISA" />
+          <label>Dirección</label>
+          <input id="c-address" placeholder="Calle y número" />
+          <label>Ciudad</label>
+          <input id="c-city" placeholder="Ej. Buenos Aires" />
+          <label>Género musical (opcional)</label>
+          <input id="c-genre" placeholder="Ej. Electrónica" />
+          <label>Descripción (opcional)</label>
+          <input id="c-desc" placeholder="Breve descripción" />
+          <label>Logo (máx. 500×500 px)</label>
+          <input id="c-logo" type="file" accept="image/png,image/jpeg,image/webp" onchange="onClubLogo(event)" />
+          <div id="c-logo-preview" style="margin-top:10px"><span class="role-pill">PNG, JPG o WebP · máx. 500×500</span></div>
+          <div class="btn-row" style="margin-top:20px">
+            <button class="ghost" onclick="closeModal()">Cancelar</button>
+            <button style="flex:1" onclick="saveClub()">Crear boliche</button>
+          </div>
+          <div class="error" id="c-err"></div>`);
+      }
+
+      async function onClubLogo(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const prev = document.getElementById("c-logo-preview");
+        const dims = await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve({ w: img.width, h: img.height });
+          img.onerror = reject;
+          img.src = URL.createObjectURL(file);
+        }).catch(() => null);
+        if (!dims || dims.w > 500 || dims.h > 500) {
+          prev.innerHTML = `<span style="color:var(--pink)">El logo debe ser máximo 500×500 px${dims ? ` (recibido: ${dims.w}×${dims.h})` : ""}.</span>`;
+          e.target.value = "";
+          _clubLogo = null;
+          return;
+        }
+        prev.innerHTML = '<span class="role-pill">Subiendo logo...</span>';
+        try {
+          const dataUrl = await new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result);
+            r.onerror = reject;
+            r.readAsDataURL(file);
+          });
+          const res = await api("/uploads/logo", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
+          _clubLogo = res.url;
+          prev.innerHTML = `<img src="${esc(_clubLogo)}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--border)"/> <span class="role-pill">${res.width}×${res.height} px</span>`;
+          toast("Logo cargado", "ok");
+        } catch (err) { prev.innerHTML = `<span style="color:var(--pink)">${esc(err.message)}</span>`; _clubLogo = null; }
+      }
+
+      async function deleteClub(id, name) {
+        if (!confirm(`¿Eliminar el boliche "${name}"?\nSe borrarán todos sus eventos, mesas, productos y el historial de reservas.\nNo se puede deshacer. Si hay reservas activas, la operación fallará.`)) return;
+        try {
+          await api("/clubs/" + id, { method: "DELETE" });
+          toast("Boliche eliminado", "ok");
+          if (localStorage.getItem("kluby_stats_club") === id) localStorage.removeItem("kluby_stats_club");
+          if (localStorage.getItem("kluby_events_club") === id) localStorage.removeItem("kluby_events_club");
+          await loadClubs();
+          loadClubsAdmin();
+        } catch (e) { toast(e.message, "err"); }
+      }
+
+      async function saveClub() {
+        const name = document.getElementById("c-name").value.trim();
+        const address = document.getElementById("c-address").value.trim();
+        const city = document.getElementById("c-city").value.trim();
+        const musicGenre = document.getElementById("c-genre").value.trim();
+        const description = document.getElementById("c-desc").value.trim();
+        if (!name || !address || !city) { document.getElementById("c-err").textContent = "Nombre, dirección y ciudad son obligatorios."; return; }
+        const body = { name, address, city, ownerId: currentUser.id, musicGenre, description };
+        if (_clubLogo) body.imageUrl = _clubLogo;
+        try {
+          await api("/clubs", { method: "POST", body: JSON.stringify(body) });
+          toast("Boliche creado", "ok");
+          closeModal();
+          await loadClubs();
+          loadClubsAdmin();
+        } catch (e) { document.getElementById("c-err").textContent = e.message; }
       }
 
       // ---------- Helpers UI ----------
@@ -392,7 +584,7 @@
         document.getElementById("modal-content").innerHTML = html;
         document.getElementById("overlay").classList.add("show");
       }
-      function closeModal() { document.getElementById("overlay").classList.remove("show"); }
+      function closeModal() { document.getElementById("overlay").classList.remove("show"); document.getElementById("modal-content").classList.remove("wide"); }
       const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
       const fdt = (d) => new Date(d).toLocaleString("es-AR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
       const ROLE_LABEL = { CLIENT: "Cliente", STAFF: "Staff", CLUB_ADMIN: "Admin", SUPER_ADMIN: "Super Admin" };
@@ -471,6 +663,10 @@
       function guestBadge(s) { const [c, l] = GUEST_STATUS[s] || ["muted", s]; return `<span class="badge ${c}">${l}</span>`; }
 
       // ---------- EVENTOS ----------
+      function onEventClubChange() {
+        localStorage.setItem("kluby_events_club", document.getElementById("event-club-select").value);
+        loadEvents();
+      }
       async function loadEvents() {
         const clubId = document.getElementById("event-club-select").value;
         const area = document.getElementById("events-area");
@@ -493,17 +689,29 @@
           <td>${esc(e.musicGenre || "—")}</td>
           <td><div class="btn-row">
             <button class="btn-sm btn-accent" onclick='openEventTables(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Ver mesas</button>
+            <button class="btn-sm" onclick='openDesigner(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Diseñar mesas</button>
             <button class="btn-sm ghost" onclick='openEventForm(${JSON.stringify(e)})'>Editar</button>
+            <button class="btn-sm btn-danger" onclick='deleteEvent(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Eliminar</button>
           </div></td>
         </tr>`;
+      }
+      async function deleteEvent(id, name) {
+        if (!confirm(`¿Eliminar el evento "${name}"?\nSe borrarán todas sus mesas (si no hay reservas activas).`)) return;
+        try {
+          await api("/events/" + id, { method: "DELETE" });
+          toast("Evento eliminado", "ok");
+          loadEvents();
+        } catch (e) { toast(e.message, "err"); }
       }
       function toLocalInput(d) {
         const dt = d ? new Date(d) : new Date();
         const off = dt.getTimezoneOffset();
         return new Date(dt.getTime() - off * 60000).toISOString().slice(0, 16);
       }
+      let _eventBg = null; // URL de la imagen de fondo elegida/cargada
       function openEventForm(ev) {
         const editing = ev && ev.id;
+        _eventBg = editing && ev.backgroundImage ? ev.backgroundImage : null;
         openModal(`
           <h3>${editing ? "Editar evento" : "Nuevo evento"}</h3>
           <p class="sub">${editing ? "Modificá los datos de la fecha." : "Creá una nueva fecha para el boliche seleccionado."}</p>
@@ -513,11 +721,32 @@
           <input id="ev-date" type="datetime-local" value="${toLocalInput(editing ? ev.date : null)}" />
           <label>Género musical</label>
           <input id="ev-genre" value="${editing && ev.musicGenre ? esc(ev.musicGenre) : ""}" placeholder="Ej. Electrónica" />
+          <label>Plano del salón (imagen de fondo)</label>
+          <input id="ev-img" type="file" accept="image/*" onchange="onEventImage(event)" />
+          <div id="ev-img-preview" style="margin-top:10px">${_eventBg ? `<img src="${esc(_eventBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>` : '<span class="role-pill">Sin imagen. El mapa usará la grilla por defecto.</span>'}</div>
           <div class="btn-row" style="margin-top:20px">
             <button class="ghost" onclick="closeModal()">Cancelar</button>
-            <button style="flex:1" onclick="saveEvent(${editing ? JSON.stringify(ev.id) : "null"})">${editing ? "Guardar cambios" : "Crear evento"}</button>
+            <button style="flex:1" id="ev-save" onclick="saveEvent(${editing ? JSON.stringify(ev.id) : "null"})">${editing ? "Guardar cambios" : "Crear evento"}</button>
           </div>
           <div class="error" id="ev-err"></div>`);
+      }
+      async function onEventImage(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const prev = document.getElementById("ev-img-preview");
+        prev.innerHTML = '<span class="role-pill">Subiendo imagen...</span>';
+        try {
+          const dataUrl = await new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result);
+            r.onerror = reject;
+            r.readAsDataURL(file);
+          });
+          const res = await api("/uploads/map", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
+          _eventBg = res.url;
+          prev.innerHTML = `<img src="${esc(_eventBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>`;
+          toast("Imagen cargada", "ok");
+        } catch (err) { prev.innerHTML = `<span style="color:var(--pink)">${esc(err.message)}</span>`; }
       }
       async function saveEvent(eventId) {
         const name = document.getElementById("ev-name").value.trim();
@@ -525,6 +754,7 @@
         const musicGenre = document.getElementById("ev-genre").value.trim();
         if (!name || !dateVal) { document.getElementById("ev-err").textContent = "Nombre y fecha son obligatorios."; return; }
         const body = { name, date: new Date(dateVal).toISOString(), musicGenre };
+        if (_eventBg) body.backgroundImage = _eventBg;
         try {
           if (eventId) {
             await api("/events/" + eventId, { method: "PATCH", body: JSON.stringify(body) });
@@ -545,13 +775,28 @@
         openModal('<div class="empty">Cargando mesas...</div>');
         try {
           const d = await api("/events/" + eventId + "/availability");
-          const cards = d.tables.map(tableCard).join("");
+          const cards = d.tables.length
+            ? renderTableList(d.tables)
+            : '<div class="empty">Este evento no tiene mesas todavía. Usá "Diseñar mesas" para agregarlas.</div>';
           openModal(`
             <h3>Mesas · ${esc(eventName)}</h3>
             <p class="sub">Asigná o quitá usuarios de cada mesa.</p>
             <div class="tables-grid">${cards}</div>
             <button class="btn-full ghost" style="margin-top:16px" onclick="closeModal()">Cerrar</button>`);
         } catch (e) { openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`); }
+      }
+      function renderTableList(tables) {
+        let html = "";
+        let lastSector = null;
+        for (const t of tables) {
+          const sector = t.sector || "General";
+          if (sector !== lastSector) {
+            html += `<div style="grid-column:1/-1;font-weight:700;margin:${lastSector ? "16px" : "0"} 0 8px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px">📍 ${esc(sector)}</div>`;
+            lastSector = sector;
+          }
+          html += tableCard(t);
+        }
+        return html;
       }
       function tableCard(t) {
         const taken = t.status === "RESERVED";
@@ -610,6 +855,149 @@
           await api("/events/" + _evtTables.id + "/assign", { method: "POST", body: JSON.stringify({ tableId: _assignTable, userId }) });
           toast("Mesa asignada", "ok");
           openEventTables(_evtTables.id, _evtTables.name);
+        } catch (e) { toast(e.message, "err"); }
+      }
+
+      // ---------- DISEÑADOR DE MESAS ----------
+      let _designer = { eventId: null, name: "", clubId: null, bg: null, tables: [] };
+      function shortLabel(l) { return String(l).split(" ").pop(); }
+
+      async function openDesigner(eventId, eventName) {
+        openModal('<div class="empty">Cargando diseñador...</div>');
+        document.getElementById("modal-content").classList.add("wide");
+        try {
+          const d = await api("/events/" + eventId + "/availability");
+          _designer = { eventId, name: eventName, clubId: d.event.clubId, bg: d.event.backgroundImage, tables: d.tables };
+          renderDesigner();
+        } catch (e) { openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeDesigner()">Cerrar</button>`); }
+      }
+      function closeDesigner() { document.getElementById("modal-content").classList.remove("wide"); closeModal(); loadEvents(); }
+
+      function renderDesigner() {
+        const d = _designer;
+        const pins = d.tables.map(dpin).join("");
+        const mapClass = d.bg ? "designer-map" : "designer-map default-canvas";
+        const mapInner = d.bg
+          ? `<img id="dmap-img" src="${esc(d.bg)}" alt="plano" />${pins}`
+          : `<span class="canvas-label">Lienzo 1725 × 2490</span>${pins}`;
+        openModal(`
+          <h3>Diseñar mesas · ${esc(d.name)}</h3>
+          <p class="sub">${d.bg ? "Arrastrá las mesas sobre el plano." : "Sin imagen de fondo: usá el lienzo predeterminado. Arrastrá o agregá mesas."}</p>
+          <div class="btn-row" style="margin-bottom:12px">
+            <button class="btn-sm btn-accent" onclick="addDesignerTable()">+ Agregar mesa</button>
+            <span class="role-pill" style="align-self:center">${d.tables.length} mesas</span>
+          </div>
+          <div class="${mapClass}" id="dmap">${mapInner}</div>
+          <button class="btn-full ghost" style="margin-top:14px" onclick="closeDesigner()">Listo</button>`);
+        document.getElementById("modal-content").classList.add("wide");
+        setTimeout(attachDragHandlers, 30);
+      }
+      function dpin(t) {
+        const taken = t.status === "RESERVED";
+        return `<div class="dpin ${taken ? "taken" : ""}" data-id="${t.id}" data-x="${t.posX}" data-y="${t.posY}"
+             style="left:${t.posX}%;top:${t.posY}%" title="${esc(t.label)}">${esc(shortLabel(t.label))}</div>`;
+      }
+      function attachDragHandlers() {
+        document.querySelectorAll("#dmap .dpin").forEach((pin) => {
+          let moved = false, startX = 0, startY = 0;
+          const map = document.getElementById("dmap");
+          const onDown = (e) => {
+            e.preventDefault();
+            moved = false;
+            const p = e.touches ? e.touches[0] : e;
+            startX = p.clientX; startY = p.clientY;
+            pin.classList.add("dragging");
+            const onMove = (ev) => {
+              const q = ev.touches ? ev.touches[0] : ev;
+              if (Math.abs(q.clientX - startX) > 3 || Math.abs(q.clientY - startY) > 3) moved = true;
+              const rect = map.getBoundingClientRect();
+              let x = ((q.clientX - rect.left) / rect.width) * 100;
+              let y = ((q.clientY - rect.top) / rect.height) * 100;
+              x = Math.max(0, Math.min(100, x)); y = Math.max(0, Math.min(100, y));
+              pin.style.left = x + "%"; pin.style.top = y + "%";
+              pin.dataset.x = x.toFixed(2); pin.dataset.y = y.toFixed(2);
+            };
+            const onUp = async () => {
+              document.removeEventListener("mousemove", onMove);
+              document.removeEventListener("mouseup", onUp);
+              document.removeEventListener("touchmove", onMove);
+              document.removeEventListener("touchend", onUp);
+              pin.classList.remove("dragging");
+              if (moved) {
+                try {
+                  await api("/tables/" + pin.dataset.id, { method: "PATCH", body: JSON.stringify({ posX: parseFloat(pin.dataset.x), posY: parseFloat(pin.dataset.y) }) });
+                  const t = _designer.tables.find((x) => x.id === pin.dataset.id);
+                  if (t) { t.posX = parseFloat(pin.dataset.x); t.posY = parseFloat(pin.dataset.y); }
+                } catch (err) { toast(err.message, "err"); }
+              } else {
+                editDesignerTable(pin.dataset.id);
+              }
+            };
+            document.addEventListener("mousemove", onMove);
+            document.addEventListener("mouseup", onUp);
+            document.addEventListener("touchmove", onMove, { passive: false });
+            document.addEventListener("touchend", onUp);
+          };
+          pin.addEventListener("mousedown", onDown);
+          pin.addEventListener("touchstart", onDown, { passive: false });
+        });
+      }
+      async function addDesignerTable() {
+        const n = _designer.tables.length + 1;
+        try {
+          const t = await api("/clubs/" + _designer.clubId + "/tables", { method: "POST", body: JSON.stringify({
+            label: "Mesa " + n, sector: "General", capacity: 10, price: 150000, depositPercent: 10, posX: 50, posY: 50,
+            eventId: _designer.eventId,
+          }) });
+          t.status = "AVAILABLE";
+          _designer.tables.push(t);
+          renderDesigner();
+          toast("Mesa agregada (arrastrala a su lugar)", "ok");
+        } catch (e) { toast(e.message, "err"); }
+      }
+      function editDesignerTable(id) {
+        const t = _designer.tables.find((x) => x.id === id);
+        if (!t) return;
+        openModal(`
+          <h3>Editar mesa</h3>
+          <p class="sub">Mesa ${esc(shortLabel(t.label))}${t.status === "RESERVED" ? " · (reservada)" : ""}</p>
+          <label style="margin-top:0">Nombre / etiqueta</label>
+          <input id="dt-label" value="${esc(t.label)}" />
+          <label>Sector</label>
+          <input id="dt-sector" value="${esc(t.sector || "")}" placeholder="Ej. Ultra VIP" />
+          <label>Precio</label>
+          <input id="dt-price" type="number" value="${Number(t.price)}" />
+          <label>Capacidad</label>
+          <input id="dt-cap" type="number" value="${t.capacity}" />
+          <div class="btn-row" style="margin-top:20px">
+            <button class="btn-danger btn-sm" onclick="deleteDesignerTable('${t.id}')">Eliminar</button>
+            <button class="ghost" onclick="renderDesigner()">Volver</button>
+            <button style="flex:1" onclick="saveDesignerTable('${t.id}')">Guardar</button>
+          </div>
+          <div class="error" id="dt-err"></div>`);
+        document.getElementById("modal-content").classList.add("wide");
+      }
+      async function saveDesignerTable(id) {
+        const label = document.getElementById("dt-label").value.trim();
+        const sector = document.getElementById("dt-sector").value.trim();
+        const price = parseFloat(document.getElementById("dt-price").value);
+        const capacity = parseInt(document.getElementById("dt-cap").value, 10);
+        if (!label || !(price >= 0) || !(capacity > 0)) { document.getElementById("dt-err").textContent = "Completá nombre, precio y capacidad válidos."; return; }
+        try {
+          const upd = await api("/tables/" + id, { method: "PATCH", body: JSON.stringify({ label, sector, price, capacity }) });
+          const t = _designer.tables.find((x) => x.id === id);
+          if (t) { t.label = upd.label; t.sector = upd.sector; t.price = upd.price; t.capacity = upd.capacity; }
+          renderDesigner();
+          toast("Mesa actualizada", "ok");
+        } catch (e) { document.getElementById("dt-err").textContent = e.message; }
+      }
+      async function deleteDesignerTable(id) {
+        if (!confirm("¿Eliminar esta mesa del plano?")) return;
+        try {
+          await api("/tables/" + id, { method: "DELETE" });
+          _designer.tables = _designer.tables.filter((x) => x.id !== id);
+          renderDesigner();
+          toast("Mesa eliminada", "ok");
         } catch (e) { toast(e.message, "err"); }
       }
 

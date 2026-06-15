@@ -9,6 +9,8 @@ import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
 import { computeDeposit, occupyingReservationFilter } from "../utils/reservation";
+import { DEFAULT_MAP_HEIGHT, DEFAULT_MAP_WIDTH } from "../utils/mapCanvas";
+import { sortTablesBySectorAndNumber } from "../utils/tables";
 import {
   asRecord,
   optionalString,
@@ -30,6 +32,7 @@ export const createEvent = async (
     const name = requireString(body, "name");
     const dateRaw = requireString(body, "date");
     const musicGenre = optionalString(body, "musicGenre");
+    const backgroundImage = optionalString(body, "backgroundImage");
 
     const date = new Date(dateRaw);
     if (Number.isNaN(date.getTime())) {
@@ -42,7 +45,13 @@ export const createEvent = async (
     }
 
     const event = await prisma.eventNight.create({
-      data: { clubId, name, date, musicGenre: musicGenre ?? null },
+      data: {
+        clubId,
+        name,
+        date,
+        musicGenre: musicGenre ?? null,
+        backgroundImage: backgroundImage ?? null,
+      },
     });
     sendSuccess(res, event, 201);
   } catch (error) {
@@ -64,8 +73,10 @@ export const updateEvent = async (
     const name = optionalString(body, "name");
     const dateRaw = optionalString(body, "date");
     const musicGenre = optionalString(body, "musicGenre");
+    const backgroundImage = optionalString(body, "backgroundImage");
     if (name !== undefined) data.name = name;
     if (musicGenre !== undefined) data.musicGenre = musicGenre;
+    if (backgroundImage !== undefined) data.backgroundImage = backgroundImage;
     if (typeof body["isActive"] === "boolean") data.isActive = body["isActive"];
     if (dateRaw !== undefined) {
       const date = new Date(dateRaw);
@@ -118,6 +129,9 @@ export const assignTableToUser = async (
         const table = await tx.clubTable.findUnique({ where: { id: tableId } });
         if (table === null || !table.isActive) {
           throw new AppError("Mesa no encontrada o inactiva", 404);
+        }
+        if (table.eventId !== eventId) {
+          throw new AppError("La mesa no pertenece a este evento", 400);
         }
         const event = await tx.eventNight.findUnique({ where: { id: eventId } });
         if (event === null || !event.isActive) {
@@ -215,6 +229,39 @@ export const releaseTable = async (
   }
 };
 
+/** DELETE /api/events/:eventId - Elimina un evento y sus mesas (sin reservas activas). */
+export const deleteEvent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const eventId = requireParam(req.params, "eventId");
+    const event = await prisma.eventNight.findUnique({ where: { id: eventId } });
+    if (event === null) {
+      throw new AppError("Evento no encontrado", 404);
+    }
+
+    const activeReservations = await prisma.reservation.count({
+      where: { eventId, ...occupyingReservationFilter() },
+    });
+    if (activeReservations > 0) {
+      throw new AppError(
+        "No se puede eliminar: el evento tiene reservas activas",
+        400
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.clubTable.deleteMany({ where: { eventId } }),
+      prisma.eventNight.delete({ where: { id: eventId } }),
+    ]);
+    sendSuccess(res, { deleted: true, id: eventId });
+  } catch (error) {
+    next(error);
+  }
+};
+
 /** GET /api/clubs/:clubId/events */
 export const listEventsByClub = async (
   req: Request,
@@ -255,8 +302,7 @@ export const getEventAvailability = async (
 
     const [tables, activeReservations] = await Promise.all([
       prisma.clubTable.findMany({
-        where: { clubId: event.clubId, isActive: true },
-        orderBy: { label: "asc" },
+        where: { eventId, isActive: true },
       }),
       prisma.reservation.findMany({
         where: { eventId, ...occupyingReservationFilter() },
@@ -274,7 +320,9 @@ export const getEventAvailability = async (
       activeReservations.map((r) => [r.tableId, r])
     );
 
-    const map = tables.map((table) => {
+    const sortedTables = sortTablesBySectorAndNumber(tables);
+
+    const map = sortedTables.map((table) => {
       const reservation = reservationByTable.get(table.id);
       return {
         id: table.id,
@@ -290,7 +338,12 @@ export const getEventAvailability = async (
       };
     });
 
-    sendSuccess(res, { event, tables: map });
+    sendSuccess(res, {
+      event,
+      tables: map,
+      mapWidth: DEFAULT_MAP_WIDTH,
+      mapHeight: DEFAULT_MAP_HEIGHT,
+    });
   } catch (error) {
     next(error);
   }

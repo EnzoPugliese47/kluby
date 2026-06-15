@@ -1469,6 +1469,7 @@ export type ClubScalarFieldEnum = (typeof ClubScalarFieldEnum)[keyof typeof Club
 export const ClubTableScalarFieldEnum = {
   id: 'id',
   clubId: 'clubId',
+  eventId: 'eventId',
   label: 'label',
   sector: 'sector',
   capacity: 'capacity',
@@ -1491,6 +1492,7 @@ export const EventNightScalarFieldEnum = {
   name: 'name',
   date: 'date',
   musicGenre: 'musicGenre',
+  backgroundImage: 'backgroundImage',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

@@ -72,6 +72,9 @@ export const createReservation = async (
         if (table === null || !table.isActive) {
           throw new AppError("Mesa no encontrada o inactiva", 404);
         }
+        if (table.eventId !== eventId) {
+          throw new AppError("La mesa no pertenece a este evento", 400);
+        }
 
         const event = await tx.eventNight.findUnique({
           where: { id: eventId },

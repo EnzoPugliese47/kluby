@@ -8,6 +8,7 @@ import guestsRoutes from "./guests.routes";
 import productsRoutes from "./products.routes";
 import ordersRoutes from "./orders.routes";
 import loyaltyRoutes from "./loyalty.routes";
+import uploadsRoutes from "./uploads.routes";
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use("/guests", guestsRoutes);
 router.use("/products", productsRoutes);
 router.use("/orders", ordersRoutes);
 router.use("/loyalty", loyaltyRoutes);
+router.use("/uploads", uploadsRoutes);
 
 export default router;

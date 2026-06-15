@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   assignTableToUser,
+  deleteEvent,
   getEventAvailability,
   releaseTable,
   updateEvent,
@@ -18,6 +19,7 @@ router.get("/:eventId/availability", getEventAvailability);
 
 // Gestion del evento (staff/admin).
 router.patch("/:eventId", ...staffOrAdmin, updateEvent);
+router.delete("/:eventId", ...staffOrAdmin, deleteEvent);
 router.post("/:eventId/assign", ...staffOrAdmin, assignTableToUser);
 router.post("/:eventId/release", ...staffOrAdmin, releaseTable);
 

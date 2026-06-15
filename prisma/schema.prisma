@@ -169,26 +169,30 @@ model Club {
   @@index([isActive])
 }
 
-/// Mesa fisica de un boliche, con sus coordenadas en el mapa 2D.
+/// Mesa de un evento (plano propio por fecha). Cada evento empieza sin mesas;
+/// el staff las agrega desde el diseñador sobre la imagen o el lienzo 1725×2490.
 model ClubTable {
   id             String   @id @default(uuid())
   clubId         String
+  eventId        String? // Mesa exclusiva de un evento (null = legado, no se usa en mapas)
   label          String // Identificador visible (ej. "Mesa VIP 1")
   sector         String? // Sector/zona dentro del plano
   capacity       Int      @default(10) // Cantidad maxima de personas
   minConsumption Decimal? @db.Decimal(12, 2) // Consumicion minima
   price          Decimal  @db.Decimal(12, 2) // Precio total del alquiler
   depositPercent Int      @default(10) // % de sena (RN06, default 10%)
-  posX           Float // Coordenada X en el mapa 2D
+  posX           Float // Coordenada X en el mapa 2D (% si hay imagen, o % del lienzo)
   posY           Float // Coordenada Y en el mapa 2D
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   club         Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  event        EventNight?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   reservations Reservation[]
 
   @@index([clubId])
+  @@index([eventId])
 }
 
 /// Fecha/evento de un boliche. Una reserva siempre apunta a un evento concreto.
@@ -198,11 +202,13 @@ model EventNight {
   name       String
   date       DateTime
   musicGenre String?
+  backgroundImage String? // URL del plano/mapa del salon para este evento
   isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   club         Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  tables       ClubTable[]
   reservations Reservation[]
 
   @@index([clubId])

@@ -3,6 +3,7 @@ import { Prisma } from "../generated/prisma/client";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
+import { occupyingReservationFilter } from "../utils/reservation";
 import {
   asRecord,
   optionalString,
@@ -140,19 +141,49 @@ export const updateClub = async (
   }
 };
 
-/** DELETE /api/clubs/:id - Baja logica. */
-export const deactivateClub = async (
+/** DELETE /api/clubs/:id - Elimina el boliche y todos sus datos relacionados. */
+export const deleteClub = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
     const id = requireParam(req.params, "id");
-    const club = await prisma.club.update({
-      where: { id },
-      data: { isActive: false },
+    const club = await prisma.club.findUnique({ where: { id } });
+    if (club === null) {
+      throw new AppError("Boliche no encontrado", 404);
+    }
+
+    const activeReservations = await prisma.reservation.count({
+      where: { clubId: id, ...occupyingReservationFilter() },
     });
-    sendSuccess(res, club);
+    if (activeReservations > 0) {
+      throw new AppError(
+        "No se puede eliminar: el boliche tiene reservas activas",
+        400
+      );
+    }
+
+    const byClub = { clubId: id };
+    const byClubReservation = { reservation: byClub };
+
+    await prisma.$transaction([
+      prisma.payment.deleteMany({ where: byClubReservation }),
+      prisma.orderItem.deleteMany({
+        where: { order: byClubReservation },
+      }),
+      prisma.order.deleteMany({ where: byClubReservation }),
+      prisma.chatMessage.deleteMany({ where: byClubReservation }),
+      prisma.loyaltyTransaction.deleteMany({ where: byClub }),
+      prisma.reservationGuest.deleteMany({ where: byClubReservation }),
+      prisma.reservation.deleteMany({ where: byClub }),
+      prisma.product.deleteMany({ where: byClub }),
+      prisma.eventNight.deleteMany({ where: byClub }),
+      prisma.clubTable.deleteMany({ where: byClub }),
+      prisma.club.delete({ where: { id } }),
+    ]);
+
+    sendSuccess(res, { deleted: true, id });
   } catch (error) {
     next(error);
   }

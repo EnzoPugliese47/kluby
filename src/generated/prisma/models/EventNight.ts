@@ -30,6 +30,7 @@ export type EventNightMinAggregateOutputType = {
   name: string | null
   date: Date | null
   musicGenre: string | null
+  backgroundImage: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -41,6 +42,7 @@ export type EventNightMaxAggregateOutputType = {
   name: string | null
   date: Date | null
   musicGenre: string | null
+  backgroundImage: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -52,6 +54,7 @@ export type EventNightCountAggregateOutputType = {
   name: number
   date: number
   musicGenre: number
+  backgroundImage: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -65,6 +68,7 @@ export type EventNightMinAggregateInputType = {
   name?: true
   date?: true
   musicGenre?: true
+  backgroundImage?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -76,6 +80,7 @@ export type EventNightMaxAggregateInputType = {
   name?: true
   date?: true
   musicGenre?: true
+  backgroundImage?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -87,6 +92,7 @@ export type EventNightCountAggregateInputType = {
   name?: true
   date?: true
   musicGenre?: true
+  backgroundImage?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -171,6 +177,7 @@ export type EventNightGroupByOutputType = {
   name: string
   date: Date
   musicGenre: string | null
+  backgroundImage: string | null
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -203,10 +210,12 @@ export type EventNightWhereInput = {
   name?: Prisma.StringFilter<"EventNight"> | string
   date?: Prisma.DateTimeFilter<"EventNight"> | Date | string
   musicGenre?: Prisma.StringNullableFilter<"EventNight"> | string | null
+  backgroundImage?: Prisma.StringNullableFilter<"EventNight"> | string | null
   isActive?: Prisma.BoolFilter<"EventNight"> | boolean
   createdAt?: Prisma.DateTimeFilter<"EventNight"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventNight"> | Date | string
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
+  tables?: Prisma.ClubTableListRelationFilter
   reservations?: Prisma.ReservationListRelationFilter
 }
 
@@ -216,10 +225,12 @@ export type EventNightOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   date?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrderInput | Prisma.SortOrder
+  backgroundImage?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   club?: Prisma.ClubOrderByWithRelationInput
+  tables?: Prisma.ClubTableOrderByRelationAggregateInput
   reservations?: Prisma.ReservationOrderByRelationAggregateInput
 }
 
@@ -232,10 +243,12 @@ export type EventNightWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"EventNight"> | string
   date?: Prisma.DateTimeFilter<"EventNight"> | Date | string
   musicGenre?: Prisma.StringNullableFilter<"EventNight"> | string | null
+  backgroundImage?: Prisma.StringNullableFilter<"EventNight"> | string | null
   isActive?: Prisma.BoolFilter<"EventNight"> | boolean
   createdAt?: Prisma.DateTimeFilter<"EventNight"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventNight"> | Date | string
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
+  tables?: Prisma.ClubTableListRelationFilter
   reservations?: Prisma.ReservationListRelationFilter
 }, "id">
 
@@ -245,6 +258,7 @@ export type EventNightOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   date?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrderInput | Prisma.SortOrder
+  backgroundImage?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -262,6 +276,7 @@ export type EventNightScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"EventNight"> | string
   date?: Prisma.DateTimeWithAggregatesFilter<"EventNight"> | Date | string
   musicGenre?: Prisma.StringNullableWithAggregatesFilter<"EventNight"> | string | null
+  backgroundImage?: Prisma.StringNullableWithAggregatesFilter<"EventNight"> | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"EventNight"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EventNight"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EventNight"> | Date | string
@@ -272,10 +287,12 @@ export type EventNightCreateInput = {
   name: string
   date: Date | string
   musicGenre?: string | null
+  backgroundImage?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutEventsInput
+  tables?: Prisma.ClubTableCreateNestedManyWithoutEventInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutEventInput
 }
 
@@ -285,9 +302,11 @@ export type EventNightUncheckedCreateInput = {
   name: string
   date: Date | string
   musicGenre?: string | null
+  backgroundImage?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  tables?: Prisma.ClubTableUncheckedCreateNestedManyWithoutEventInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutEventInput
 }
 
@@ -296,10 +315,12 @@ export type EventNightUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutEventsNestedInput
+  tables?: Prisma.ClubTableUpdateManyWithoutEventNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutEventNestedInput
 }
 
@@ -309,9 +330,11 @@ export type EventNightUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tables?: Prisma.ClubTableUncheckedUpdateManyWithoutEventNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutEventNestedInput
 }
 
@@ -321,6 +344,7 @@ export type EventNightCreateManyInput = {
   name: string
   date: Date | string
   musicGenre?: string | null
+  backgroundImage?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -331,6 +355,7 @@ export type EventNightUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -342,6 +367,7 @@ export type EventNightUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -357,12 +383,18 @@ export type EventNightOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type EventNightNullableScalarRelationFilter = {
+  is?: Prisma.EventNightWhereInput | null
+  isNot?: Prisma.EventNightWhereInput | null
+}
+
 export type EventNightCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   date?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrder
+  backgroundImage?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -374,6 +406,7 @@ export type EventNightMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   date?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrder
+  backgroundImage?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -385,6 +418,7 @@ export type EventNightMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   date?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrder
+  backgroundImage?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -437,6 +471,22 @@ export type EventNightUncheckedUpdateManyWithoutClubNestedInput = {
   deleteMany?: Prisma.EventNightScalarWhereInput | Prisma.EventNightScalarWhereInput[]
 }
 
+export type EventNightCreateNestedOneWithoutTablesInput = {
+  create?: Prisma.XOR<Prisma.EventNightCreateWithoutTablesInput, Prisma.EventNightUncheckedCreateWithoutTablesInput>
+  connectOrCreate?: Prisma.EventNightCreateOrConnectWithoutTablesInput
+  connect?: Prisma.EventNightWhereUniqueInput
+}
+
+export type EventNightUpdateOneWithoutTablesNestedInput = {
+  create?: Prisma.XOR<Prisma.EventNightCreateWithoutTablesInput, Prisma.EventNightUncheckedCreateWithoutTablesInput>
+  connectOrCreate?: Prisma.EventNightCreateOrConnectWithoutTablesInput
+  upsert?: Prisma.EventNightUpsertWithoutTablesInput
+  disconnect?: Prisma.EventNightWhereInput | boolean
+  delete?: Prisma.EventNightWhereInput | boolean
+  connect?: Prisma.EventNightWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventNightUpdateToOneWithWhereWithoutTablesInput, Prisma.EventNightUpdateWithoutTablesInput>, Prisma.EventNightUncheckedUpdateWithoutTablesInput>
+}
+
 export type EventNightCreateNestedOneWithoutReservationsInput = {
   create?: Prisma.XOR<Prisma.EventNightCreateWithoutReservationsInput, Prisma.EventNightUncheckedCreateWithoutReservationsInput>
   connectOrCreate?: Prisma.EventNightCreateOrConnectWithoutReservationsInput
@@ -456,9 +506,11 @@ export type EventNightCreateWithoutClubInput = {
   name: string
   date: Date | string
   musicGenre?: string | null
+  backgroundImage?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  tables?: Prisma.ClubTableCreateNestedManyWithoutEventInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutEventInput
 }
 
@@ -467,9 +519,11 @@ export type EventNightUncheckedCreateWithoutClubInput = {
   name: string
   date: Date | string
   musicGenre?: string | null
+  backgroundImage?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  tables?: Prisma.ClubTableUncheckedCreateNestedManyWithoutEventInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutEventInput
 }
 
@@ -508,9 +562,78 @@ export type EventNightScalarWhereInput = {
   name?: Prisma.StringFilter<"EventNight"> | string
   date?: Prisma.DateTimeFilter<"EventNight"> | Date | string
   musicGenre?: Prisma.StringNullableFilter<"EventNight"> | string | null
+  backgroundImage?: Prisma.StringNullableFilter<"EventNight"> | string | null
   isActive?: Prisma.BoolFilter<"EventNight"> | boolean
   createdAt?: Prisma.DateTimeFilter<"EventNight"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EventNight"> | Date | string
+}
+
+export type EventNightCreateWithoutTablesInput = {
+  id?: string
+  name: string
+  date: Date | string
+  musicGenre?: string | null
+  backgroundImage?: string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  club: Prisma.ClubCreateNestedOneWithoutEventsInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutEventInput
+}
+
+export type EventNightUncheckedCreateWithoutTablesInput = {
+  id?: string
+  clubId: string
+  name: string
+  date: Date | string
+  musicGenre?: string | null
+  backgroundImage?: string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutEventInput
+}
+
+export type EventNightCreateOrConnectWithoutTablesInput = {
+  where: Prisma.EventNightWhereUniqueInput
+  create: Prisma.XOR<Prisma.EventNightCreateWithoutTablesInput, Prisma.EventNightUncheckedCreateWithoutTablesInput>
+}
+
+export type EventNightUpsertWithoutTablesInput = {
+  update: Prisma.XOR<Prisma.EventNightUpdateWithoutTablesInput, Prisma.EventNightUncheckedUpdateWithoutTablesInput>
+  create: Prisma.XOR<Prisma.EventNightCreateWithoutTablesInput, Prisma.EventNightUncheckedCreateWithoutTablesInput>
+  where?: Prisma.EventNightWhereInput
+}
+
+export type EventNightUpdateToOneWithWhereWithoutTablesInput = {
+  where?: Prisma.EventNightWhereInput
+  data: Prisma.XOR<Prisma.EventNightUpdateWithoutTablesInput, Prisma.EventNightUncheckedUpdateWithoutTablesInput>
+}
+
+export type EventNightUpdateWithoutTablesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  club?: Prisma.ClubUpdateOneRequiredWithoutEventsNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutEventNestedInput
+}
+
+export type EventNightUncheckedUpdateWithoutTablesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clubId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventNightCreateWithoutReservationsInput = {
@@ -518,10 +641,12 @@ export type EventNightCreateWithoutReservationsInput = {
   name: string
   date: Date | string
   musicGenre?: string | null
+  backgroundImage?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutEventsInput
+  tables?: Prisma.ClubTableCreateNestedManyWithoutEventInput
 }
 
 export type EventNightUncheckedCreateWithoutReservationsInput = {
@@ -530,9 +655,11 @@ export type EventNightUncheckedCreateWithoutReservationsInput = {
   name: string
   date: Date | string
   musicGenre?: string | null
+  backgroundImage?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  tables?: Prisma.ClubTableUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventNightCreateOrConnectWithoutReservationsInput = {
@@ -556,10 +683,12 @@ export type EventNightUpdateWithoutReservationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutEventsNestedInput
+  tables?: Prisma.ClubTableUpdateManyWithoutEventNestedInput
 }
 
 export type EventNightUncheckedUpdateWithoutReservationsInput = {
@@ -568,9 +697,11 @@ export type EventNightUncheckedUpdateWithoutReservationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tables?: Prisma.ClubTableUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventNightCreateManyClubInput = {
@@ -578,6 +709,7 @@ export type EventNightCreateManyClubInput = {
   name: string
   date: Date | string
   musicGenre?: string | null
+  backgroundImage?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -588,9 +720,11 @@ export type EventNightUpdateWithoutClubInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tables?: Prisma.ClubTableUpdateManyWithoutEventNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutEventNestedInput
 }
 
@@ -599,9 +733,11 @@ export type EventNightUncheckedUpdateWithoutClubInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tables?: Prisma.ClubTableUncheckedUpdateManyWithoutEventNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutEventNestedInput
 }
 
@@ -610,6 +746,7 @@ export type EventNightUncheckedUpdateManyWithoutClubInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -621,10 +758,12 @@ export type EventNightUncheckedUpdateManyWithoutClubInput = {
  */
 
 export type EventNightCountOutputType = {
+  tables: number
   reservations: number
 }
 
 export type EventNightCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  tables?: boolean | EventNightCountOutputTypeCountTablesArgs
   reservations?: boolean | EventNightCountOutputTypeCountReservationsArgs
 }
 
@@ -641,6 +780,13 @@ export type EventNightCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.E
 /**
  * EventNightCountOutputType without action
  */
+export type EventNightCountOutputTypeCountTablesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClubTableWhereInput
+}
+
+/**
+ * EventNightCountOutputType without action
+ */
 export type EventNightCountOutputTypeCountReservationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ReservationWhereInput
 }
@@ -652,10 +798,12 @@ export type EventNightSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   name?: boolean
   date?: boolean
   musicGenre?: boolean
+  backgroundImage?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  tables?: boolean | Prisma.EventNight$tablesArgs<ExtArgs>
   reservations?: boolean | Prisma.EventNight$reservationsArgs<ExtArgs>
   _count?: boolean | Prisma.EventNightCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["eventNight"]>
@@ -666,6 +814,7 @@ export type EventNightSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   name?: boolean
   date?: boolean
   musicGenre?: boolean
+  backgroundImage?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -678,6 +827,7 @@ export type EventNightSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   name?: boolean
   date?: boolean
   musicGenre?: boolean
+  backgroundImage?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -690,14 +840,16 @@ export type EventNightSelectScalar = {
   name?: boolean
   date?: boolean
   musicGenre?: boolean
+  backgroundImage?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EventNightOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clubId" | "name" | "date" | "musicGenre" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["eventNight"]>
+export type EventNightOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clubId" | "name" | "date" | "musicGenre" | "backgroundImage" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["eventNight"]>
 export type EventNightInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  tables?: boolean | Prisma.EventNight$tablesArgs<ExtArgs>
   reservations?: boolean | Prisma.EventNight$reservationsArgs<ExtArgs>
   _count?: boolean | Prisma.EventNightCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -712,6 +864,7 @@ export type $EventNightPayload<ExtArgs extends runtime.Types.Extensions.Internal
   name: "EventNight"
   objects: {
     club: Prisma.$ClubPayload<ExtArgs>
+    tables: Prisma.$ClubTablePayload<ExtArgs>[]
     reservations: Prisma.$ReservationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -720,6 +873,7 @@ export type $EventNightPayload<ExtArgs extends runtime.Types.Extensions.Internal
     name: string
     date: Date
     musicGenre: string | null
+    backgroundImage: string | null
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -1118,6 +1272,7 @@ readonly fields: EventNightFieldRefs;
 export interface Prisma__EventNightClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   club<T extends Prisma.ClubDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClubDefaultArgs<ExtArgs>>): Prisma.Prisma__ClubClient<runtime.Types.Result.GetResult<Prisma.$ClubPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  tables<T extends Prisma.EventNight$tablesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EventNight$tablesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClubTablePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reservations<T extends Prisma.EventNight$reservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EventNight$reservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1153,6 +1308,7 @@ export interface EventNightFieldRefs {
   readonly name: Prisma.FieldRef<"EventNight", 'String'>
   readonly date: Prisma.FieldRef<"EventNight", 'DateTime'>
   readonly musicGenre: Prisma.FieldRef<"EventNight", 'String'>
+  readonly backgroundImage: Prisma.FieldRef<"EventNight", 'String'>
   readonly isActive: Prisma.FieldRef<"EventNight", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"EventNight", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"EventNight", 'DateTime'>
@@ -1554,6 +1710,30 @@ export type EventNightDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Limit how many EventNights to delete.
    */
   limit?: number
+}
+
+/**
+ * EventNight.tables
+ */
+export type EventNight$tablesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClubTable
+   */
+  select?: Prisma.ClubTableSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClubTable
+   */
+  omit?: Prisma.ClubTableOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClubTableInclude<ExtArgs> | null
+  where?: Prisma.ClubTableWhereInput
+  orderBy?: Prisma.ClubTableOrderByWithRelationInput | Prisma.ClubTableOrderByWithRelationInput[]
+  cursor?: Prisma.ClubTableWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClubTableScalarFieldEnum | Prisma.ClubTableScalarFieldEnum[]
 }
 
 /**

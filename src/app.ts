@@ -4,13 +4,14 @@ import cors from "cors";
 import apiRoutes from "./routes";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler";
 
-/** Construye la aplicacion Express con middlewares y rutas montadas. */
+/** Construye la aplicacion Express con middlewares y rutas montadas (Kluby API). */
 export const createApp = (): Application => {
   const app = express();
 
   app.use(cors());
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  // Limite amplio para permitir subir imagenes (planos de salon) en base64.
+  app.use(express.json({ limit: "12mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "12mb" }));
 
   // Panel de estadisticas (frontend estatico) en la raiz "/".
   // En dev (__dirname = src) y en build (__dirname = dist) resuelve a /public.

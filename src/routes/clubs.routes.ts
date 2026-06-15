@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   createClub,
-  deactivateClub,
+  deleteClub,
   getClubById,
   listClubs,
   updateClub,
@@ -46,8 +46,8 @@ const staffOrAdmin = [
 
 router.post("/", ...adminOnly, createClub);
 router.patch("/:id", ...adminOnly, updateClub);
-router.delete("/:id", ...adminOnly, deactivateClub);
-router.post("/:clubId/tables", ...adminOnly, createTable);
+router.delete("/:id", ...adminOnly, deleteClub);
+router.post("/:clubId/tables", ...staffOrAdmin, createTable);
 router.post("/:clubId/events", ...staffOrAdmin, createEvent);
 router.post("/:clubId/products", ...adminOnly, createProduct);
 

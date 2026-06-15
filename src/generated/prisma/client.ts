@@ -57,7 +57,8 @@ export type PasswordResetToken = Prisma.PasswordResetTokenModel
 export type Club = Prisma.ClubModel
 /**
  * Model ClubTable
- * Mesa fisica de un boliche, con sus coordenadas en el mapa 2D.
+ * Mesa de un evento (plano propio por fecha). Cada evento empieza sin mesas;
+ * el staff las agrega desde el diseñador sobre la imagen o el lienzo 1725×2490.
  */
 export type ClubTable = Prisma.ClubTableModel
 /**

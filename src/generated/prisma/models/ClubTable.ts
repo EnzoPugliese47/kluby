@@ -14,7 +14,8 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model ClubTable
- * Mesa fisica de un boliche, con sus coordenadas en el mapa 2D.
+ * Mesa de un evento (plano propio por fecha). Cada evento empieza sin mesas;
+ * el staff las agrega desde el diseñador sobre la imagen o el lienzo 1725×2490.
  */
 export type ClubTableModel = runtime.Types.Result.DefaultSelection<Prisma.$ClubTablePayload>
 
@@ -47,6 +48,7 @@ export type ClubTableSumAggregateOutputType = {
 export type ClubTableMinAggregateOutputType = {
   id: string | null
   clubId: string | null
+  eventId: string | null
   label: string | null
   sector: string | null
   capacity: number | null
@@ -63,6 +65,7 @@ export type ClubTableMinAggregateOutputType = {
 export type ClubTableMaxAggregateOutputType = {
   id: string | null
   clubId: string | null
+  eventId: string | null
   label: string | null
   sector: string | null
   capacity: number | null
@@ -79,6 +82,7 @@ export type ClubTableMaxAggregateOutputType = {
 export type ClubTableCountAggregateOutputType = {
   id: number
   clubId: number
+  eventId: number
   label: number
   sector: number
   capacity: number
@@ -115,6 +119,7 @@ export type ClubTableSumAggregateInputType = {
 export type ClubTableMinAggregateInputType = {
   id?: true
   clubId?: true
+  eventId?: true
   label?: true
   sector?: true
   capacity?: true
@@ -131,6 +136,7 @@ export type ClubTableMinAggregateInputType = {
 export type ClubTableMaxAggregateInputType = {
   id?: true
   clubId?: true
+  eventId?: true
   label?: true
   sector?: true
   capacity?: true
@@ -147,6 +153,7 @@ export type ClubTableMaxAggregateInputType = {
 export type ClubTableCountAggregateInputType = {
   id?: true
   clubId?: true
+  eventId?: true
   label?: true
   sector?: true
   capacity?: true
@@ -250,6 +257,7 @@ export type ClubTableGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 export type ClubTableGroupByOutputType = {
   id: string
   clubId: string
+  eventId: string | null
   label: string
   sector: string | null
   capacity: number
@@ -289,6 +297,7 @@ export type ClubTableWhereInput = {
   NOT?: Prisma.ClubTableWhereInput | Prisma.ClubTableWhereInput[]
   id?: Prisma.StringFilter<"ClubTable"> | string
   clubId?: Prisma.StringFilter<"ClubTable"> | string
+  eventId?: Prisma.StringNullableFilter<"ClubTable"> | string | null
   label?: Prisma.StringFilter<"ClubTable"> | string
   sector?: Prisma.StringNullableFilter<"ClubTable"> | string | null
   capacity?: Prisma.IntFilter<"ClubTable"> | number
@@ -301,12 +310,14 @@ export type ClubTableWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"ClubTable"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClubTable"> | Date | string
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
+  event?: Prisma.XOR<Prisma.EventNightNullableScalarRelationFilter, Prisma.EventNightWhereInput> | null
   reservations?: Prisma.ReservationListRelationFilter
 }
 
 export type ClubTableOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrderInput | Prisma.SortOrder
   label?: Prisma.SortOrder
   sector?: Prisma.SortOrderInput | Prisma.SortOrder
   capacity?: Prisma.SortOrder
@@ -319,6 +330,7 @@ export type ClubTableOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   club?: Prisma.ClubOrderByWithRelationInput
+  event?: Prisma.EventNightOrderByWithRelationInput
   reservations?: Prisma.ReservationOrderByRelationAggregateInput
 }
 
@@ -328,6 +340,7 @@ export type ClubTableWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.ClubTableWhereInput[]
   NOT?: Prisma.ClubTableWhereInput | Prisma.ClubTableWhereInput[]
   clubId?: Prisma.StringFilter<"ClubTable"> | string
+  eventId?: Prisma.StringNullableFilter<"ClubTable"> | string | null
   label?: Prisma.StringFilter<"ClubTable"> | string
   sector?: Prisma.StringNullableFilter<"ClubTable"> | string | null
   capacity?: Prisma.IntFilter<"ClubTable"> | number
@@ -340,12 +353,14 @@ export type ClubTableWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"ClubTable"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ClubTable"> | Date | string
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
+  event?: Prisma.XOR<Prisma.EventNightNullableScalarRelationFilter, Prisma.EventNightWhereInput> | null
   reservations?: Prisma.ReservationListRelationFilter
 }, "id">
 
 export type ClubTableOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrderInput | Prisma.SortOrder
   label?: Prisma.SortOrder
   sector?: Prisma.SortOrderInput | Prisma.SortOrder
   capacity?: Prisma.SortOrder
@@ -370,6 +385,7 @@ export type ClubTableScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ClubTableScalarWhereWithAggregatesInput | Prisma.ClubTableScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"ClubTable"> | string
   clubId?: Prisma.StringWithAggregatesFilter<"ClubTable"> | string
+  eventId?: Prisma.StringNullableWithAggregatesFilter<"ClubTable"> | string | null
   label?: Prisma.StringWithAggregatesFilter<"ClubTable"> | string
   sector?: Prisma.StringNullableWithAggregatesFilter<"ClubTable"> | string | null
   capacity?: Prisma.IntWithAggregatesFilter<"ClubTable"> | number
@@ -387,7 +403,7 @@ export type ClubTableCreateInput = {
   id?: string
   label: string
   sector?: string | null
-  capacity: number
+  capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
@@ -397,15 +413,17 @@ export type ClubTableCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutTablesInput
+  event?: Prisma.EventNightCreateNestedOneWithoutTablesInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutTableInput
 }
 
 export type ClubTableUncheckedCreateInput = {
   id?: string
   clubId: string
+  eventId?: string | null
   label: string
   sector?: string | null
-  capacity: number
+  capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
@@ -431,12 +449,14 @@ export type ClubTableUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutTablesNestedInput
+  event?: Prisma.EventNightUpdateOneWithoutTablesNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutTableNestedInput
 }
 
 export type ClubTableUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label?: Prisma.StringFieldUpdateOperationsInput | string
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
@@ -454,9 +474,10 @@ export type ClubTableUncheckedUpdateInput = {
 export type ClubTableCreateManyInput = {
   id?: string
   clubId: string
+  eventId?: string | null
   label: string
   sector?: string | null
-  capacity: number
+  capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
@@ -485,6 +506,7 @@ export type ClubTableUpdateManyMutationInput = {
 export type ClubTableUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label?: Prisma.StringFieldUpdateOperationsInput | string
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
@@ -511,6 +533,7 @@ export type ClubTableOrderByRelationAggregateInput = {
 export type ClubTableCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrder
   label?: Prisma.SortOrder
   sector?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
@@ -536,6 +559,7 @@ export type ClubTableAvgOrderByAggregateInput = {
 export type ClubTableMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrder
   label?: Prisma.SortOrder
   sector?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
@@ -552,6 +576,7 @@ export type ClubTableMaxOrderByAggregateInput = {
 export type ClubTableMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrder
   label?: Prisma.SortOrder
   sector?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
@@ -645,6 +670,48 @@ export type FloatFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type ClubTableCreateNestedManyWithoutEventInput = {
+  create?: Prisma.XOR<Prisma.ClubTableCreateWithoutEventInput, Prisma.ClubTableUncheckedCreateWithoutEventInput> | Prisma.ClubTableCreateWithoutEventInput[] | Prisma.ClubTableUncheckedCreateWithoutEventInput[]
+  connectOrCreate?: Prisma.ClubTableCreateOrConnectWithoutEventInput | Prisma.ClubTableCreateOrConnectWithoutEventInput[]
+  createMany?: Prisma.ClubTableCreateManyEventInputEnvelope
+  connect?: Prisma.ClubTableWhereUniqueInput | Prisma.ClubTableWhereUniqueInput[]
+}
+
+export type ClubTableUncheckedCreateNestedManyWithoutEventInput = {
+  create?: Prisma.XOR<Prisma.ClubTableCreateWithoutEventInput, Prisma.ClubTableUncheckedCreateWithoutEventInput> | Prisma.ClubTableCreateWithoutEventInput[] | Prisma.ClubTableUncheckedCreateWithoutEventInput[]
+  connectOrCreate?: Prisma.ClubTableCreateOrConnectWithoutEventInput | Prisma.ClubTableCreateOrConnectWithoutEventInput[]
+  createMany?: Prisma.ClubTableCreateManyEventInputEnvelope
+  connect?: Prisma.ClubTableWhereUniqueInput | Prisma.ClubTableWhereUniqueInput[]
+}
+
+export type ClubTableUpdateManyWithoutEventNestedInput = {
+  create?: Prisma.XOR<Prisma.ClubTableCreateWithoutEventInput, Prisma.ClubTableUncheckedCreateWithoutEventInput> | Prisma.ClubTableCreateWithoutEventInput[] | Prisma.ClubTableUncheckedCreateWithoutEventInput[]
+  connectOrCreate?: Prisma.ClubTableCreateOrConnectWithoutEventInput | Prisma.ClubTableCreateOrConnectWithoutEventInput[]
+  upsert?: Prisma.ClubTableUpsertWithWhereUniqueWithoutEventInput | Prisma.ClubTableUpsertWithWhereUniqueWithoutEventInput[]
+  createMany?: Prisma.ClubTableCreateManyEventInputEnvelope
+  set?: Prisma.ClubTableWhereUniqueInput | Prisma.ClubTableWhereUniqueInput[]
+  disconnect?: Prisma.ClubTableWhereUniqueInput | Prisma.ClubTableWhereUniqueInput[]
+  delete?: Prisma.ClubTableWhereUniqueInput | Prisma.ClubTableWhereUniqueInput[]
+  connect?: Prisma.ClubTableWhereUniqueInput | Prisma.ClubTableWhereUniqueInput[]
+  update?: Prisma.ClubTableUpdateWithWhereUniqueWithoutEventInput | Prisma.ClubTableUpdateWithWhereUniqueWithoutEventInput[]
+  updateMany?: Prisma.ClubTableUpdateManyWithWhereWithoutEventInput | Prisma.ClubTableUpdateManyWithWhereWithoutEventInput[]
+  deleteMany?: Prisma.ClubTableScalarWhereInput | Prisma.ClubTableScalarWhereInput[]
+}
+
+export type ClubTableUncheckedUpdateManyWithoutEventNestedInput = {
+  create?: Prisma.XOR<Prisma.ClubTableCreateWithoutEventInput, Prisma.ClubTableUncheckedCreateWithoutEventInput> | Prisma.ClubTableCreateWithoutEventInput[] | Prisma.ClubTableUncheckedCreateWithoutEventInput[]
+  connectOrCreate?: Prisma.ClubTableCreateOrConnectWithoutEventInput | Prisma.ClubTableCreateOrConnectWithoutEventInput[]
+  upsert?: Prisma.ClubTableUpsertWithWhereUniqueWithoutEventInput | Prisma.ClubTableUpsertWithWhereUniqueWithoutEventInput[]
+  createMany?: Prisma.ClubTableCreateManyEventInputEnvelope
+  set?: Prisma.ClubTableWhereUniqueInput | Prisma.ClubTableWhereUniqueInput[]
+  disconnect?: Prisma.ClubTableWhereUniqueInput | Prisma.ClubTableWhereUniqueInput[]
+  delete?: Prisma.ClubTableWhereUniqueInput | Prisma.ClubTableWhereUniqueInput[]
+  connect?: Prisma.ClubTableWhereUniqueInput | Prisma.ClubTableWhereUniqueInput[]
+  update?: Prisma.ClubTableUpdateWithWhereUniqueWithoutEventInput | Prisma.ClubTableUpdateWithWhereUniqueWithoutEventInput[]
+  updateMany?: Prisma.ClubTableUpdateManyWithWhereWithoutEventInput | Prisma.ClubTableUpdateManyWithWhereWithoutEventInput[]
+  deleteMany?: Prisma.ClubTableScalarWhereInput | Prisma.ClubTableScalarWhereInput[]
+}
+
 export type ClubTableCreateNestedOneWithoutReservationsInput = {
   create?: Prisma.XOR<Prisma.ClubTableCreateWithoutReservationsInput, Prisma.ClubTableUncheckedCreateWithoutReservationsInput>
   connectOrCreate?: Prisma.ClubTableCreateOrConnectWithoutReservationsInput
@@ -663,7 +730,7 @@ export type ClubTableCreateWithoutClubInput = {
   id?: string
   label: string
   sector?: string | null
-  capacity: number
+  capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
@@ -672,14 +739,16 @@ export type ClubTableCreateWithoutClubInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  event?: Prisma.EventNightCreateNestedOneWithoutTablesInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutTableInput
 }
 
 export type ClubTableUncheckedCreateWithoutClubInput = {
   id?: string
+  eventId?: string | null
   label: string
   sector?: string | null
-  capacity: number
+  capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
@@ -723,6 +792,7 @@ export type ClubTableScalarWhereInput = {
   NOT?: Prisma.ClubTableScalarWhereInput | Prisma.ClubTableScalarWhereInput[]
   id?: Prisma.StringFilter<"ClubTable"> | string
   clubId?: Prisma.StringFilter<"ClubTable"> | string
+  eventId?: Prisma.StringNullableFilter<"ClubTable"> | string | null
   label?: Prisma.StringFilter<"ClubTable"> | string
   sector?: Prisma.StringNullableFilter<"ClubTable"> | string | null
   capacity?: Prisma.IntFilter<"ClubTable"> | number
@@ -736,11 +806,11 @@ export type ClubTableScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"ClubTable"> | Date | string
 }
 
-export type ClubTableCreateWithoutReservationsInput = {
+export type ClubTableCreateWithoutEventInput = {
   id?: string
   label: string
   sector?: string | null
-  capacity: number
+  capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
@@ -750,14 +820,76 @@ export type ClubTableCreateWithoutReservationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutTablesInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutTableInput
+}
+
+export type ClubTableUncheckedCreateWithoutEventInput = {
+  id?: string
+  clubId: string
+  label: string
+  sector?: string | null
+  capacity?: number
+  minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositPercent?: number
+  posX: number
+  posY: number
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutTableInput
+}
+
+export type ClubTableCreateOrConnectWithoutEventInput = {
+  where: Prisma.ClubTableWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClubTableCreateWithoutEventInput, Prisma.ClubTableUncheckedCreateWithoutEventInput>
+}
+
+export type ClubTableCreateManyEventInputEnvelope = {
+  data: Prisma.ClubTableCreateManyEventInput | Prisma.ClubTableCreateManyEventInput[]
+  skipDuplicates?: boolean
+}
+
+export type ClubTableUpsertWithWhereUniqueWithoutEventInput = {
+  where: Prisma.ClubTableWhereUniqueInput
+  update: Prisma.XOR<Prisma.ClubTableUpdateWithoutEventInput, Prisma.ClubTableUncheckedUpdateWithoutEventInput>
+  create: Prisma.XOR<Prisma.ClubTableCreateWithoutEventInput, Prisma.ClubTableUncheckedCreateWithoutEventInput>
+}
+
+export type ClubTableUpdateWithWhereUniqueWithoutEventInput = {
+  where: Prisma.ClubTableWhereUniqueInput
+  data: Prisma.XOR<Prisma.ClubTableUpdateWithoutEventInput, Prisma.ClubTableUncheckedUpdateWithoutEventInput>
+}
+
+export type ClubTableUpdateManyWithWhereWithoutEventInput = {
+  where: Prisma.ClubTableScalarWhereInput
+  data: Prisma.XOR<Prisma.ClubTableUpdateManyMutationInput, Prisma.ClubTableUncheckedUpdateManyWithoutEventInput>
+}
+
+export type ClubTableCreateWithoutReservationsInput = {
+  id?: string
+  label: string
+  sector?: string | null
+  capacity?: number
+  minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositPercent?: number
+  posX: number
+  posY: number
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  club: Prisma.ClubCreateNestedOneWithoutTablesInput
+  event?: Prisma.EventNightCreateNestedOneWithoutTablesInput
 }
 
 export type ClubTableUncheckedCreateWithoutReservationsInput = {
   id?: string
   clubId: string
+  eventId?: string | null
   label: string
   sector?: string | null
-  capacity: number
+  capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
@@ -798,11 +930,13 @@ export type ClubTableUpdateWithoutReservationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutTablesNestedInput
+  event?: Prisma.EventNightUpdateOneWithoutTablesNestedInput
 }
 
 export type ClubTableUncheckedUpdateWithoutReservationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label?: Prisma.StringFieldUpdateOperationsInput | string
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
@@ -818,9 +952,10 @@ export type ClubTableUncheckedUpdateWithoutReservationsInput = {
 
 export type ClubTableCreateManyClubInput = {
   id?: string
+  eventId?: string | null
   label: string
   sector?: string | null
-  capacity: number
+  capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
@@ -844,11 +979,13 @@ export type ClubTableUpdateWithoutClubInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event?: Prisma.EventNightUpdateOneWithoutTablesNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutTableNestedInput
 }
 
 export type ClubTableUncheckedUpdateWithoutClubInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   label?: Prisma.StringFieldUpdateOperationsInput | string
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
@@ -865,6 +1002,73 @@ export type ClubTableUncheckedUpdateWithoutClubInput = {
 
 export type ClubTableUncheckedUpdateManyWithoutClubInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  label?: Prisma.StringFieldUpdateOperationsInput | string
+  sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  posX?: Prisma.FloatFieldUpdateOperationsInput | number
+  posY?: Prisma.FloatFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ClubTableCreateManyEventInput = {
+  id?: string
+  clubId: string
+  label: string
+  sector?: string | null
+  capacity?: number
+  minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositPercent?: number
+  posX: number
+  posY: number
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ClubTableUpdateWithoutEventInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.StringFieldUpdateOperationsInput | string
+  sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  posX?: Prisma.FloatFieldUpdateOperationsInput | number
+  posY?: Prisma.FloatFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  club?: Prisma.ClubUpdateOneRequiredWithoutTablesNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutTableNestedInput
+}
+
+export type ClubTableUncheckedUpdateWithoutEventInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clubId?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.StringFieldUpdateOperationsInput | string
+  sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
+  posX?: Prisma.FloatFieldUpdateOperationsInput | number
+  posY?: Prisma.FloatFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutTableNestedInput
+}
+
+export type ClubTableUncheckedUpdateManyWithoutEventInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clubId?: Prisma.StringFieldUpdateOperationsInput | string
   label?: Prisma.StringFieldUpdateOperationsInput | string
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
@@ -912,6 +1116,7 @@ export type ClubTableCountOutputTypeCountReservationsArgs<ExtArgs extends runtim
 export type ClubTableSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   clubId?: boolean
+  eventId?: boolean
   label?: boolean
   sector?: boolean
   capacity?: boolean
@@ -924,6 +1129,7 @@ export type ClubTableSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   createdAt?: boolean
   updatedAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.ClubTable$eventArgs<ExtArgs>
   reservations?: boolean | Prisma.ClubTable$reservationsArgs<ExtArgs>
   _count?: boolean | Prisma.ClubTableCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["clubTable"]>
@@ -931,6 +1137,7 @@ export type ClubTableSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type ClubTableSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   clubId?: boolean
+  eventId?: boolean
   label?: boolean
   sector?: boolean
   capacity?: boolean
@@ -943,11 +1150,13 @@ export type ClubTableSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   createdAt?: boolean
   updatedAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.ClubTable$eventArgs<ExtArgs>
 }, ExtArgs["result"]["clubTable"]>
 
 export type ClubTableSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   clubId?: boolean
+  eventId?: boolean
   label?: boolean
   sector?: boolean
   capacity?: boolean
@@ -960,11 +1169,13 @@ export type ClubTableSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   createdAt?: boolean
   updatedAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.ClubTable$eventArgs<ExtArgs>
 }, ExtArgs["result"]["clubTable"]>
 
 export type ClubTableSelectScalar = {
   id?: boolean
   clubId?: boolean
+  eventId?: boolean
   label?: boolean
   sector?: boolean
   capacity?: boolean
@@ -978,28 +1189,33 @@ export type ClubTableSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ClubTableOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clubId" | "label" | "sector" | "capacity" | "minConsumption" | "price" | "depositPercent" | "posX" | "posY" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["clubTable"]>
+export type ClubTableOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clubId" | "eventId" | "label" | "sector" | "capacity" | "minConsumption" | "price" | "depositPercent" | "posX" | "posY" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["clubTable"]>
 export type ClubTableInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.ClubTable$eventArgs<ExtArgs>
   reservations?: boolean | Prisma.ClubTable$reservationsArgs<ExtArgs>
   _count?: boolean | Prisma.ClubTableCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClubTableIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.ClubTable$eventArgs<ExtArgs>
 }
 export type ClubTableIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.ClubTable$eventArgs<ExtArgs>
 }
 
 export type $ClubTablePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ClubTable"
   objects: {
     club: Prisma.$ClubPayload<ExtArgs>
+    event: Prisma.$EventNightPayload<ExtArgs> | null
     reservations: Prisma.$ReservationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     clubId: string
+    eventId: string | null
     label: string
     sector: string | null
     capacity: number
@@ -1406,6 +1622,7 @@ readonly fields: ClubTableFieldRefs;
 export interface Prisma__ClubTableClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   club<T extends Prisma.ClubDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClubDefaultArgs<ExtArgs>>): Prisma.Prisma__ClubClient<runtime.Types.Result.GetResult<Prisma.$ClubPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  event<T extends Prisma.ClubTable$eventArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClubTable$eventArgs<ExtArgs>>): Prisma.Prisma__EventNightClient<runtime.Types.Result.GetResult<Prisma.$EventNightPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   reservations<T extends Prisma.ClubTable$reservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClubTable$reservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1438,6 +1655,7 @@ export interface Prisma__ClubTableClient<T, Null = never, ExtArgs extends runtim
 export interface ClubTableFieldRefs {
   readonly id: Prisma.FieldRef<"ClubTable", 'String'>
   readonly clubId: Prisma.FieldRef<"ClubTable", 'String'>
+  readonly eventId: Prisma.FieldRef<"ClubTable", 'String'>
   readonly label: Prisma.FieldRef<"ClubTable", 'String'>
   readonly sector: Prisma.FieldRef<"ClubTable", 'String'>
   readonly capacity: Prisma.FieldRef<"ClubTable", 'Int'>
@@ -1847,6 +2065,25 @@ export type ClubTableDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Limit how many ClubTables to delete.
    */
   limit?: number
+}
+
+/**
+ * ClubTable.event
+ */
+export type ClubTable$eventArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventNight
+   */
+  select?: Prisma.EventNightSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EventNight
+   */
+  omit?: Prisma.EventNightOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventNightInclude<ExtArgs> | null
+  where?: Prisma.EventNightWhereInput
 }
 
 /**

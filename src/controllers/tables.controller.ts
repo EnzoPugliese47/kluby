@@ -30,6 +30,7 @@ export const createTable = async (
     const sector = optionalString(body, "sector");
     const minConsumption = optionalNumber(body, "minConsumption");
     const depositPercent = optionalNumber(body, "depositPercent");
+    const eventId = optionalString(body, "eventId");
 
     if (capacity <= 0) {
       throw new AppError("La capacidad debe ser mayor a cero", 400);
@@ -49,9 +50,17 @@ export const createTable = async (
       throw new AppError("Boliche no encontrado", 404);
     }
 
+    if (eventId !== undefined) {
+      const event = await prisma.eventNight.findUnique({ where: { id: eventId } });
+      if (event === null || event.clubId !== clubId) {
+        throw new AppError("El evento no pertenece a este boliche", 400);
+      }
+    }
+
     const table = await prisma.clubTable.create({
       data: {
         clubId,
+        eventId: eventId ?? null,
         label,
         capacity,
         posX,
