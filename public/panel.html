@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kluby · Panel de Estadísticas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+      :root {
+        --bg: #0a0a0f;
+        --surface: #14141f;
+        --surface-2: #1c1c2b;
+        --border: #2a2a3d;
+        --text: #e8e8f0;
+        --muted: #8a8aa3;
+        --primary: #7c5cff;
+        --primary-2: #c44bff;
+        --accent: #2de2c6;
+        --pink: #ff4d8d;
+        --amber: #ffb454;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        background: radial-gradient(1200px 600px at 80% -10%, #1b1140 0%, transparent 60%),
+                    radial-gradient(900px 500px at -10% 10%, #11203a 0%, transparent 55%),
+                    var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+      a { color: var(--primary); }
+      .brand { display: flex; align-items: center; gap: 12px; }
+      .logo {
+        width: 40px; height: 40px; border-radius: 11px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-2));
+        display: grid; place-items: center; font-weight: 800; font-size: 20px;
+        box-shadow: 0 6px 20px rgba(124, 92, 255, 0.45);
+      }
+      .brand h1 { font-size: 18px; letter-spacing: 0.5px; }
+      .brand span { color: var(--muted); font-size: 12px; }
+
+      /* Login */
+      #login-view {
+        min-height: 100vh; display: grid; place-items: center; padding: 20px;
+      }
+      .card {
+        background: linear-gradient(180deg, var(--surface), var(--surface-2));
+        border: 1px solid var(--border); border-radius: 16px;
+      }
+      .login-card { width: 100%; max-width: 380px; padding: 32px; }
+      .login-card .brand { justify-content: center; margin-bottom: 24px; }
+      label { display: block; font-size: 13px; color: var(--muted); margin: 14px 0 6px; }
+      input, select {
+        width: 100%; padding: 12px 14px; border-radius: 10px;
+        background: #0e0e16; border: 1px solid var(--border); color: var(--text);
+        font-size: 14px; outline: none;
+      }
+      input:focus, select:focus { border-color: var(--primary); }
+      button {
+        cursor: pointer; border: none; border-radius: 10px; font-weight: 600;
+        color: white; padding: 12px 16px; font-size: 14px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-2));
+        transition: transform 0.08s ease, opacity 0.2s;
+      }
+      button:hover { opacity: 0.92; }
+      button:active { transform: translateY(1px); }
+      .btn-full { width: 100%; margin-top: 22px; }
+      .ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+      .error { color: var(--pink); font-size: 13px; margin-top: 12px; min-height: 16px; }
+      .hint { color: var(--muted); font-size: 12px; margin-top: 18px; text-align: center; line-height: 1.6; }
+
+      /* Dashboard */
+      #app-view { display: none; }
+      .topbar {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 16px 28px; border-bottom: 1px solid var(--border);
+        position: sticky; top: 0; backdrop-filter: blur(8px); background: rgba(10,10,15,0.7); z-index: 5;
+      }
+      .topbar .right { display: flex; align-items: center; gap: 14px; }
+      .who { text-align: right; font-size: 13px; }
+      .who b { display: block; }
+      .who small { color: var(--muted); }
+      .container { padding: 28px; max-width: 1280px; margin: 0 auto; }
+      .controls { display: flex; gap: 14px; align-items: end; flex-wrap: wrap; margin-bottom: 24px; }
+      .controls .field { min-width: 260px; }
+      .controls label { margin-top: 0; }
+
+      .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px; }
+      .kpi { padding: 20px; }
+      .kpi .k-label { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+      .kpi .k-value { font-size: 28px; font-weight: 800; margin-top: 8px; }
+      .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+      .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+      .panel { padding: 20px; }
+      .panel h3 { font-size: 14px; margin-bottom: 4px; }
+      .panel p.sub { color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+      .col-8 { grid-column: span 8; }
+      .col-6 { grid-column: span 6; }
+      .col-4 { grid-column: span 4; }
+      .chart-wrap { position: relative; height: 280px; }
+      @media (max-width: 980px) { .col-8, .col-6, .col-4 { grid-column: span 12; } }
+
+      .empty { color: var(--muted); font-size: 13px; text-align: center; padding: 40px 0; }
+
+      /* Tabs de navegacion */
+      .tabs { display: flex; gap: 8px; }
+      .tab {
+        background: transparent; border: 1px solid var(--border); color: var(--muted);
+        padding: 9px 16px; border-radius: 10px; font-size: 13px;
+      }
+      .tab.active { background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; border-color: transparent; }
+      .view { display: none; }
+      .view.active { display: block; }
+
+      /* Botones extra */
+      .btn-sm { padding: 7px 12px; font-size: 12px; border-radius: 8px; }
+      .btn-danger { background: linear-gradient(135deg, #ff4d6d, #c4344f); }
+      .btn-accent { background: linear-gradient(135deg, var(--accent), #1fb39c); color: #04201c; }
+      .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+      /* Tabla de datos */
+      table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+      table.data th, table.data td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+      table.data th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
+      table.data tr:hover td { background: rgba(255,255,255,0.02); }
+      .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+      .badge.green { background: rgba(45,226,198,0.16); color: var(--accent); }
+      .badge.red { background: rgba(255,77,141,0.16); color: var(--pink); }
+      .badge.muted { background: var(--surface-2); color: var(--muted); }
+      .badge.amber { background: rgba(255,180,84,0.16); color: var(--amber); }
+      .badge.violet { background: rgba(124,92,255,0.2); color: #b6a4ff; }
+      .role-pill { font-size: 11px; color: var(--muted); }
+
+      /* Modal */
+      .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; place-items: center; z-index: 50; padding: 20px; }
+      .overlay.show { display: grid; }
+      .modal { width: 100%; max-width: 460px; padding: 26px; max-height: 88vh; overflow: auto; }
+      .modal h3 { margin-bottom: 6px; }
+      .modal .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+
+      /* Grilla de mesas del evento */
+      .tables-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+      .table-card { padding: 16px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface-2); }
+      .table-card.free { border-color: rgba(45,226,198,0.4); }
+      .table-card.taken { border-color: rgba(255,77,141,0.35); }
+      .table-card .t-name { font-weight: 700; font-size: 15px; }
+      .table-card .t-meta { color: var(--muted); font-size: 12px; margin: 6px 0 12px; line-height: 1.5; }
+      .pick-list { max-height: 260px; overflow: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+      .pick-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; }
+      .pick-row small { color: var(--muted); display: block; }
+    </style>
+  </head>
+  <body>
+    <!-- LOGIN -->
+    <div id="login-view">
+      <div class="card login-card">
+        <div class="brand">
+          <div class="logo">K</div>
+          <div>
+            <h1>KLUBY</h1>
+            <span>Panel de Inteligencia de Negocios</span>
+          </div>
+        </div>
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="admin@kluby.com" value="admin@kluby.com" />
+        <label for="password">Contraseña</label>
+        <input id="password" type="password" placeholder="••••••••" value="password123" />
+        <button class="btn-full" onclick="login()">Ingresar</button>
+        <div class="error" id="login-error"></div>
+        <p class="hint">Acceso exclusivo para administradores de boliche.<br />Demo: <b>admin@kluby.com</b> / <b>password123</b></p>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="app-view">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo">K</div>
+          <div>
+            <h1>KLUBY</h1>
+            <span>Panel de Gestión</span>
+          </div>
+        </div>
+        <div class="tabs" id="tabs">
+          <button class="tab" id="tab-stats" onclick="showView('stats')">Estadísticas</button>
+          <button class="tab active" id="tab-users" onclick="showView('users')">Usuarios</button>
+          <button class="tab" id="tab-events" onclick="showView('events')">Eventos</button>
+        </div>
+        <div class="right">
+          <div class="who">
+            <b id="who-name">—</b>
+            <small id="who-role">—</small>
+          </div>
+          <a class="ghost" href="/" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">Sitio cliente</a>
+          <a class="ghost" href="/staff.html" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">Staff</a>
+          <button class="ghost" onclick="logout()">Salir</button>
+        </div>
+      </div>
+
+      <!-- VISTA: ESTADÍSTICAS -->
+      <div class="container view" id="view-stats">
+        <div class="controls">
+          <div class="field">
+            <label for="club-select">Boliche</label>
+            <select id="club-select" onchange="loadDashboard()"></select>
+          </div>
+          <button class="ghost" onclick="loadDashboard()">↻ Actualizar</button>
+        </div>
+
+        <div class="kpis" id="kpis"></div>
+
+        <div class="grid">
+          <div class="card panel col-8">
+            <h3>Recaudación por día</h3>
+            <p class="sub">Evolución de ingresos confirmados</p>
+            <div class="chart-wrap"><canvas id="chart-sales"></canvas></div>
+          </div>
+          <div class="card panel col-4">
+            <h3>¿Qué días se vende más?</h3>
+            <p class="sub">Ingresos por día de la semana</p>
+            <div class="chart-wrap"><canvas id="chart-weekday"></canvas></div>
+          </div>
+
+          <div class="card panel col-6">
+            <h3>Mesas más reservadas</h3>
+            <p class="sub">Ranking por cantidad de reservas</p>
+            <div class="chart-wrap"><canvas id="chart-tables"></canvas></div>
+          </div>
+          <div class="card panel col-6">
+            <h3>Bebidas más vendidas</h3>
+            <p class="sub">Top de productos por unidades</p>
+            <div class="chart-wrap"><canvas id="chart-products"></canvas></div>
+          </div>
+
+          <div class="card panel col-6">
+            <h3>Composición de ingresos</h3>
+            <p class="sub">Desglose por tipo de pago</p>
+            <div class="chart-wrap"><canvas id="chart-types"></canvas></div>
+          </div>
+          <div class="card panel col-6">
+            <h3>Resumen</h3>
+            <p class="sub">Indicadores del boliche seleccionado</p>
+            <div id="summary" class="empty">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA: USUARIOS -->
+      <div class="container view active" id="view-users">
+        <div class="controls">
+          <div class="field" style="flex:1;min-width:280px">
+            <label for="user-search">Buscar usuario</label>
+            <input id="user-search" placeholder="Nombre, email o teléfono..." oninput="debouncedUsers()" />
+          </div>
+          <button class="ghost" onclick="loadUsers()">↻ Actualizar</button>
+        </div>
+        <div class="card panel" style="padding:0;overflow:hidden">
+          <div id="users-table"><div class="empty">Cargando...</div></div>
+        </div>
+      </div>
+
+      <!-- VISTA: EVENTOS -->
+      <div class="container view" id="view-events">
+        <div class="controls">
+          <div class="field">
+            <label for="event-club-select">Boliche</label>
+            <select id="event-club-select" onchange="loadEvents()"></select>
+          </div>
+          <button class="btn-sm" onclick="openEventForm()">+ Agregar evento</button>
+          <button class="ghost" onclick="loadEvents()">↻ Actualizar</button>
+        </div>
+        <div id="events-area"><div class="empty">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+      <div class="card modal" id="modal-content"></div>
+    </div>
+    <div class="toast" id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:12px 20px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60"></div>
+
+    <script>
+      const API = "/api";
+      let token = localStorage.getItem("kluby_token") || "";
+      let currentUser = JSON.parse(localStorage.getItem("kluby_user") || "null");
+      const charts = {};
+
+      const fmtMoney = (n) =>
+        new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n || 0);
+      const fmtNum = (n) => new Intl.NumberFormat("es-AR").format(n || 0);
+
+      const PALETTE = ["#7c5cff", "#c44bff", "#2de2c6", "#ff4d8d", "#ffb454", "#4d9bff", "#6be585"];
+
+      async function api(path, options = {}) {
+        const res = await fetch(API + path, {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: "Bearer " + token } : {}),
+            ...(options.headers || {}),
+          },
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          throw new Error(json.error || "Error " + res.status);
+        }
+        return json.data;
+      }
+
+      async function login() {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const errEl = document.getElementById("login-error");
+        errEl.textContent = "";
+        try {
+          const data = await api("/users/login", { method: "POST", body: JSON.stringify({ email, password }) });
+          if (!["CLUB_ADMIN", "SUPER_ADMIN", "STAFF"].includes(data.user.role)) {
+            errEl.textContent = "Este panel es solo para personal del boliche.";
+            return;
+          }
+          token = data.token;
+          currentUser = data.user;
+          localStorage.setItem("kluby_token", token);
+          localStorage.setItem("kluby_user", JSON.stringify(currentUser));
+          enterApp();
+        } catch (e) {
+          errEl.textContent = e.message;
+        }
+      }
+
+      function logout() {
+        token = "";
+        currentUser = null;
+        localStorage.removeItem("kluby_token");
+        localStorage.removeItem("kluby_user");
+        document.getElementById("app-view").style.display = "none";
+        document.getElementById("login-view").style.display = "grid";
+      }
+
+      const isAdmin = () => ["CLUB_ADMIN", "SUPER_ADMIN"].includes(currentUser?.role);
+
+      async function enterApp() {
+        document.getElementById("login-view").style.display = "none";
+        document.getElementById("app-view").style.display = "block";
+        document.getElementById("who-name").textContent = currentUser?.fullName || "—";
+        document.getElementById("who-role").textContent = currentUser?.role || "—";
+        // Las estadísticas son solo para administradores.
+        document.getElementById("tab-stats").style.display = isAdmin() ? "" : "none";
+        await loadClubs();
+        showView(isAdmin() ? "stats" : "users");
+      }
+
+      function showView(name) {
+        if (name === "stats" && !isAdmin()) name = "users";
+        ["stats", "users", "events"].forEach((v) => {
+          document.getElementById("view-" + v).classList.toggle("active", v === name);
+          document.getElementById("tab-" + v).classList.toggle("active", v === name);
+        });
+        if (name === "stats") loadDashboard();
+        if (name === "users") loadUsers();
+        if (name === "events") loadEvents();
+      }
+
+      async function loadClubs() {
+        const clubs = await api("/clubs");
+        ["club-select", "event-club-select"].forEach((selId) => {
+          const sel = document.getElementById(selId);
+          if (!sel) return;
+          sel.innerHTML = "";
+          if (!clubs.length) { sel.innerHTML = '<option value="">(sin boliches)</option>'; return; }
+          clubs.forEach((c) => {
+            const opt = document.createElement("option");
+            opt.value = c.id;
+            opt.textContent = c.name + " · " + c.city;
+            sel.appendChild(opt);
+          });
+        });
+      }
+
+      // ---------- Helpers UI ----------
+      let toastTimer;
+      function toast(msg, kind = "") {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.style.borderColor = kind === "err" ? "var(--pink)" : kind === "ok" ? "var(--accent)" : "var(--border)";
+        t.style.opacity = "1";
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => (t.style.opacity = "0"), 3000);
+      }
+      function openModal(html) {
+        document.getElementById("modal-content").innerHTML = html;
+        document.getElementById("overlay").classList.add("show");
+      }
+      function closeModal() { document.getElementById("overlay").classList.remove("show"); }
+      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const fdt = (d) => new Date(d).toLocaleString("es-AR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+      const ROLE_LABEL = { CLIENT: "Cliente", STAFF: "Staff", CLUB_ADMIN: "Admin", SUPER_ADMIN: "Super Admin" };
+
+      // ---------- USUARIOS ----------
+      let usersTimer;
+      function debouncedUsers() { clearTimeout(usersTimer); usersTimer = setTimeout(loadUsers, 300); }
+
+      async function loadUsers() {
+        const search = document.getElementById("user-search")?.value.trim() || "";
+        const cont = document.getElementById("users-table");
+        try {
+          const users = await api("/users" + (search ? "?search=" + encodeURIComponent(search) : ""));
+          if (!users.length) { cont.innerHTML = '<div class="empty">No se encontraron usuarios.</div>'; return; }
+          cont.innerHTML = `
+            <table class="data">
+              <thead><tr><th>Usuario</th><th>Contacto</th><th>Rol</th><th>Reservas</th><th>Estado</th><th></th></tr></thead>
+              <tbody>${users.map(userRow).join("")}</tbody>
+            </table>`;
+        } catch (e) {
+          if (String(e.message).includes("401")) return logout();
+          cont.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+      function userRow(u) {
+        const reservas = (u._count?.reservations || 0) + (u._count?.guestEntries || 0);
+        const canBan = !["CLUB_ADMIN", "SUPER_ADMIN"].includes(u.role) && u.id !== currentUser.id;
+        const action = !canBan ? "" : u.isActive
+          ? `<button class="btn-sm btn-danger" onclick="banUser('${u.id}')">Banear</button>`
+          : `<button class="btn-sm btn-accent" onclick="unbanUser('${u.id}')">Reactivar</button>`;
+        return `<tr>
+          <td><b>${esc(u.fullName)}</b></td>
+          <td>${esc(u.email)}<br/><span class="role-pill">${esc(u.phone || "sin teléfono")}</span></td>
+          <td>${ROLE_LABEL[u.role] || u.role}</td>
+          <td>${reservas}</td>
+          <td>${u.isActive ? '<span class="badge green">Activo</span>' : '<span class="badge red">Baneado</span>'}</td>
+          <td><div class="btn-row"><button class="btn-sm ghost" onclick="viewUserTables('${u.id}','${esc(u.fullName)}')">Ver mesas</button>${action}</div></td>
+        </tr>`;
+      }
+      async function banUser(id) {
+        if (!confirm("¿Banear a este usuario? No podrá iniciar sesión ni reservar.")) return;
+        try { await api("/users/" + id + "/ban", { method: "POST" }); toast("Usuario baneado", "ok"); loadUsers(); }
+        catch (e) { toast(e.message, "err"); }
+      }
+      async function unbanUser(id) {
+        try { await api("/users/" + id + "/unban", { method: "POST" }); toast("Usuario reactivado", "ok"); loadUsers(); }
+        catch (e) { toast(e.message, "err"); }
+      }
+      async function viewUserTables(id, name) {
+        openModal('<div class="empty">Cargando...</div>');
+        try {
+          const d = await api("/users/" + id + "/tables");
+          const hostRows = d.asHost.map((r) => `
+            <div class="pick-row"><div>
+              <b>${esc(r.table.label)}</b> · ${esc(r.club.name)}
+              <small>${esc(r.event.name)} · ${fdt(r.event.date)}</small>
+            </div>${resBadge(r.status)}</div>`).join("") || '<div class="empty">No es anfitrión de ninguna mesa.</div>';
+          const guestRows = d.asGuest.map((g) => `
+            <div class="pick-row"><div>
+              <b>${esc(g.reservation.table.label)}</b> · ${esc(g.reservation.club.name)}
+              <small>${esc(g.reservation.event.name)} · ${fdt(g.reservation.event.date)} · anfitrión: ${esc(g.reservation.host.fullName)}</small>
+            </div>${guestBadge(g.status)}</div>`).join("") || '<div class="empty">No está como invitado en ninguna mesa.</div>';
+          openModal(`
+            <h3>Mesas de ${esc(name)}</h3>
+            <p class="sub">Reservas como anfitrión e ingresos a mesas abiertas.</p>
+            <label style="margin-top:0">Como anfitrión</label>
+            <div class="pick-list">${hostRows}</div>
+            <label>Como invitado</label>
+            <div class="pick-list">${guestRows}</div>
+            <button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`);
+        } catch (e) { openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`); }
+      }
+      const RES_STATUS = { PENDING_PAYMENT: ["amber", "Sin pagar"], CONFIRMED: ["green", "Confirmada"], CHECKED_IN: ["violet", "Ingresado"], COMPLETED: ["muted", "Finalizada"], CANCELLED: ["red", "Cancelada"], EXPIRED: ["muted", "Expirada"] };
+      function resBadge(s) { const [c, l] = RES_STATUS[s] || ["muted", s]; return `<span class="badge ${c}">${l}</span>`; }
+      const GUEST_STATUS = { REQUESTED: ["amber", "Solicitado"], ACCEPTED_PENDING_PAYMENT: ["violet", "Aceptado"], CONFIRMED: ["green", "Confirmado"], REJECTED: ["red", "Rechazado"], CANCELLED: ["muted", "Cancelado"] };
+      function guestBadge(s) { const [c, l] = GUEST_STATUS[s] || ["muted", s]; return `<span class="badge ${c}">${l}</span>`; }
+
+      // ---------- EVENTOS ----------
+      async function loadEvents() {
+        const clubId = document.getElementById("event-club-select").value;
+        const area = document.getElementById("events-area");
+        if (!clubId) { area.innerHTML = '<div class="empty">Seleccioná un boliche.</div>'; return; }
+        try {
+          const events = await api("/clubs/" + clubId + "/events");
+          if (!events.length) { area.innerHTML = '<div class="empty">Este boliche no tiene eventos. Agregá uno con el botón de arriba.</div>'; return; }
+          area.innerHTML = `<div class="card panel" style="padding:0;overflow:hidden"><table class="data">
+            <thead><tr><th>Evento</th><th>Fecha</th><th>Género</th><th></th></tr></thead>
+            <tbody>${events.map(eventRow).join("")}</tbody></table></div>`;
+        } catch (e) {
+          if (String(e.message).includes("401")) return logout();
+          area.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+      function eventRow(e) {
+        return `<tr>
+          <td><b>${esc(e.name)}</b></td>
+          <td>${fdt(e.date)}</td>
+          <td>${esc(e.musicGenre || "—")}</td>
+          <td><div class="btn-row">
+            <button class="btn-sm btn-accent" onclick='openEventTables(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Ver mesas</button>
+            <button class="btn-sm ghost" onclick='openEventForm(${JSON.stringify(e)})'>Editar</button>
+          </div></td>
+        </tr>`;
+      }
+      function toLocalInput(d) {
+        const dt = d ? new Date(d) : new Date();
+        const off = dt.getTimezoneOffset();
+        return new Date(dt.getTime() - off * 60000).toISOString().slice(0, 16);
+      }
+      function openEventForm(ev) {
+        const editing = ev && ev.id;
+        openModal(`
+          <h3>${editing ? "Editar evento" : "Nuevo evento"}</h3>
+          <p class="sub">${editing ? "Modificá los datos de la fecha." : "Creá una nueva fecha para el boliche seleccionado."}</p>
+          <label style="margin-top:0">Nombre</label>
+          <input id="ev-name" value="${editing ? esc(ev.name) : ""}" placeholder="Ej. Saturday Night" />
+          <label>Fecha y hora</label>
+          <input id="ev-date" type="datetime-local" value="${toLocalInput(editing ? ev.date : null)}" />
+          <label>Género musical</label>
+          <input id="ev-genre" value="${editing && ev.musicGenre ? esc(ev.musicGenre) : ""}" placeholder="Ej. Electrónica" />
+          <div class="btn-row" style="margin-top:20px">
+            <button class="ghost" onclick="closeModal()">Cancelar</button>
+            <button style="flex:1" onclick="saveEvent(${editing ? JSON.stringify(ev.id) : "null"})">${editing ? "Guardar cambios" : "Crear evento"}</button>
+          </div>
+          <div class="error" id="ev-err"></div>`);
+      }
+      async function saveEvent(eventId) {
+        const name = document.getElementById("ev-name").value.trim();
+        const dateVal = document.getElementById("ev-date").value;
+        const musicGenre = document.getElementById("ev-genre").value.trim();
+        if (!name || !dateVal) { document.getElementById("ev-err").textContent = "Nombre y fecha son obligatorios."; return; }
+        const body = { name, date: new Date(dateVal).toISOString(), musicGenre };
+        try {
+          if (eventId) {
+            await api("/events/" + eventId, { method: "PATCH", body: JSON.stringify(body) });
+            toast("Evento actualizado", "ok");
+          } else {
+            const clubId = document.getElementById("event-club-select").value;
+            await api("/clubs/" + clubId + "/events", { method: "POST", body: JSON.stringify(body) });
+            toast("Evento creado", "ok");
+          }
+          closeModal(); loadEvents();
+        } catch (e) { document.getElementById("ev-err").textContent = e.message; }
+      }
+
+      // Mapa de mesas del evento (asignar / quitar usuarios)
+      let _evtTables = { id: null, name: "" };
+      async function openEventTables(eventId, eventName) {
+        _evtTables = { id: eventId, name: eventName };
+        openModal('<div class="empty">Cargando mesas...</div>');
+        try {
+          const d = await api("/events/" + eventId + "/availability");
+          const cards = d.tables.map(tableCard).join("");
+          openModal(`
+            <h3>Mesas · ${esc(eventName)}</h3>
+            <p class="sub">Asigná o quitá usuarios de cada mesa.</p>
+            <div class="tables-grid">${cards}</div>
+            <button class="btn-full ghost" style="margin-top:16px" onclick="closeModal()">Cerrar</button>`);
+        } catch (e) { openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`); }
+      }
+      function tableCard(t) {
+        const taken = t.status === "RESERVED";
+        const host = t.reservation?.host;
+        return `<div class="table-card ${taken ? "taken" : "free"}">
+          <div class="t-name">${esc(t.label)}</div>
+          <div class="t-meta">
+            ${esc(t.sector || "")}${t.sector ? "<br/>" : ""}
+            ${taken
+              ? `👤 ${esc(host?.fullName || "Reservada")}${host?.phone ? "<br/>📱 " + esc(host.phone) : ""}${host?.email ? "<br/>📧 " + esc(host.email) : ""}`
+              : "🟢 Disponible"}
+          </div>
+          ${taken
+            ? `<button class="btn-sm btn-danger" onclick="releaseTable('${t.id}')">Quitar usuario</button>`
+            : `<button class="btn-sm btn-accent" onclick="openAssign('${t.id}','${esc(t.label)}')">Asignar usuario</button>`}
+        </div>`;
+      }
+      async function releaseTable(tableId) {
+        if (!confirm("¿Quitar al usuario y liberar la mesa?")) return;
+        try {
+          await api("/events/" + _evtTables.id + "/release", { method: "POST", body: JSON.stringify({ tableId }) });
+          toast("Mesa liberada", "ok");
+          openEventTables(_evtTables.id, _evtTables.name);
+        } catch (e) { toast(e.message, "err"); }
+      }
+      let _assignTable = null;
+      function openAssign(tableId, tableLabel) {
+        _assignTable = tableId;
+        openModal(`
+          <h3>Asignar mesa ${esc(tableLabel)}</h3>
+          <p class="sub">Buscá al usuario que ocupará la mesa.</p>
+          <input id="assign-search" placeholder="Nombre o email..." oninput="debouncedAssign()" />
+          <div class="pick-list" id="assign-results"><div class="empty">Escribí para buscar.</div></div>
+          <button class="btn-full ghost" style="margin-top:12px" onclick="openEventTables('${_evtTables.id}','${esc(_evtTables.name)}')">← Volver a las mesas</button>`);
+        setTimeout(() => document.getElementById("assign-search")?.focus(), 50);
+      }
+      let assignTimer;
+      function debouncedAssign() { clearTimeout(assignTimer); assignTimer = setTimeout(searchAssign, 300); }
+      async function searchAssign() {
+        const q = document.getElementById("assign-search").value.trim();
+        const box = document.getElementById("assign-results");
+        if (!q) { box.innerHTML = '<div class="empty">Escribí para buscar.</div>'; return; }
+        try {
+          const users = await api("/users?search=" + encodeURIComponent(q));
+          const clients = users.filter((u) => u.isActive);
+          if (!clients.length) { box.innerHTML = '<div class="empty">Sin resultados.</div>'; return; }
+          box.innerHTML = clients.map((u) => `
+            <div class="pick-row">
+              <div><b>${esc(u.fullName)}</b><small>${esc(u.email)}${u.phone ? " · " + esc(u.phone) : ""}</small></div>
+              <button class="btn-sm btn-accent" onclick="assignUser('${u.id}')">Asignar</button>
+            </div>`).join("");
+        } catch (e) { box.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+      }
+      async function assignUser(userId) {
+        try {
+          await api("/events/" + _evtTables.id + "/assign", { method: "POST", body: JSON.stringify({ tableId: _assignTable, userId }) });
+          toast("Mesa asignada", "ok");
+          openEventTables(_evtTables.id, _evtTables.name);
+        } catch (e) { toast(e.message, "err"); }
+      }
+
+      function renderKpis(k) {
+        const items = [
+          { label: "Recaudación total", value: fmtMoney(k.totalRevenue), color: "#7c5cff" },
+          { label: "Reservas", value: fmtNum(k.reservationsCount), color: "#2de2c6" },
+          { label: "Ticket promedio", value: fmtMoney(k.avgTicket), color: "#ffb454" },
+          { label: "Unidades vendidas", value: fmtNum(k.unitsSold), color: "#ff4d8d" },
+        ];
+        document.getElementById("kpis").innerHTML = items
+          .map(
+            (i) => `<div class="card kpi">
+              <div class="k-label"><span class="dot" style="background:${i.color}"></span>${i.label}</div>
+              <div class="k-value">${i.value}</div>
+            </div>`
+          )
+          .join("");
+      }
+
+      function makeChart(id, config) {
+        if (charts[id]) charts[id].destroy();
+        const ctx = document.getElementById(id).getContext("2d");
+        Chart.defaults.color = "#8a8aa3";
+        Chart.defaults.borderColor = "#2a2a3d";
+        Chart.defaults.font.family = "Segoe UI, system-ui, sans-serif";
+        charts[id] = new Chart(ctx, config);
+      }
+
+      async function loadDashboard() {
+        const clubId = document.getElementById("club-select").value;
+        if (!clubId) return;
+        let d;
+        try {
+          d = await api(`/clubs/${clubId}/reports/dashboard`);
+        } catch (e) {
+          if (String(e.message).includes("401")) return logout();
+          alert("Error cargando datos: " + e.message);
+          return;
+        }
+
+        renderKpis(d.kpis);
+
+        // Recaudación por día (línea)
+        makeChart("chart-sales", {
+          type: "line",
+          data: {
+            labels: d.salesByDate.map((x) => x.date.slice(5)),
+            datasets: [{
+              data: d.salesByDate.map((x) => x.total),
+              borderColor: "#7c5cff",
+              backgroundColor: "rgba(124,92,255,0.15)",
+              fill: true, tension: 0.35, pointRadius: 3, borderWidth: 2,
+            }],
+          },
+          options: chartOpts({ money: true }),
+        });
+
+        // Día de la semana (barras)
+        makeChart("chart-weekday", {
+          type: "bar",
+          data: {
+            labels: d.salesByWeekday.map((x) => x.weekday.slice(0, 3)),
+            datasets: [{ data: d.salesByWeekday.map((x) => x.total), backgroundColor: "#2de2c6", borderRadius: 6 }],
+          },
+          options: chartOpts({ money: true }),
+        });
+
+        // Mesas más reservadas (barras horizontales)
+        const tt = d.topTables.slice(0, 7);
+        makeChart("chart-tables", {
+          type: "bar",
+          data: {
+            labels: tt.map((x) => x.label),
+            datasets: [{ data: tt.map((x) => x.reservationCount), backgroundColor: "#c44bff", borderRadius: 6 }],
+          },
+          options: { ...chartOpts({}), indexAxis: "y" },
+        });
+
+        // Bebidas más vendidas (doughnut)
+        const tp = d.topProducts.slice(0, 6);
+        makeChart("chart-products", {
+          type: "doughnut",
+          data: {
+            labels: tp.length ? tp.map((x) => x.name) : ["Sin ventas"],
+            datasets: [{ data: tp.length ? tp.map((x) => x.unitsSold) : [1], backgroundColor: PALETTE, borderColor: "#14141f", borderWidth: 2 }],
+          },
+          options: doughnutOpts(),
+        });
+
+        // Composición de ingresos (doughnut)
+        const TYPE_LABEL = { DEPOSIT: "Señas", FULL: "Pago total", GUEST_SHARE: "Split Bill", CONSUMPTION: "Consumición", BALANCE: "Saldo", REFUND: "Reembolsos" };
+        makeChart("chart-types", {
+          type: "doughnut",
+          data: {
+            labels: d.salesByType.map((x) => TYPE_LABEL[x.type] || x.type),
+            datasets: [{ data: d.salesByType.map((x) => x.total), backgroundColor: PALETTE, borderColor: "#14141f", borderWidth: 2 }],
+          },
+          options: doughnutOpts({ money: true }),
+        });
+
+        // Resumen
+        const topTable = d.topTables[0];
+        const topProduct = d.topProducts[0];
+        const bestDay = [...d.salesByWeekday].sort((a, b) => b.total - a.total)[0];
+        document.getElementById("summary").className = "";
+        document.getElementById("summary").innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:14px;font-size:14px">
+            <div>🏆 <b>Mesa estrella:</b> ${topTable ? topTable.label + " (" + topTable.reservationCount + " reservas)" : "—"}</div>
+            <div>🍾 <b>Bebida top:</b> ${topProduct ? topProduct.name + " (" + topProduct.unitsSold + " u.)" : "—"}</div>
+            <div>📅 <b>Mejor día:</b> ${bestDay ? bestDay.weekday + " · " + fmtMoney(bestDay.total) : "—"}</div>
+            <div>🎟️ <b>Reservas activas:</b> ${fmtNum(d.kpis.activeReservations)}</div>
+          </div>`;
+      }
+
+      function chartOpts({ money }) {
+        return {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (c) => (money ? fmtMoney(c.parsed.y ?? c.parsed.x) : fmtNum(c.parsed.y ?? c.parsed.x)) } },
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: { ticks: { callback: (v) => (money ? "$" + (v / 1000) + "k" : v) } },
+          },
+        };
+      }
+
+      function doughnutOpts({ money } = {}) {
+        return {
+          responsive: true, maintainAspectRatio: false, cutout: "62%",
+          plugins: {
+            legend: { position: "right", labels: { boxWidth: 12, padding: 12, font: { size: 12 } } },
+            tooltip: { callbacks: { label: (c) => c.label + ": " + (money ? fmtMoney(c.parsed) : fmtNum(c.parsed)) } },
+          },
+        };
+      }
+
+      // Auto-login si hay token guardado.
+      if (token && currentUser) {
+        enterApp().catch(() => logout());
+      }
+    </script>
+  </body>
+</html>

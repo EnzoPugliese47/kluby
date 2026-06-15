@@ -1,0 +1,390 @@
+// Kluby - Schema de base de datos (PostgreSQL / Supabase)
+// Documentacion: https://pris.ly/d/prisma-schema
+//
+// NOTA DE ALCANCE (iteracion 1):
+//   Se modela el NUCLEO del negocio: usuarios, boliches, mesas, eventos,
+//   reservas (con sena o pago total), y el Modulo Social "Mesa Abierta"
+//   (Split Bill). Se omiten a proposito: pedidos en vivo por GPS/geocerca,
+//   chat, fidelizacion y reportes BI (quedan para iteraciones futuras).
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  runtime      = "nodejs"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// ENUMS
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  CLIENT // Usuario final (B2C)
+  CLUB_ADMIN // Administrador de boliche (B2B)
+  STAFF // Personal del local (puerta / barra)
+  SUPER_ADMIN // Administrador de la plataforma Kluby
+}
+
+/// Opcion de pago elegida por el anfitrion al reservar.
+enum PaymentOption {
+  DEPOSIT_ONLY // Paga solo la sena (el resto se abona en persona)
+  FULL_PAYMENT // Paga el total de la mesa por adelantado
+}
+
+/// Modalidad de la reserva.
+enum ReservationMode {
+  STANDARD // Reserva privada tradicional
+  OPEN_TABLE // Mesa Abierta: visible para que otros se sumen (Split Bill)
+}
+
+enum ReservationStatus {
+  PENDING_PAYMENT // Bloqueo transitorio (TTL) esperando el pago de la sena
+  CONFIRMED // Sena/total pagada, reserva asegurada
+  CHECKED_IN // El anfitrion ingreso al local (QR validado)
+  COMPLETED // Mesa cerrada (check-out)
+  CANCELLED // Cancelada por el usuario o admin
+  EXPIRED // El TTL vencio sin pago, mesa liberada
+}
+
+/// Estado de un invitado dentro de una Mesa Abierta.
+enum GuestStatus {
+  REQUESTED // Se postulo a la mesa, espera revision del anfitrion
+  ACCEPTED_PENDING_PAYMENT // Aceptado por el anfitrion, debe pagar su parte
+  CONFIRMED // Pago su parte proporcional, ya forma parte del grupo
+  REJECTED // Rechazado por el anfitrion
+  CANCELLED // Se dio de baja antes de confirmar
+}
+
+enum PaymentType {
+  DEPOSIT // Sena inicial del anfitrion
+  FULL // Pago total del anfitrion
+  BALANCE // Saldo restante (liquidacion)
+  GUEST_SHARE // Parte proporcional de un invitado (Split Bill)
+  CONSUMPTION // Pago de un pedido de productos (bebidas/combos)
+  REFUND // Devolucion por cancelacion
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REFUNDED
+}
+
+/// Tipo de pedido de productos.
+enum OrderType {
+  PREORDER // Pre-compra de combos/botellas antes del evento
+  LIVE // Pedido en vivo desde la mesa
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT // Creado, esperando pago
+  PAID // Pagado, en cola
+  PREPARING // En preparacion
+  READY // Listo para entregar
+  DELIVERED // Entregado en la mesa
+  CANCELLED
+}
+
+/// Tipo de movimiento en la cuenta de fidelizacion (Kluby Points).
+enum LoyaltyTxType {
+  EARNED // Acreditacion por consumo
+  REDEEMED // Canje por descuento
+}
+
+// ---------------------------------------------------------------------------
+// MODELOS
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  fullName     String
+  phone        String?
+  dni          String?   @unique // RN02: unicidad de identidad
+  birthDate    DateTime? // RN01: validacion de mayoria de edad
+  role         UserRole  @default(CLIENT)
+  isVerified   Boolean   @default(false) // Validacion de DNI (+18)
+  isActive     Boolean   @default(true) // Baja logica
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  ownedClubs    Club[]               @relation("ClubOwner")
+  reservations  Reservation[]        @relation("ReservationHost")
+  guestEntries  ReservationGuest[]
+  payments      Payment[]
+  orders        Order[]
+  loyaltyTxns   LoyaltyTransaction[]
+  chatMessages  ChatMessage[]
+  resetTokens   PasswordResetToken[]
+
+  @@index([role])
+}
+
+/// Token para recuperacion de contrasena. Se guarda el HASH del token
+/// (no el token en texto plano) por seguridad. RF: reinicio por email.
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Club {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  address     String
+  city        String
+  musicGenre  String? // Para filtrado por genero musical
+  imageUrl    String?
+  floorMapUrl String? // Plano/mapa de planta cargado por el admin
+  pointValue  Decimal  @default(1) @db.Decimal(12, 2) // Valor de canje de 1 punto (RN18, min $1)
+  isActive    Boolean  @default(true) // Baja logica
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ownerId String
+  owner   User   @relation("ClubOwner", fields: [ownerId], references: [id])
+
+  tables       ClubTable[]
+  events       EventNight[]
+  reservations Reservation[]
+  products     Product[]
+  loyaltyTxns  LoyaltyTransaction[]
+
+  @@index([name])
+  @@index([musicGenre])
+  @@index([isActive])
+}
+
+/// Mesa fisica de un boliche, con sus coordenadas en el mapa 2D.
+model ClubTable {
+  id             String   @id @default(uuid())
+  clubId         String
+  label          String // Identificador visible (ej. "Mesa VIP 1")
+  sector         String? // Sector/zona dentro del plano
+  capacity       Int      @default(10) // Cantidad maxima de personas
+  minConsumption Decimal? @db.Decimal(12, 2) // Consumicion minima
+  price          Decimal  @db.Decimal(12, 2) // Precio total del alquiler
+  depositPercent Int      @default(10) // % de sena (RN06, default 10%)
+  posX           Float // Coordenada X en el mapa 2D
+  posY           Float // Coordenada Y en el mapa 2D
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  club         Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+
+  @@index([clubId])
+}
+
+/// Fecha/evento de un boliche. Una reserva siempre apunta a un evento concreto.
+model EventNight {
+  id         String   @id @default(uuid())
+  clubId     String
+  name       String
+  date       DateTime
+  musicGenre String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  club         Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+
+  @@index([clubId])
+  @@index([date])
+}
+
+model Reservation {
+  id            String            @id @default(uuid())
+  code          String            @unique @default(uuid()) // Codigo unico para el QR
+  clubId        String
+  eventId       String
+  tableId       String
+  hostId        String
+  mode          ReservationMode   @default(STANDARD)
+  paymentOption PaymentOption     @default(DEPOSIT_ONLY)
+  status        ReservationStatus @default(PENDING_PAYMENT)
+
+  totalAmount   Decimal @db.Decimal(12, 2) // Valor total de la mesa
+  depositAmount Decimal @db.Decimal(12, 2) // Sena requerida
+  amountPaid    Decimal @default(0) @db.Decimal(12, 2) // Acumulado pagado
+
+  maxGuests Int? // Cupos habilitados en Mesa Abierta (incluye al anfitrion)
+
+  expiresAt   DateTime // Vencimiento del bloqueo transitorio (TTL, RN05)
+  confirmedAt DateTime?
+  checkedInAt DateTime?
+  completedAt DateTime?
+  cancelledAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  club        Club                 @relation(fields: [clubId], references: [id])
+  event       EventNight           @relation(fields: [eventId], references: [id])
+  table       ClubTable            @relation(fields: [tableId], references: [id])
+  host        User                 @relation("ReservationHost", fields: [hostId], references: [id])
+  guests      ReservationGuest[]
+  payments    Payment[]
+  orders      Order[]
+  loyaltyTxns LoyaltyTransaction[]
+  chatMessages ChatMessage[]
+
+  // Una mesa no puede tener dos reservas activas para el mismo evento.
+  // La unicidad real (ignorando canceladas/expiradas) se refuerza en la
+  // logica de negocio dentro de una transaccion (anti-overbooking, RN07).
+  @@index([tableId, eventId])
+  @@index([hostId])
+  @@index([status])
+  @@index([mode])
+}
+
+/// Invitado que se suma a una Mesa Abierta (Split Bill).
+model ReservationGuest {
+  id            String      @id @default(uuid())
+  reservationId String
+  userId        String
+  status        GuestStatus @default(REQUESTED)
+  shareAmount   Decimal     @db.Decimal(12, 2) // Parte proporcional a pagar
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id])
+  payments    Payment[]
+
+  @@unique([reservationId, userId]) // Un usuario no se postula dos veces
+  @@index([status])
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  reservationId String
+  guestId       String? // Presente si es el pago de un invitado (GUEST_SHARE)
+  orderId       String? // Presente si es el pago de un pedido (CONSUMPTION)
+  userId        String // Quien realiza el pago
+  type          PaymentType
+  amount        Decimal       @db.Decimal(12, 2)
+  status        PaymentStatus @default(PENDING)
+  provider      String? // Ej. "mercadopago"
+  externalRef   String? // Referencia de la pasarela
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  reservation Reservation       @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  guest       ReservationGuest? @relation(fields: [guestId], references: [id])
+  order       Order?            @relation(fields: [orderId], references: [id])
+  user        User              @relation(fields: [userId], references: [id])
+
+  @@index([reservationId])
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// MERCADO DE ALCOHOL: catalogo y pedidos
+// ---------------------------------------------------------------------------
+
+/// Producto del catalogo del boliche (bebidas, combos, botellas).
+model Product {
+  id          String   @id @default(uuid())
+  clubId      String
+  name        String
+  description String?
+  category    String? // Ej. "Vodka", "Cerveza", "Combo"
+  imageUrl    String?
+  price       Decimal  @db.Decimal(12, 2)
+  stock       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  club  Club        @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  items OrderItem[]
+
+  @@index([clubId])
+  @@index([category])
+}
+
+/// Pedido de productos asociado a una reserva (preventa o en vivo).
+model Order {
+  id            String      @id @default(uuid())
+  reservationId String
+  userId        String // Quien realiza el pedido
+  type          OrderType
+  status        OrderStatus @default(PENDING_PAYMENT)
+  total         Decimal     @db.Decimal(12, 2)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id])
+  items       OrderItem[]
+  payments    Payment[]
+
+  @@index([reservationId])
+  @@index([status])
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(12, 2) // Precio congelado al momento del pedido
+  subtotal  Decimal @db.Decimal(12, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+}
+
+// ---------------------------------------------------------------------------
+// FIDELIZACION (Kluby Points) y CHAT DE MESA
+// ---------------------------------------------------------------------------
+
+/// Movimiento de puntos de fidelizacion por usuario y boliche.
+model LoyaltyTransaction {
+  id            String        @id @default(uuid())
+  userId        String
+  clubId        String
+  reservationId String?
+  type          LoyaltyTxType
+  points        Int // Positivo siempre; el signo lo da el tipo
+  description   String?
+  createdAt     DateTime      @default(now())
+
+  user        User         @relation(fields: [userId], references: [id])
+  club        Club         @relation(fields: [clubId], references: [id])
+  reservation Reservation? @relation(fields: [reservationId], references: [id])
+
+  @@index([userId, clubId])
+}
+
+/// Mensaje del chat de coordinacion de una mesa (RN12).
+model ChatMessage {
+  id            String   @id @default(uuid())
+  reservationId String
+  userId        String
+  content       String
+  createdAt     DateTime @default(now())
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id])
+
+  @@index([reservationId])
+}

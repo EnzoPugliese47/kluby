@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kluby · Reservá tu mesa VIP</title>
+    <link rel="stylesheet" href="/kluby.css" />
+    <style>
+      /* Mapa 2D de mesas */
+      .floor {
+        position: relative; width: 100%; min-width: 640px; height: 360px;
+        background:
+          linear-gradient(180deg, #10101a, #0c0c14);
+        border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+        background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+        background-size: 22px 22px;
+      }
+      .floor-wrap { overflow-x: auto; padding-bottom: 8px; }
+      .stage-label {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        background: var(--surface-3); color: var(--muted); padding: 4px 18px;
+        border-radius: 999px; font-size: 11px; letter-spacing: 2px; font-weight: 700;
+      }
+      .table-node {
+        position: absolute; width: 78px; height: 60px; border-radius: 12px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        font-size: 11px; font-weight: 700; cursor: pointer; padding: 4px; text-align: center;
+        border: 1.5px solid transparent; transition: transform 0.1s; color: #fff;
+      }
+      .table-node small { font-weight: 600; opacity: 0.85; font-size: 10px; }
+      .table-node:hover { transform: scale(1.06); }
+      .table-node.available { background: rgba(45,226,198,0.14); border-color: var(--accent); color: var(--accent); }
+      .table-node.reserved { background: rgba(255,92,108,0.13); border-color: var(--red); color: #ff9aa3; cursor: not-allowed; }
+      .table-node.reserved:hover { transform: none; }
+      .legend { display: flex; gap: 18px; margin: 14px 0; font-size: 13px; color: var(--muted); }
+      .legend .dot { width: 11px; height: 11px; border-radius: 4px; display: inline-block; margin-right: 6px; vertical-align: middle; }
+
+      .reserve-info { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+      .reserve-info .stat { background: var(--surface-3); border-radius: 10px; padding: 10px 14px; }
+      .reserve-info .stat small { display: block; color: var(--muted); font-size: 11px; }
+      .reserve-info .stat b { font-size: 16px; }
+      .pay-opt { display: flex; gap: 10px; margin-top: 8px; }
+      .pay-opt .opt {
+        flex: 1; border: 1.5px solid var(--border); border-radius: 12px; padding: 14px; cursor: pointer;
+      }
+      .pay-opt .opt.sel { border-color: var(--primary); background: rgba(124,92,255,0.08); }
+      .pay-opt .opt b { display: block; font-size: 15px; }
+      .pay-opt .opt small { color: var(--muted); }
+
+      .ticket {
+        text-align: center; padding: 10px;
+      }
+      .ticket .qr { background: #fff; padding: 12px; border-radius: 14px; display: inline-block; margin: 8px 0; }
+      .ticket .code { font-family: monospace; font-size: 13px; color: var(--muted); word-break: break-all; }
+
+      .list-card { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+      .list-card .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+      .list-card .title { font-size: 16px; font-weight: 700; }
+      .meta { color: var(--muted); font-size: 13px; line-height: 1.6; }
+      .amount-row { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; }
+      .amount-row b { color: var(--text); }
+
+      .club-card { overflow: hidden; cursor: pointer; }
+      .club-cover {
+        height: 110px; background: linear-gradient(135deg, #2a1d5e, #3a1d52);
+        display: flex; align-items: flex-end; padding: 14px; font-size: 22px; font-weight: 800;
+      }
+      .club-body { padding: 16px; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div class="modal-overlay" id="modal"><div class="card modal" id="modal-content"></div></div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+      const API = "/api";
+      const state = {
+        token: localStorage.getItem("kluby_token") || "",
+        user: JSON.parse(localStorage.getItem("kluby_user") || "null"),
+        view: "home",
+        params: {},
+      };
+
+      // ---------- utils ----------
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const money = (n) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(Number(n) || 0);
+      const fdate = (d) => new Date(d).toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short" });
+      const fdatetime = (d) => new Date(d).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+      let toastTimer;
+      function toast(msg, kind = "") {
+        const t = $("toast");
+        t.textContent = msg;
+        t.className = "toast show " + kind;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => (t.className = "toast " + kind), 3200);
+      }
+      function openModal(html) { $("modal-content").innerHTML = html; $("modal").classList.add("open"); }
+      function closeModal() { $("modal").classList.remove("open"); }
+      $("modal").addEventListener("click", (e) => { if (e.target.id === "modal") closeModal(); });
+
+      async function api(path, options = {}) {
+        const res = await fetch(API + path, {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            ...(state.token ? { Authorization: "Bearer " + state.token } : {}),
+            ...(options.headers || {}),
+          },
+        });
+        const json = await res.json().catch(() => ({ success: false, error: "Respuesta invalida" }));
+        if (res.status === 401 && state.token) { doLogout(); throw new Error("Sesion expirada"); }
+        if (!res.ok || !json.success) throw new Error(json.error || "Error " + res.status);
+        return json.data;
+      }
+
+      const statusBadge = (s) => {
+        const map = {
+          PENDING_PAYMENT: ["amber", "Pago pendiente"], CONFIRMED: ["green", "Confirmada"],
+          CHECKED_IN: ["violet", "Ingresado"], COMPLETED: ["muted", "Finalizada"],
+          CANCELLED: ["red", "Cancelada"], EXPIRED: ["muted", "Expirada"],
+          REQUESTED: ["amber", "Pendiente aprobacion"], ACCEPTED_PENDING_PAYMENT: ["violet", "Aceptado · a pagar"],
+          REJECTED: ["red", "Rechazado"],
+        };
+        const [cls, label] = map[s] || ["muted", s];
+        return `<span class="badge ${cls}">${label}</span>`;
+      };
+
+      // ---------- auth ----------
+      function saveSession(data) {
+        state.token = data.token; state.user = data.user;
+        localStorage.setItem("kluby_token", data.token);
+        localStorage.setItem("kluby_user", JSON.stringify(data.user));
+      }
+      function doLogout() {
+        state.token = ""; state.user = null;
+        localStorage.removeItem("kluby_token"); localStorage.removeItem("kluby_user");
+        go("home");
+      }
+
+      function go(view, params = {}) { state.view = view; state.params = params; render(); window.scrollTo(0, 0); }
+
+      // ---------- render shell ----------
+      function render() {
+        if (!state.token || !state.user) return renderAuth();
+        const nav = [
+          ["home", "Explorar"],
+          ["open", "Mesas abiertas"],
+          ["mine", "Mis reservas"],
+          ["joins", "Mis postulaciones"],
+        ];
+        $("root").innerHTML = `
+          <div class="topbar">
+            <div class="brand"><div class="logo">K</div><div><h1>KLUBY</h1><span>Tu noche, tu mesa</span></div></div>
+            <div class="nav">
+              ${nav.map(([v, l]) => `<button class="navlink ${state.view === v ? "active" : ""}" onclick="go('${v}')">${l}</button>`).join("")}
+            </div>
+            <div class="right">
+              <div class="who"><b>${esc(state.user.fullName)}</b><small>${state.user.role}</small></div>
+              <button class="ghost btn-sm" onclick="doLogout()">Salir</button>
+            </div>
+          </div>
+          <div class="container" id="page"></div>`;
+        const page = $("page");
+        if (state.view === "home") renderHome(page);
+        else if (state.view === "club") renderClub(page);
+        else if (state.view === "event") renderEvent(page);
+        else if (state.view === "mine") renderMine(page);
+        else if (state.view === "open") renderOpen(page);
+        else if (state.view === "joins") renderJoins(page);
+        else if (state.view === "detail") renderDetail(page);
+      }
+
+      // ---------- AUTH view ----------
+      function renderAuth() {
+        $("root").innerHTML = `
+          <div style="min-height:100vh;display:grid;place-items:center;padding:20px">
+            <div class="card" style="width:100%;max-width:400px;padding:32px">
+              <div class="brand" style="justify-content:center;margin-bottom:8px"><div class="logo">K</div><div><h1>KLUBY</h1><span>Reservá tu mesa VIP</span></div></div>
+              <div class="nav" style="justify-content:center;margin:18px 0">
+                <button class="navlink active" id="tab-login" onclick="switchTab('login')">Ingresar</button>
+                <button class="navlink" id="tab-reg" onclick="switchTab('reg')">Crear cuenta</button>
+              </div>
+              <div id="auth-form"></div>
+            </div>
+          </div>`;
+        switchTab("login");
+      }
+      function switchTab(tab) {
+        $("tab-login").classList.toggle("active", tab === "login");
+        $("tab-reg").classList.toggle("active", tab === "reg");
+        if (tab === "login") {
+          $("auth-form").innerHTML = `
+            <label>Email</label><input id="l-email" type="email" value="anfitrion@kluby.com" />
+            <label>Contraseña</label><input id="l-pass" type="password" value="password123" />
+            <button class="btn-full" onclick="submitLogin()">Ingresar</button>
+            <div style="text-align:center;margin-top:12px"><a onclick="switchTab('forgot')" style="cursor:pointer;font-size:13px">¿Olvidaste tu contraseña?</a></div>
+            <div class="error" id="auth-err"></div>
+            <p class="hint" style="text-align:center;margin-top:16px">Demo cliente: anfitrion@kluby.com / password123<br/>Admin: <a href="/panel.html">panel de estadísticas</a></p>`;
+        } else if (tab === "forgot") {
+          $("tab-login").classList.remove("active"); $("tab-reg").classList.remove("active");
+          $("auth-form").innerHTML = `
+            <p class="hint" style="margin-bottom:6px">Ingresá tu email y te daremos un enlace para crear una nueva contraseña.</p>
+            <label>Email</label><input id="f-email" type="email" placeholder="vos@email.com" value="anfitrion@kluby.com" />
+            <button class="btn-full" onclick="submitForgot()">Enviar enlace</button>
+            <div id="reset-step" style="display:none">
+              <div class="spacer"></div>
+              <div class="card" style="padding:14px;background:var(--surface-3)"><div class="hint" id="reset-note"></div></div>
+              <label>Token de recuperación</label><input id="r-token" placeholder="Pegá el token" />
+              <label>Nueva contraseña (mín. 8)</label><input id="r-newpass" type="password" placeholder="••••••••" />
+              <button class="btn-full btn-accent" onclick="submitReset()">Cambiar contraseña</button>
+            </div>
+            <div style="text-align:center;margin-top:14px"><a onclick="switchTab('login')" style="cursor:pointer;font-size:13px">← Volver a ingresar</a></div>
+            <div class="error" id="auth-err"></div>`;
+        } else {
+          $("auth-form").innerHTML = `
+            <label>Nombre completo</label><input id="r-name" placeholder="Tu nombre" />
+            <label>Email</label><input id="r-email" type="email" placeholder="vos@email.com" />
+            <label>Teléfono</label><input id="r-phone" placeholder="11 1234 5678" />
+            <p class="hint" style="margin-top:-4px">Lo compartís con el anfitrión y la mesa cuando pedís sumarte a una Mesa Abierta.</p>
+            <label>Contraseña (mín. 8)</label><input id="r-pass" type="password" placeholder="••••••••" />
+            <button class="btn-full" onclick="submitRegister()">Crear cuenta</button>
+            <div class="error" id="auth-err"></div>`;
+        }
+      }
+      async function submitLogin() {
+        try {
+          const data = await api("/users/login", { method: "POST", body: JSON.stringify({ email: $("l-email").value.trim(), password: $("l-pass").value }) });
+          saveSession(data); go("home");
+        } catch (e) { $("auth-err").textContent = e.message; }
+      }
+      async function submitForgot() {
+        try {
+          const r = await api("/users/forgot-password", { method: "POST", body: JSON.stringify({ email: $("f-email").value.trim() }) });
+          $("reset-step").style.display = "block";
+          if (r.token) {
+            $("r-token").value = r.token;
+            $("reset-note").innerHTML = "🔐 <b>Modo demo:</b> normalmente este token llega por email. Te lo autocompletamos para que pruebes (vence en " + (r.expiresInMinutes || 60) + " min).";
+          } else {
+            $("reset-note").textContent = r.message;
+          }
+          toast("Revisá el enlace de recuperación", "ok");
+        } catch (e) { $("auth-err").textContent = e.message; }
+      }
+      async function submitReset() {
+        try {
+          await api("/users/reset-password", { method: "POST", body: JSON.stringify({ token: $("r-token").value.trim(), newPassword: $("r-newpass").value }) });
+          toast("¡Contraseña actualizada! Ya podés ingresar.", "ok");
+          switchTab("login");
+        } catch (e) { $("auth-err").textContent = e.message; }
+      }
+      async function submitRegister() {
+        try {
+          const phone = $("r-phone").value.trim();
+          if (phone.replace(/\D/g, "").length < 6) { $("auth-err").textContent = "Ingresá un teléfono válido (mínimo 6 dígitos)."; return; }
+          const body = { fullName: $("r-name").value.trim(), email: $("r-email").value.trim(), phone, password: $("r-pass").value };
+          const data = await api("/users/register", { method: "POST", body: JSON.stringify(body) });
+          saveSession(data); toast("¡Cuenta creada! Bienvenido/a", "ok"); go("home");
+        } catch (e) { $("auth-err").textContent = e.message; }
+      }
+
+      // ---------- HOME (clubs) ----------
+      async function renderHome(page) {
+        page.innerHTML = `
+          <div class="section-title">Explorá boliches</div>
+          <div class="section-sub">Elegí un local, una fecha y reservá tu mesa desde el mapa.</div>
+          <div class="row-between" style="margin-bottom:18px">
+            <input id="q" placeholder="Buscar por nombre..." style="max-width:320px" oninput="debouncedClubs()" />
+            <input id="genre" placeholder="Filtrar por género musical" style="max-width:260px" oninput="debouncedClubs()" />
+          </div>
+          <div id="clubs"><div class="empty">Cargando...</div></div>`;
+        loadClubs();
+      }
+      let clubsTimer;
+      function debouncedClubs() { clearTimeout(clubsTimer); clubsTimer = setTimeout(loadClubs, 300); }
+      async function loadClubs() {
+        const q = $("q")?.value.trim() || ""; const g = $("genre")?.value.trim() || "";
+        const qs = new URLSearchParams(); if (q) qs.set("search", q); if (g) qs.set("genre", g);
+        try {
+          const clubs = await api("/clubs" + (qs.toString() ? "?" + qs : ""));
+          const el = $("clubs"); if (!el) return;
+          if (!clubs.length) { el.innerHTML = `<div class="empty">No se encontraron boliches.</div>`; return; }
+          el.className = "grid-cards";
+          el.innerHTML = clubs.map((c) => `
+            <div class="card club-card" onclick="go('club',{id:'${c.id}'})">
+              <div class="club-cover">${esc(c.name)}</div>
+              <div class="club-body">
+                <div class="meta">📍 ${esc(c.address)}, ${esc(c.city)}</div>
+                ${c.musicGenre ? `<div class="chips" style="margin-top:8px"><span class="badge violet">${esc(c.musicGenre)}</span></div>` : ""}
+              </div>
+            </div>`).join("");
+        } catch (e) { toast(e.message, "err"); }
+      }
+
+      // ---------- CLUB (events) ----------
+      async function renderClub(page) {
+        page.innerHTML = `<div class="empty">Cargando...</div>`;
+        try {
+          const club = await api("/clubs/" + state.params.id);
+          const events = (club.events || []).filter((e) => e.isActive);
+          page.innerHTML = `
+            <button class="ghost btn-sm" onclick="go('home')">← Volver</button>
+            <div class="section-title" style="margin-top:14px">${esc(club.name)}</div>
+            <div class="section-sub">📍 ${esc(club.address)}, ${esc(club.city)} ${club.musicGenre ? "· 🎵 " + esc(club.musicGenre) : ""}</div>
+            ${club.description ? `<p class="meta" style="margin-bottom:20px">${esc(club.description)}</p>` : ""}
+            <h3 style="margin:10px 0 14px">Próximas fechas</h3>
+            <div id="events" class="grid-cards"></div>`;
+          const fut = events.filter((e) => new Date(e.date) >= new Date(Date.now() - 6 * 3600 * 1000)).sort((a, b) => new Date(a.date) - new Date(b.date));
+          const list = fut.length ? fut : events;
+          $("events").innerHTML = list.length ? list.map((e) => `
+            <div class="card list-card">
+              <div class="title">${esc(e.name)}</div>
+              <div class="meta">🗓️ ${fdatetime(e.date)} ${e.musicGenre ? "· " + esc(e.musicGenre) : ""}</div>
+              <button class="btn-sm" onclick="go('event',{id:'${e.id}',club:'${club.id}'})">Ver mapa de mesas</button>
+            </div>`).join("") : `<div class="empty">Este boliche aún no tiene fechas publicadas.</div>`;
+        } catch (e) { page.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+      }
+
+      // ---------- EVENT (table map + reserve) ----------
+      async function renderEvent(page) {
+        page.innerHTML = `<div class="empty">Cargando mapa...</div>`;
+        try {
+          const data = await api("/events/" + state.params.id + "/availability");
+          window._tables = data.tables;
+          page.innerHTML = `
+            <button class="ghost btn-sm" onclick="go('club',{id:'${state.params.club}'})">← Volver</button>
+            <div class="section-title" style="margin-top:14px">${esc(data.event.name)}</div>
+            <div class="section-sub">🗓️ ${fdatetime(data.event.date)} · Tocá una mesa disponible para reservar</div>
+            <div class="legend">
+              <span><span class="dot" style="background:var(--accent)"></span>Disponible</span>
+              <span><span class="dot" style="background:var(--red)"></span>Reservada</span>
+            </div>
+            <div class="floor-wrap"><div class="floor">
+              <div class="stage-label">CABINA / DJ</div>
+              ${data.tables.map((t) => `
+                <div class="table-node ${t.status === "AVAILABLE" ? "available" : "reserved"}"
+                     style="left:${t.posX}px;top:${t.posY + 40}px"
+                     ${t.status === "AVAILABLE" ? `onclick="openReserve('${t.id}')"` : ""}>
+                  <span>${esc(t.label)}</span>
+                  <small>${t.capacity}p · ${money(t.price)}</small>
+                </div>`).join("")}
+            </div></div>`;
+        } catch (e) { page.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+      }
+
+      let _reserveSel = "DEPOSIT_ONLY";
+      function openReserve(tableId) {
+        const t = (window._tables || []).find((x) => x.id === tableId);
+        if (!t) return;
+        const deposit = Math.round(Number(t.price) * (t.depositPercent / 100));
+        _reserveSel = "DEPOSIT_ONLY";
+        openModal(`
+          <h3>Reservar ${esc(t.label)}</h3>
+          <p class="hint">${esc(t.sector || "")} · Capacidad ${t.capacity} personas</p>
+          <div class="reserve-info">
+            <div class="stat"><small>Precio total</small><b>${money(t.price)}</b></div>
+            <div class="stat"><small>Seña (${t.depositPercent}%)</small><b>${money(deposit)}</b></div>
+          </div>
+          <label>¿Cómo querés pagar?</label>
+          <div class="pay-opt">
+            <div class="opt sel" id="opt-dep" onclick="selPay('DEPOSIT_ONLY')"><b>Seña</b><small>${money(deposit)} ahora, resto en el local</small></div>
+            <div class="opt" id="opt-full" onclick="selPay('FULL_PAYMENT')"><b>Total</b><small>${money(t.price)} ahora</small></div>
+          </div>
+          <div class="btn-row" style="margin-top:22px">
+            <button class="ghost" onclick="closeModal()">Cancelar</button>
+            <button id="reserve-btn" style="flex:1" onclick="confirmReserve('${t.id}')">Confirmar y pagar</button>
+          </div>
+          <div class="error" id="reserve-err"></div>`);
+      }
+      function selPay(opt) {
+        _reserveSel = opt;
+        $("opt-dep").classList.toggle("sel", opt === "DEPOSIT_ONLY");
+        $("opt-full").classList.toggle("sel", opt === "FULL_PAYMENT");
+      }
+      async function confirmReserve(tableId) {
+        const btn = $("reserve-btn"); btn.disabled = true; btn.textContent = "Procesando...";
+        try {
+          const r = await api("/reservations", { method: "POST", body: JSON.stringify({
+            eventId: state.params.id, tableId, hostId: state.user.id, paymentOption: _reserveSel, mode: "STANDARD",
+          }) });
+          const paid = await api("/reservations/" + r.id + "/pay", { method: "POST", body: JSON.stringify({ provider: "demo" }) });
+          showTicket(paid);
+        } catch (e) { $("reserve-err").textContent = e.message; btn.disabled = false; btn.textContent = "Confirmar y pagar"; }
+      }
+      function showTicket(r) {
+        const qr = "https://api.qrserver.com/v1/create-qr-code/?size=190x190&data=" + encodeURIComponent(r.code);
+        openModal(`
+          <div class="ticket">
+            <h3>¡Reserva confirmada! 🎉</h3>
+            <p class="hint">${esc(r.table.label)} · ${fdate(r.event.date)}</p>
+            <div class="qr"><img src="${qr}" alt="${esc(r.code)}" width="190" height="190" /></div>
+            <p class="code">${esc(r.code)}</p>
+            <p class="hint">Mostrá este QR en la puerta. Pagado: <b>${money(r.amountPaid)}</b></p>
+            <button class="btn-full" onclick="closeModal();go('mine')">Ver mis reservas</button>
+          </div>`);
+      }
+
+      // ---------- MY RESERVATIONS ----------
+      async function renderMine(page) {
+        page.innerHTML = `<div class="section-title">Mis reservas</div><div class="section-sub">Gestioná tus mesas, abrilas a la comunidad o mostrá tu QR.</div><div id="list"><div class="empty">Cargando...</div></div><div id="past-wrap"></div>`;
+        try {
+          const rs = await api("/users/" + state.user.id + "/reservations");
+          const now = Date.now();
+          const upcoming = rs.filter((r) => new Date(r.event.date).getTime() >= now)
+            .sort((a, b) => new Date(a.event.date) - new Date(b.event.date));
+          const past = rs.filter((r) => new Date(r.event.date).getTime() < now)
+            .sort((a, b) => new Date(b.event.date) - new Date(a.event.date));
+
+          const el = $("list");
+          if (!upcoming.length) {
+            el.className = "";
+            el.innerHTML = `<div class="empty">No tenés reservas para próximos eventos. ¡Explorá boliches!</div>`;
+          } else {
+            el.className = "grid-cards";
+            el.innerHTML = upcoming.map(upcomingCard).join("");
+          }
+          renderPast(past);
+        } catch (e) { toast(e.message, "err"); }
+      }
+      function upcomingCard(r) {
+        const actions = [];
+        if (r.status === "PENDING_PAYMENT") actions.push(`<button class="btn-sm" onclick="payReservation('${r.id}')">Pagar seña</button>`);
+        if (r.status === "CONFIRMED" && r.mode === "STANDARD") actions.push(`<button class="btn-sm btn-accent" onclick="openTableModal('${r.id}',${r.table.capacity})">Abrir mesa 👥</button>`);
+        if (r.mode === "OPEN_TABLE") actions.push(`<button class="btn-sm" onclick="go('detail',{id:'${r.id}'})">Invitados</button>`);
+        if (r.status === "CONFIRMED" || r.status === "CHECKED_IN") actions.push(`<button class="btn-sm ghost" onclick="showTicketById('${r.id}')">Ver QR</button>`);
+        if (r.status === "PENDING_PAYMENT" || r.status === "CONFIRMED") actions.push(`<button class="btn-sm btn-danger" onclick="cancelReservation('${r.id}')">Cancelar</button>`);
+        return `<div class="card list-card">
+          <div class="head"><div class="title">${esc(r.table.label)}</div>${statusBadge(r.status)}</div>
+          <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}${r.mode === "OPEN_TABLE" ? `<br/>👥 Mesa abierta (${r.maxGuests} cupos)` : ""}</div>
+          <div class="amount-row"><span>Total: <b>${money(r.totalAmount)}</b></span><span>Pagado: <b>${money(r.amountPaid)}</b></span></div>
+          <div class="btn-row">${actions.join("")}</div>
+        </div>`;
+      }
+      function renderPast(past) {
+        const wrap = $("past-wrap");
+        if (!past.length) { wrap.innerHTML = ""; return; }
+        if (!state.showPast) {
+          wrap.innerHTML = `<div style="text-align:center;margin-top:22px"><button class="ghost btn-sm" onclick="state.showPast=true;renderMine($('page'))">Ver eventos pasados (${past.length})</button></div>`;
+          return;
+        }
+        const cards = past.map((r) => `<div class="card list-card" style="opacity:.7">
+            <div class="head"><div class="title">${esc(r.table.label)}</div><span class="badge muted">Finalizado</span></div>
+            <div class="meta">🗓️ ${fdatetime(r.event.date)}</div>
+          </div>`).join("");
+        wrap.innerHTML = `<div class="section-sub" style="margin-top:26px;display:flex;justify-content:space-between;align-items:center"><span>Eventos pasados</span><button class="ghost btn-sm" onclick="state.showPast=false;renderMine($('page'))">Ocultar</button></div><div class="grid-cards">${cards}</div>`;
+      }
+      async function payReservation(id) {
+        try { await api("/reservations/" + id + "/pay", { method: "POST", body: JSON.stringify({ provider: "demo" }) }); toast("¡Pago confirmado!", "ok"); renderMine($("page")); }
+        catch (e) { toast(e.message, "err"); }
+      }
+      async function cancelReservation(id) {
+        if (!confirm("¿Seguro que querés cancelar esta reserva?")) return;
+        try { const r = await api("/reservations/" + id + "/cancel", { method: "POST" }); toast("Reserva cancelada. Reembolso: " + r.refundPercent + "%", "ok"); renderMine($("page")); }
+        catch (e) { toast(e.message, "err"); }
+      }
+      async function showTicketById(id) {
+        try { const r = await api("/reservations/" + id); showTicket(r); } catch (e) { toast(e.message, "err"); }
+      }
+      function openTableModal(id, capacity) {
+        openModal(`
+          <h3>Abrir mesa a la comunidad</h3>
+          <p class="hint">Otros usuarios podrán pedir sumarse y dividir el costo. Vos aprobás quién entra.</p>
+          <label>Cupos totales (vos + invitados, máx ${capacity})</label>
+          <input id="max-guests" type="number" min="2" max="${capacity}" value="${Math.min(4, capacity)}" />
+          <div class="btn-row" style="margin-top:20px">
+            <button class="ghost" onclick="closeModal()">Cancelar</button>
+            <button style="flex:1" onclick="confirmOpen('${id}')">Abrir mesa</button>
+          </div>
+          <div class="error" id="open-err"></div>`);
+      }
+      async function confirmOpen(id) {
+        try {
+          const max = parseInt($("max-guests").value, 10);
+          await api("/reservations/" + id + "/open", { method: "POST", body: JSON.stringify({ maxGuests: max }) });
+          closeModal(); toast("¡Mesa abierta! Ya aparece en el muro.", "ok"); renderMine($("page"));
+        } catch (e) { $("open-err").textContent = e.message; }
+      }
+
+      // ---------- RESERVATION DETAIL (host manages guests) ----------
+      async function renderDetail(page) {
+        page.innerHTML = `<div class="empty">Cargando...</div>`;
+        try {
+          const r = await api("/reservations/" + state.params.id);
+          const guests = await api("/reservations/" + state.params.id + "/guests");
+          const share = r.maxGuests ? money(Number(r.totalAmount) / r.maxGuests) : "-";
+          page.innerHTML = `
+            <button class="ghost btn-sm" onclick="go('mine')">← Volver</button>
+            <div class="section-title" style="margin-top:14px">${esc(r.table.label)} · Mesa abierta</div>
+            <div class="section-sub">🗓️ ${fdatetime(r.event.date)} · ${r.maxGuests} cupos · Parte por persona: <b>${share}</b></div>
+            <h3 style="margin:8px 0 14px">Postulaciones</h3>
+            <div id="guests" class="grid-cards"></div>`;
+          const el = $("guests");
+          if (!guests.length) { el.innerHTML = `<div class="empty">Todavía nadie se postuló a tu mesa.</div>`; return; }
+          el.innerHTML = guests.map((g) => {
+            const acts = [];
+            if (g.status === "REQUESTED") {
+              acts.push(`<button class="btn-sm btn-accent" onclick="guestAction('${g.id}','accept')">Aceptar</button>`);
+              acts.push(`<button class="btn-sm btn-danger" onclick="guestAction('${g.id}','reject')">Rechazar</button>`);
+            }
+            const contact = `<br/>📧 ${esc(g.user.email)}${g.user.phone ? `<br/>📱 ${esc(g.user.phone)}` : ""}`;
+            return `<div class="card list-card">
+              <div class="head"><div class="title">${esc(g.user.fullName)}</div>${statusBadge(g.status)}</div>
+              <div class="meta">Parte: <b>${money(g.shareAmount)}</b>${contact}</div>
+              <div class="btn-row">${acts.join("") || '<span class="hint">Sin acciones</span>'}</div>
+            </div>`;
+          }).join("");
+        } catch (e) { page.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+      }
+      async function guestAction(guestId, action) {
+        try { await api("/guests/" + guestId + "/" + action, { method: "POST" }); toast(action === "accept" ? "Invitado aceptado" : "Postulación rechazada", "ok"); renderDetail($("page")); }
+        catch (e) { toast(e.message, "err"); }
+      }
+
+      // ---------- OPEN TABLES WALL ----------
+      async function renderOpen(page) {
+        page.innerHTML = `<div class="section-title">Mesas abiertas</div><div class="section-sub">Sumate a una mesa y dividí el costo. El anfitrión aprueba tu ingreso.</div><div id="wall"><div class="empty">Cargando...</div></div>`;
+        try {
+          const wall = await api("/reservations/open");
+          const el = $("wall");
+          if (!wall.length) { el.innerHTML = `<div class="empty">No hay mesas abiertas por ahora.</div>`; return; }
+          el.className = "grid-cards";
+          el.innerHTML = wall.map((w) => `
+            <div class="card list-card">
+              <div class="head"><div class="title">${esc(w.table.label)}</div><span class="badge green">${w.availableSlots} cupos</span></div>
+              <div class="meta">🏢 ${esc(w.club.name)}<br/>🗓️ ${fdatetime(w.event.date)}<br/>👤 Anfitrión: ${esc(w.host.fullName)}</div>
+              <div class="amount-row"><span>Tu parte: <b>${money(w.sharePerPerson)}</b></span></div>
+              ${w.host.id === state.user.id ? '<span class="hint">Es tu mesa</span>' : `<button class="btn-sm" onclick="joinTable('${w.reservationId}')">Pedir sumarme</button>`}
+            </div>`).join("");
+        } catch (e) { toast(e.message, "err"); }
+      }
+      async function joinTable(reservationId) {
+        try { await api("/reservations/" + reservationId + "/guests", { method: "POST", body: JSON.stringify({ userId: state.user.id }) }); toast("¡Postulación enviada! Esperá la aprobación.", "ok"); go("joins"); }
+        catch (e) { toast(e.message, "err"); }
+      }
+
+      // ---------- MY JOINS ----------
+      async function renderJoins(page) {
+        page.innerHTML = `<div class="section-title">Mis postulaciones</div><div class="section-sub">Seguí el estado de las mesas a las que pediste sumarte.</div><div id="list"><div class="empty">Cargando...</div></div>`;
+        try {
+          const entries = await api("/users/" + state.user.id + "/guest-entries");
+          const el = $("list");
+          if (!entries.length) { el.innerHTML = `<div class="empty">No te postulaste a ninguna mesa. Mirá el muro de <a onclick="go('open')">mesas abiertas</a>.</div>`; return; }
+          el.className = "grid-cards";
+          el.innerHTML = entries.map((g) => {
+            const r = g.reservation;
+            const act = g.status === "ACCEPTED_PENDING_PAYMENT" ? `<button class="btn-sm btn-accent" onclick="payShare('${g.id}')">Pagar mi parte (${money(g.shareAmount)})</button>` : "";
+            return `<div class="card list-card">
+              <div class="head"><div class="title">${esc(r.table.label)}</div>${statusBadge(g.status)}</div>
+              <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}<br/>👤 ${esc(r.host.fullName)}</div>
+              <div class="amount-row"><span>Tu parte: <b>${money(g.shareAmount)}</b></span></div>
+              <div class="btn-row">${act}</div>
+            </div>`;
+          }).join("");
+        } catch (e) { toast(e.message, "err"); }
+      }
+      async function payShare(guestId) {
+        try { await api("/guests/" + guestId + "/pay", { method: "POST", body: JSON.stringify({ provider: "demo" }) }); toast("¡Pago confirmado! Ya sos parte de la mesa.", "ok"); renderJoins($("page")); }
+        catch (e) { toast(e.message, "err"); }
+      }
+
+      // init
+      render();
+    </script>
+  </body>
+</html>

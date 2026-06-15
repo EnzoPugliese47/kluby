@@ -1,0 +1,56 @@
+import { Router } from "express";
+import {
+  cancelReservation,
+  checkInReservation,
+  checkoutReservation,
+  createReservation,
+  getReservationByCode,
+  getReservationById,
+  payReservation,
+} from "../controllers/reservations.controller";
+import {
+  listGuests,
+  listOpenTables,
+  openTable,
+  requestToJoin,
+} from "../controllers/openTable.controller";
+import {
+  createOrder,
+  listOrdersByReservation,
+} from "../controllers/orders.controller";
+import {
+  getChatMessages,
+  postChatMessage,
+} from "../controllers/chat.controller";
+import { authenticate, authorize } from "../middlewares/auth";
+
+const router = Router();
+
+// Muro de mesas abiertas (publico). Antes de "/:id" para no colisionar.
+router.get("/open", listOpenTables);
+
+router.post("/", authenticate, createReservation);
+router.get("/by-code/:code", authenticate, getReservationByCode);
+router.get("/:id", authenticate, getReservationById);
+router.post("/:id/pay", authenticate, payReservation);
+router.post("/:id/cancel", authenticate, cancelReservation);
+
+// Operacion del local: staff o administradores.
+const staffOnly = [authenticate, authorize("STAFF", "CLUB_ADMIN", "SUPER_ADMIN")];
+router.post("/:id/check-in", ...staffOnly, checkInReservation);
+router.post("/:id/checkout", ...staffOnly, checkoutReservation);
+
+// Modulo Social / Mesa Abierta (Split Bill).
+router.post("/:id/open", authenticate, openTable);
+router.post("/:id/guests", authenticate, requestToJoin);
+router.get("/:id/guests", authenticate, listGuests);
+
+// Pedidos de productos asociados a la reserva.
+router.post("/:id/orders", authenticate, createOrder);
+router.get("/:id/orders", authenticate, listOrdersByReservation);
+
+// Chat de mesa (RN12).
+router.post("/:id/chat", authenticate, postChatMessage);
+router.get("/:id/chat", authenticate, getChatMessages);
+
+export default router;

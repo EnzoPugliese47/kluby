@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kluby · Staff / Puerta</title>
+    <link rel="stylesheet" href="/kluby.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <div class="toast" id="toast"></div>
+    <script>
+      const API = "/api";
+      let token = localStorage.getItem("kluby_staff_token") || "";
+      let user = JSON.parse(localStorage.getItem("kluby_staff_user") || "null");
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const money = (n) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(Number(n) || 0);
+      const fdt = (d) => new Date(d).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+      let tt;
+      function toast(m, k = "") { const t = $("toast"); t.textContent = m; t.className = "toast show " + k; clearTimeout(tt); tt = setTimeout(() => (t.className = "toast " + k), 3000); }
+
+      async function api(path, options = {}) {
+        const res = await fetch(API + path, { ...options, headers: { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}), ...(options.headers || {}) } });
+        const json = await res.json().catch(() => ({ success: false, error: "Respuesta invalida" }));
+        if (!res.ok || !json.success) throw new Error(json.error || "Error " + res.status);
+        return json.data;
+      }
+
+      const badge = (s) => {
+        const map = { CONFIRMED: ["green", "Confirmada"], CHECKED_IN: ["violet", "Ingresado"], COMPLETED: ["muted", "Finalizada"], PENDING_PAYMENT: ["amber", "Sin pagar"], CANCELLED: ["red", "Cancelada"], EXPIRED: ["muted", "Expirada"] };
+        const [c, l] = map[s] || ["muted", s]; return `<span class="badge ${c}">${l}</span>`;
+      };
+
+      function render() {
+        if (!token || !user) return renderLogin();
+        $("root").innerHTML = `
+          <div class="topbar">
+            <div class="brand"><div class="logo">K</div><div><h1>KLUBY</h1><span>Control de acceso · Staff</span></div></div>
+            <div class="right"><div class="who"><b>${esc(user.fullName)}</b><small>${user.role}</small></div><a class="ghost btn-sm" href="/panel.html" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);text-decoration:none">Gestión</a><button class="ghost btn-sm" onclick="logout()">Salir</button></div>
+          </div>
+          <div class="container" style="max-width:560px">
+            <div class="section-title">Validar reserva</div>
+            <div class="section-sub">Ingresá el código del QR para validar el ingreso o cerrar la mesa.</div>
+            <div class="card" style="padding:20px">
+              <label>Código de reserva (QR)</label>
+              <input id="code" placeholder="Pegá o escaneá el código" onkeydown="if(event.key==='Enter')lookup()" />
+              <button class="btn-full" onclick="lookup()">Buscar</button>
+            </div>
+            <div id="result" style="margin-top:18px"></div>
+          </div>`;
+        setTimeout(() => $("code")?.focus(), 50);
+      }
+
+      function renderLogin() {
+        $("root").innerHTML = `
+          <div style="min-height:100vh;display:grid;place-items:center;padding:20px">
+            <div class="card" style="width:100%;max-width:380px;padding:32px">
+              <div class="brand" style="justify-content:center;margin-bottom:20px"><div class="logo">K</div><div><h1>KLUBY</h1><span>Acceso Staff</span></div></div>
+              <label>Email</label><input id="email" value="staff@kluby.com" />
+              <label>Contraseña</label><input id="pass" type="password" value="password123" />
+              <button class="btn-full" onclick="login()">Ingresar</button>
+              <div class="error" id="err"></div>
+              <p class="hint" style="text-align:center;margin-top:14px">Demo: staff@kluby.com / password123</p>
+            </div>
+          </div>`;
+      }
+      async function login() {
+        try {
+          const d = await api("/users/login", { method: "POST", body: JSON.stringify({ email: $("email").value.trim(), password: $("pass").value }) });
+          if (!["STAFF", "CLUB_ADMIN", "SUPER_ADMIN"].includes(d.user.role)) { $("err").textContent = "Esta pantalla es para personal del boliche."; return; }
+          token = d.token; user = d.user;
+          localStorage.setItem("kluby_staff_token", token); localStorage.setItem("kluby_staff_user", JSON.stringify(user));
+          render();
+        } catch (e) { $("err").textContent = e.message; }
+      }
+      function logout() { token = ""; user = null; localStorage.removeItem("kluby_staff_token"); localStorage.removeItem("kluby_staff_user"); render(); }
+
+      async function lookup() {
+        const code = $("code").value.trim(); if (!code) return;
+        $("result").innerHTML = `<div class="empty">Buscando...</div>`;
+        try {
+          const r = await api("/reservations/by-code/" + encodeURIComponent(code));
+          const guests = (r.guests || []).filter((g) => g.status === "CONFIRMED");
+          $("result").innerHTML = `
+            <div class="card" style="padding:20px">
+              <div class="row-between"><div style="font-size:18px;font-weight:800">${esc(r.table.label)}</div>${badge(r.status)}</div>
+              <div class="meta" style="margin:10px 0">
+                🏢 ${esc(r.club.name)}<br/>🗓️ ${fdt(r.event.date)}<br/>
+                👤 Anfitrión: ${esc(r.host.fullName)}<br/>
+                💳 Pagado: ${money(r.amountPaid)} de ${money(r.totalAmount)}
+                ${r.mode === "OPEN_TABLE" ? `<br/>👥 Mesa abierta · ${guests.length + 1} confirmados` : ""}
+              </div>
+              <div class="btn-row">
+                ${r.status === "CONFIRMED" ? `<button onclick="act('${r.id}','check-in')">✅ Registrar ingreso</button>` : ""}
+                ${r.status === "CHECKED_IN" ? `<button class="btn-accent" onclick="act('${r.id}','checkout')">🚪 Cerrar mesa (check-out)</button>` : ""}
+                ${["COMPLETED","CANCELLED","EXPIRED","PENDING_PAYMENT"].includes(r.status) ? `<span class="hint">Sin acciones disponibles para este estado.</span>` : ""}
+              </div>
+            </div>`;
+        } catch (e) { $("result").innerHTML = `<div class="card" style="padding:20px;border-color:var(--red)"><b style="color:var(--red)">${esc(e.message)}</b></div>`; }
+      }
+      async function act(id, action) {
+        try { await api("/reservations/" + id + "/" + action, { method: "POST" }); toast(action === "check-in" ? "Ingreso registrado ✅" : "Mesa cerrada 🚪", "ok"); lookup(); }
+        catch (e) { toast(e.message, "err"); }
+      }
+
+      render();
+    </script>
+  </body>
+</html>
