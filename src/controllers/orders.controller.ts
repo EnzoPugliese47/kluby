@@ -114,6 +114,12 @@ export const createOrder = async (
             400
           );
         }
+        if (product.eventId !== null && product.eventId !== reservation.eventId) {
+          throw new AppError(
+            "El producto no pertenece al evento de la reserva",
+            400
+          );
+        }
         if (type === OrderType.PREORDER && product.stock < CRITICAL_STOCK) {
           throw new AppError(
             `Preventa deshabilitada para '${product.name}' por stock critico (RN14)`,

@@ -217,6 +217,7 @@ export type EventNightWhereInput = {
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
   tables?: Prisma.ClubTableListRelationFilter
   reservations?: Prisma.ReservationListRelationFilter
+  products?: Prisma.ProductListRelationFilter
 }
 
 export type EventNightOrderByWithRelationInput = {
@@ -232,6 +233,7 @@ export type EventNightOrderByWithRelationInput = {
   club?: Prisma.ClubOrderByWithRelationInput
   tables?: Prisma.ClubTableOrderByRelationAggregateInput
   reservations?: Prisma.ReservationOrderByRelationAggregateInput
+  products?: Prisma.ProductOrderByRelationAggregateInput
 }
 
 export type EventNightWhereUniqueInput = Prisma.AtLeast<{
@@ -250,6 +252,7 @@ export type EventNightWhereUniqueInput = Prisma.AtLeast<{
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
   tables?: Prisma.ClubTableListRelationFilter
   reservations?: Prisma.ReservationListRelationFilter
+  products?: Prisma.ProductListRelationFilter
 }, "id">
 
 export type EventNightOrderByWithAggregationInput = {
@@ -294,6 +297,7 @@ export type EventNightCreateInput = {
   club: Prisma.ClubCreateNestedOneWithoutEventsInput
   tables?: Prisma.ClubTableCreateNestedManyWithoutEventInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutEventInput
+  products?: Prisma.ProductCreateNestedManyWithoutEventInput
 }
 
 export type EventNightUncheckedCreateInput = {
@@ -308,6 +312,7 @@ export type EventNightUncheckedCreateInput = {
   updatedAt?: Date | string
   tables?: Prisma.ClubTableUncheckedCreateNestedManyWithoutEventInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutEventInput
+  products?: Prisma.ProductUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventNightUpdateInput = {
@@ -322,6 +327,7 @@ export type EventNightUpdateInput = {
   club?: Prisma.ClubUpdateOneRequiredWithoutEventsNestedInput
   tables?: Prisma.ClubTableUpdateManyWithoutEventNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutEventNestedInput
+  products?: Prisma.ProductUpdateManyWithoutEventNestedInput
 }
 
 export type EventNightUncheckedUpdateInput = {
@@ -336,6 +342,7 @@ export type EventNightUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tables?: Prisma.ClubTableUncheckedUpdateManyWithoutEventNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutEventNestedInput
+  products?: Prisma.ProductUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventNightCreateManyInput = {
@@ -501,6 +508,22 @@ export type EventNightUpdateOneRequiredWithoutReservationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.EventNightUpdateToOneWithWhereWithoutReservationsInput, Prisma.EventNightUpdateWithoutReservationsInput>, Prisma.EventNightUncheckedUpdateWithoutReservationsInput>
 }
 
+export type EventNightCreateNestedOneWithoutProductsInput = {
+  create?: Prisma.XOR<Prisma.EventNightCreateWithoutProductsInput, Prisma.EventNightUncheckedCreateWithoutProductsInput>
+  connectOrCreate?: Prisma.EventNightCreateOrConnectWithoutProductsInput
+  connect?: Prisma.EventNightWhereUniqueInput
+}
+
+export type EventNightUpdateOneWithoutProductsNestedInput = {
+  create?: Prisma.XOR<Prisma.EventNightCreateWithoutProductsInput, Prisma.EventNightUncheckedCreateWithoutProductsInput>
+  connectOrCreate?: Prisma.EventNightCreateOrConnectWithoutProductsInput
+  upsert?: Prisma.EventNightUpsertWithoutProductsInput
+  disconnect?: Prisma.EventNightWhereInput | boolean
+  delete?: Prisma.EventNightWhereInput | boolean
+  connect?: Prisma.EventNightWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EventNightUpdateToOneWithWhereWithoutProductsInput, Prisma.EventNightUpdateWithoutProductsInput>, Prisma.EventNightUncheckedUpdateWithoutProductsInput>
+}
+
 export type EventNightCreateWithoutClubInput = {
   id?: string
   name: string
@@ -512,6 +535,7 @@ export type EventNightCreateWithoutClubInput = {
   updatedAt?: Date | string
   tables?: Prisma.ClubTableCreateNestedManyWithoutEventInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutEventInput
+  products?: Prisma.ProductCreateNestedManyWithoutEventInput
 }
 
 export type EventNightUncheckedCreateWithoutClubInput = {
@@ -525,6 +549,7 @@ export type EventNightUncheckedCreateWithoutClubInput = {
   updatedAt?: Date | string
   tables?: Prisma.ClubTableUncheckedCreateNestedManyWithoutEventInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutEventInput
+  products?: Prisma.ProductUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventNightCreateOrConnectWithoutClubInput = {
@@ -579,6 +604,7 @@ export type EventNightCreateWithoutTablesInput = {
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutEventsInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutEventInput
+  products?: Prisma.ProductCreateNestedManyWithoutEventInput
 }
 
 export type EventNightUncheckedCreateWithoutTablesInput = {
@@ -592,6 +618,7 @@ export type EventNightUncheckedCreateWithoutTablesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutEventInput
+  products?: Prisma.ProductUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventNightCreateOrConnectWithoutTablesInput = {
@@ -621,6 +648,7 @@ export type EventNightUpdateWithoutTablesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutEventsNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutEventNestedInput
+  products?: Prisma.ProductUpdateManyWithoutEventNestedInput
 }
 
 export type EventNightUncheckedUpdateWithoutTablesInput = {
@@ -634,6 +662,7 @@ export type EventNightUncheckedUpdateWithoutTablesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutEventNestedInput
+  products?: Prisma.ProductUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventNightCreateWithoutReservationsInput = {
@@ -647,6 +676,7 @@ export type EventNightCreateWithoutReservationsInput = {
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutEventsInput
   tables?: Prisma.ClubTableCreateNestedManyWithoutEventInput
+  products?: Prisma.ProductCreateNestedManyWithoutEventInput
 }
 
 export type EventNightUncheckedCreateWithoutReservationsInput = {
@@ -660,6 +690,7 @@ export type EventNightUncheckedCreateWithoutReservationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   tables?: Prisma.ClubTableUncheckedCreateNestedManyWithoutEventInput
+  products?: Prisma.ProductUncheckedCreateNestedManyWithoutEventInput
 }
 
 export type EventNightCreateOrConnectWithoutReservationsInput = {
@@ -689,6 +720,7 @@ export type EventNightUpdateWithoutReservationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutEventsNestedInput
   tables?: Prisma.ClubTableUpdateManyWithoutEventNestedInput
+  products?: Prisma.ProductUpdateManyWithoutEventNestedInput
 }
 
 export type EventNightUncheckedUpdateWithoutReservationsInput = {
@@ -702,6 +734,79 @@ export type EventNightUncheckedUpdateWithoutReservationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tables?: Prisma.ClubTableUncheckedUpdateManyWithoutEventNestedInput
+  products?: Prisma.ProductUncheckedUpdateManyWithoutEventNestedInput
+}
+
+export type EventNightCreateWithoutProductsInput = {
+  id?: string
+  name: string
+  date: Date | string
+  musicGenre?: string | null
+  backgroundImage?: string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  club: Prisma.ClubCreateNestedOneWithoutEventsInput
+  tables?: Prisma.ClubTableCreateNestedManyWithoutEventInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutEventInput
+}
+
+export type EventNightUncheckedCreateWithoutProductsInput = {
+  id?: string
+  clubId: string
+  name: string
+  date: Date | string
+  musicGenre?: string | null
+  backgroundImage?: string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tables?: Prisma.ClubTableUncheckedCreateNestedManyWithoutEventInput
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutEventInput
+}
+
+export type EventNightCreateOrConnectWithoutProductsInput = {
+  where: Prisma.EventNightWhereUniqueInput
+  create: Prisma.XOR<Prisma.EventNightCreateWithoutProductsInput, Prisma.EventNightUncheckedCreateWithoutProductsInput>
+}
+
+export type EventNightUpsertWithoutProductsInput = {
+  update: Prisma.XOR<Prisma.EventNightUpdateWithoutProductsInput, Prisma.EventNightUncheckedUpdateWithoutProductsInput>
+  create: Prisma.XOR<Prisma.EventNightCreateWithoutProductsInput, Prisma.EventNightUncheckedCreateWithoutProductsInput>
+  where?: Prisma.EventNightWhereInput
+}
+
+export type EventNightUpdateToOneWithWhereWithoutProductsInput = {
+  where?: Prisma.EventNightWhereInput
+  data: Prisma.XOR<Prisma.EventNightUpdateWithoutProductsInput, Prisma.EventNightUncheckedUpdateWithoutProductsInput>
+}
+
+export type EventNightUpdateWithoutProductsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  club?: Prisma.ClubUpdateOneRequiredWithoutEventsNestedInput
+  tables?: Prisma.ClubTableUpdateManyWithoutEventNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutEventNestedInput
+}
+
+export type EventNightUncheckedUpdateWithoutProductsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clubId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tables?: Prisma.ClubTableUncheckedUpdateManyWithoutEventNestedInput
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventNightCreateManyClubInput = {
@@ -726,6 +831,7 @@ export type EventNightUpdateWithoutClubInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tables?: Prisma.ClubTableUpdateManyWithoutEventNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutEventNestedInput
+  products?: Prisma.ProductUpdateManyWithoutEventNestedInput
 }
 
 export type EventNightUncheckedUpdateWithoutClubInput = {
@@ -739,6 +845,7 @@ export type EventNightUncheckedUpdateWithoutClubInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tables?: Prisma.ClubTableUncheckedUpdateManyWithoutEventNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutEventNestedInput
+  products?: Prisma.ProductUncheckedUpdateManyWithoutEventNestedInput
 }
 
 export type EventNightUncheckedUpdateManyWithoutClubInput = {
@@ -760,11 +867,13 @@ export type EventNightUncheckedUpdateManyWithoutClubInput = {
 export type EventNightCountOutputType = {
   tables: number
   reservations: number
+  products: number
 }
 
 export type EventNightCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tables?: boolean | EventNightCountOutputTypeCountTablesArgs
   reservations?: boolean | EventNightCountOutputTypeCountReservationsArgs
+  products?: boolean | EventNightCountOutputTypeCountProductsArgs
 }
 
 /**
@@ -791,6 +900,13 @@ export type EventNightCountOutputTypeCountReservationsArgs<ExtArgs extends runti
   where?: Prisma.ReservationWhereInput
 }
 
+/**
+ * EventNightCountOutputType without action
+ */
+export type EventNightCountOutputTypeCountProductsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProductWhereInput
+}
+
 
 export type EventNightSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -805,6 +921,7 @@ export type EventNightSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   tables?: boolean | Prisma.EventNight$tablesArgs<ExtArgs>
   reservations?: boolean | Prisma.EventNight$reservationsArgs<ExtArgs>
+  products?: boolean | Prisma.EventNight$productsArgs<ExtArgs>
   _count?: boolean | Prisma.EventNightCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["eventNight"]>
 
@@ -851,6 +968,7 @@ export type EventNightInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   tables?: boolean | Prisma.EventNight$tablesArgs<ExtArgs>
   reservations?: boolean | Prisma.EventNight$reservationsArgs<ExtArgs>
+  products?: boolean | Prisma.EventNight$productsArgs<ExtArgs>
   _count?: boolean | Prisma.EventNightCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type EventNightIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -866,6 +984,7 @@ export type $EventNightPayload<ExtArgs extends runtime.Types.Extensions.Internal
     club: Prisma.$ClubPayload<ExtArgs>
     tables: Prisma.$ClubTablePayload<ExtArgs>[]
     reservations: Prisma.$ReservationPayload<ExtArgs>[]
+    products: Prisma.$ProductPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1274,6 +1393,7 @@ export interface Prisma__EventNightClient<T, Null = never, ExtArgs extends runti
   club<T extends Prisma.ClubDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClubDefaultArgs<ExtArgs>>): Prisma.Prisma__ClubClient<runtime.Types.Result.GetResult<Prisma.$ClubPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   tables<T extends Prisma.EventNight$tablesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EventNight$tablesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClubTablePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reservations<T extends Prisma.EventNight$reservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EventNight$reservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  products<T extends Prisma.EventNight$productsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EventNight$productsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1758,6 +1878,30 @@ export type EventNight$reservationsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.ReservationScalarFieldEnum | Prisma.ReservationScalarFieldEnum[]
+}
+
+/**
+ * EventNight.products
+ */
+export type EventNight$productsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Product
+   */
+  select?: Prisma.ProductSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Product
+   */
+  omit?: Prisma.ProductOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProductInclude<ExtArgs> | null
+  where?: Prisma.ProductWhereInput
+  orderBy?: Prisma.ProductOrderByWithRelationInput | Prisma.ProductOrderByWithRelationInput[]
+  cursor?: Prisma.ProductWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProductScalarFieldEnum | Prisma.ProductScalarFieldEnum[]
 }
 
 /**

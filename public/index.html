@@ -61,6 +61,19 @@
       .table-pin.available:hover { transform: translate(-50%, -50%) scale(1.18); z-index: 3; }
       .sector-legend { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 0; font-size: 12px; color: var(--muted); justify-content: center; }
 
+      .bottles-section { margin-top: 28px; }
+      .bottles-section h3 { margin: 0 0 6px; font-size: 18px; }
+      .bottles-section .section-sub { margin-bottom: 14px; }
+      .bottles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+      .bottle-item {
+        background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px;
+        padding: 14px; display: flex; flex-direction: column; gap: 6px;
+      }
+      .bottle-item .bi-name { font-weight: 700; font-size: 14px; }
+      .bottle-item .bi-cat { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+      .bottle-item .bi-desc { font-size: 12px; color: var(--muted); line-height: 1.4; flex: 1; }
+      .bottle-item .bi-price { font-size: 17px; font-weight: 800; color: var(--accent); margin-top: 4px; }
+
       .reserve-info { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
       .reserve-info .stat { background: var(--surface-3); border-radius: 10px; padding: 10px 14px; }
       .reserve-info .stat small { display: block; color: var(--muted); font-size: 11px; }
@@ -350,7 +363,10 @@
       async function renderEvent(page) {
         page.innerHTML = `<div class="empty">Cargando mapa...</div>`;
         try {
-          const data = await api("/events/" + state.params.id + "/availability");
+          const [data, products] = await Promise.all([
+            api("/events/" + state.params.id + "/availability"),
+            api("/events/" + state.params.id + "/products").catch(() => []),
+          ]);
           window._tables = data.tables;
           const header = `
             <button class="ghost btn-sm" onclick="go('club',{id:'${state.params.club}'})">← Volver</button>
@@ -377,8 +393,53 @@
           const emptyHint = data.tables.length === 0
             ? `<div class="empty" style="margin-top:14px">Todavía no hay mesas en este evento.</div>`
             : `<div class="sector-legend">${sectors.map((s) => `<span>📍 ${esc(s)}</span>`).join("")}</div>`;
-          page.innerHTML = header + mapBlock + emptyHint;
+
+          const bottlesBlock = renderBottlesSection(products);
+          page.innerHTML = header + mapBlock + emptyHint + bottlesBlock;
         } catch (e) { page.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+      }
+      function renderBottlesGrid(products) {
+        let html = `<div class="bottles-grid">`;
+        let lastCat = null;
+        for (const p of products) {
+          const cat = p.category || "General";
+          if (cat !== lastCat) {
+            html += `<div style="grid-column:1/-1;font-size:12px;color:var(--muted);font-weight:700;margin:${lastCat ? "10px" : "0"} 0 4px;text-transform:uppercase;letter-spacing:.5px">🍾 ${esc(cat)}</div>`;
+            lastCat = cat;
+          }
+          html += `<div class="bottle-item">
+            <div class="bi-name">${esc(p.name)}</div>
+            ${p.description ? `<div class="bi-desc">${esc(p.description)}</div>` : ""}
+            <div class="bi-price">${money(p.price)}</div>
+          </div>`;
+        }
+        html += "</div>";
+        return html;
+      }
+      function renderBottlesSection(products) {
+        if (!products.length) return "";
+        return `<div class="bottles-section"><h3>Carta de botellas</h3><p class="section-sub">Precios para este evento</p>${renderBottlesGrid(products)}</div>`;
+      }
+      async function openBottleMenu(eventId, eventName) {
+        openModal('<div class="empty">Cargando carta...</div>');
+        try {
+          const products = await api("/events/" + eventId + "/products");
+          if (!products.length) {
+            openModal(`
+              <h3>Carta de botellas</h3>
+              <p class="sub">${esc(eventName)}</p>
+              <div class="empty">Todavía no hay botellas cargadas para este evento.</div>
+              <button class="btn-full ghost" style="margin-top:16px" onclick="closeModal()">Cerrar</button>`);
+            return;
+          }
+          openModal(`
+            <h3>Carta de botellas</h3>
+            <p class="sub">${esc(eventName)} · Precios del evento</p>
+            ${renderBottlesGrid(products)}
+            <button class="btn-full ghost" style="margin-top:16px" onclick="closeModal()">Cerrar</button>`);
+        } catch (e) {
+          openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`);
+        }
       }
 
       let _reserveSel = "DEPOSIT_ONLY";
@@ -461,6 +522,7 @@
         if (r.status === "CONFIRMED" && r.mode === "STANDARD") actions.push(`<button class="btn-sm btn-accent" onclick="openTableModal('${r.id}',${r.table.capacity})">Abrir mesa 👥</button>`);
         if (r.mode === "OPEN_TABLE") actions.push(`<button class="btn-sm" onclick="go('detail',{id:'${r.id}'})">Invitados</button>`);
         if (r.status === "CONFIRMED" || r.status === "CHECKED_IN") actions.push(`<button class="btn-sm ghost" onclick="showTicketById('${r.id}')">Ver QR</button>`);
+        actions.push(`<button class="btn-sm ghost" onclick='openBottleMenu(${JSON.stringify(r.event.id)}, ${JSON.stringify(r.event.name)})'>Ver carta 🍾</button>`);
         if (r.status === "PENDING_PAYMENT" || r.status === "CONFIRMED") actions.push(`<button class="btn-sm btn-danger" onclick="cancelReservation('${r.id}')">Cancelar</button>`);
         return `<div class="card list-card">
           <div class="head"><div class="title">${esc(r.table.label)}</div>${statusBadge(r.status)}</div>

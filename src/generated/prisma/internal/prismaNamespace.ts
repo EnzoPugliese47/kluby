@@ -1561,6 +1561,7 @@ export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeo
 export const ProductScalarFieldEnum = {
   id: 'id',
   clubId: 'clubId',
+  eventId: 'eventId',
   name: 'name',
   description: 'description',
   category: 'category',

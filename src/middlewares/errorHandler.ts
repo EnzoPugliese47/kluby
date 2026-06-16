@@ -40,7 +40,14 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   }
 
   if (err instanceof Prisma.PrismaClientValidationError) {
-    sendError(res, "Datos invalidos para la operacion en base de datos", 400);
+    const detail = err.message.split("\n").slice(-3).join(" ").trim();
+    sendError(
+      res,
+      isProduction
+        ? "Datos invalidos para la operacion en base de datos"
+        : `Datos invalidos para la operacion en base de datos: ${detail}`,
+      400
+    );
     return;
   }
 

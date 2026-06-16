@@ -62,6 +62,7 @@ export type Payment = Prisma.PaymentModel
 /**
  * Model Product
  * Producto del catalogo del boliche (bebidas, combos, botellas).
+ * Cada evento tiene su propia carta; eventId apunta al evento concreto.
  */
 export type Product = Prisma.ProductModel
 /**

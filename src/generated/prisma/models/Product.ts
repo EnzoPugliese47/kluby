@@ -15,6 +15,7 @@ import type * as Prisma from "../internal/prismaNamespace"
 /**
  * Model Product
  * Producto del catalogo del boliche (bebidas, combos, botellas).
+ * Cada evento tiene su propia carta; eventId apunta al evento concreto.
  */
 export type ProductModel = runtime.Types.Result.DefaultSelection<Prisma.$ProductPayload>
 
@@ -39,6 +40,7 @@ export type ProductSumAggregateOutputType = {
 export type ProductMinAggregateOutputType = {
   id: string | null
   clubId: string | null
+  eventId: string | null
   name: string | null
   description: string | null
   category: string | null
@@ -53,6 +55,7 @@ export type ProductMinAggregateOutputType = {
 export type ProductMaxAggregateOutputType = {
   id: string | null
   clubId: string | null
+  eventId: string | null
   name: string | null
   description: string | null
   category: string | null
@@ -67,6 +70,7 @@ export type ProductMaxAggregateOutputType = {
 export type ProductCountAggregateOutputType = {
   id: number
   clubId: number
+  eventId: number
   name: number
   description: number
   category: number
@@ -93,6 +97,7 @@ export type ProductSumAggregateInputType = {
 export type ProductMinAggregateInputType = {
   id?: true
   clubId?: true
+  eventId?: true
   name?: true
   description?: true
   category?: true
@@ -107,6 +112,7 @@ export type ProductMinAggregateInputType = {
 export type ProductMaxAggregateInputType = {
   id?: true
   clubId?: true
+  eventId?: true
   name?: true
   description?: true
   category?: true
@@ -121,6 +127,7 @@ export type ProductMaxAggregateInputType = {
 export type ProductCountAggregateInputType = {
   id?: true
   clubId?: true
+  eventId?: true
   name?: true
   description?: true
   category?: true
@@ -222,6 +229,7 @@ export type ProductGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
 export type ProductGroupByOutputType = {
   id: string
   clubId: string
+  eventId: string | null
   name: string
   description: string | null
   category: string | null
@@ -259,6 +267,7 @@ export type ProductWhereInput = {
   NOT?: Prisma.ProductWhereInput | Prisma.ProductWhereInput[]
   id?: Prisma.StringFilter<"Product"> | string
   clubId?: Prisma.StringFilter<"Product"> | string
+  eventId?: Prisma.StringNullableFilter<"Product"> | string | null
   name?: Prisma.StringFilter<"Product"> | string
   description?: Prisma.StringNullableFilter<"Product"> | string | null
   category?: Prisma.StringNullableFilter<"Product"> | string | null
@@ -269,12 +278,14 @@ export type ProductWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
+  event?: Prisma.XOR<Prisma.EventNightNullableScalarRelationFilter, Prisma.EventNightWhereInput> | null
   items?: Prisma.OrderItemListRelationFilter
 }
 
 export type ProductOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -285,6 +296,7 @@ export type ProductOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   club?: Prisma.ClubOrderByWithRelationInput
+  event?: Prisma.EventNightOrderByWithRelationInput
   items?: Prisma.OrderItemOrderByRelationAggregateInput
 }
 
@@ -294,6 +306,7 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.ProductWhereInput[]
   NOT?: Prisma.ProductWhereInput | Prisma.ProductWhereInput[]
   clubId?: Prisma.StringFilter<"Product"> | string
+  eventId?: Prisma.StringNullableFilter<"Product"> | string | null
   name?: Prisma.StringFilter<"Product"> | string
   description?: Prisma.StringNullableFilter<"Product"> | string | null
   category?: Prisma.StringNullableFilter<"Product"> | string | null
@@ -304,12 +317,14 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
+  event?: Prisma.XOR<Prisma.EventNightNullableScalarRelationFilter, Prisma.EventNightWhereInput> | null
   items?: Prisma.OrderItemListRelationFilter
 }, "id">
 
 export type ProductOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -332,6 +347,7 @@ export type ProductScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ProductScalarWhereWithAggregatesInput | Prisma.ProductScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Product"> | string
   clubId?: Prisma.StringWithAggregatesFilter<"Product"> | string
+  eventId?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
   name?: Prisma.StringWithAggregatesFilter<"Product"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
   category?: Prisma.StringNullableWithAggregatesFilter<"Product"> | string | null
@@ -355,12 +371,14 @@ export type ProductCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutProductsInput
+  event?: Prisma.EventNightCreateNestedOneWithoutProductsInput
   items?: Prisma.OrderItemCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateInput = {
   id?: string
   clubId: string
+  eventId?: string | null
   name: string
   description?: string | null
   category?: string | null
@@ -385,12 +403,14 @@ export type ProductUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutProductsNestedInput
+  event?: Prisma.EventNightUpdateOneWithoutProductsNestedInput
   items?: Prisma.OrderItemUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -406,6 +426,7 @@ export type ProductUncheckedUpdateInput = {
 export type ProductCreateManyInput = {
   id?: string
   clubId: string
+  eventId?: string | null
   name: string
   description?: string | null
   category?: string | null
@@ -433,6 +454,7 @@ export type ProductUpdateManyMutationInput = {
 export type ProductUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -457,6 +479,7 @@ export type ProductOrderByRelationAggregateInput = {
 export type ProductCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -476,6 +499,7 @@ export type ProductAvgOrderByAggregateInput = {
 export type ProductMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -490,6 +514,7 @@ export type ProductMaxOrderByAggregateInput = {
 export type ProductMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clubId?: Prisma.SortOrder
+  eventId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -553,6 +578,48 @@ export type ProductUncheckedUpdateManyWithoutClubNestedInput = {
   deleteMany?: Prisma.ProductScalarWhereInput | Prisma.ProductScalarWhereInput[]
 }
 
+export type ProductCreateNestedManyWithoutEventInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutEventInput, Prisma.ProductUncheckedCreateWithoutEventInput> | Prisma.ProductCreateWithoutEventInput[] | Prisma.ProductUncheckedCreateWithoutEventInput[]
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutEventInput | Prisma.ProductCreateOrConnectWithoutEventInput[]
+  createMany?: Prisma.ProductCreateManyEventInputEnvelope
+  connect?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+}
+
+export type ProductUncheckedCreateNestedManyWithoutEventInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutEventInput, Prisma.ProductUncheckedCreateWithoutEventInput> | Prisma.ProductCreateWithoutEventInput[] | Prisma.ProductUncheckedCreateWithoutEventInput[]
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutEventInput | Prisma.ProductCreateOrConnectWithoutEventInput[]
+  createMany?: Prisma.ProductCreateManyEventInputEnvelope
+  connect?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+}
+
+export type ProductUpdateManyWithoutEventNestedInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutEventInput, Prisma.ProductUncheckedCreateWithoutEventInput> | Prisma.ProductCreateWithoutEventInput[] | Prisma.ProductUncheckedCreateWithoutEventInput[]
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutEventInput | Prisma.ProductCreateOrConnectWithoutEventInput[]
+  upsert?: Prisma.ProductUpsertWithWhereUniqueWithoutEventInput | Prisma.ProductUpsertWithWhereUniqueWithoutEventInput[]
+  createMany?: Prisma.ProductCreateManyEventInputEnvelope
+  set?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  disconnect?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  delete?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  connect?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  update?: Prisma.ProductUpdateWithWhereUniqueWithoutEventInput | Prisma.ProductUpdateWithWhereUniqueWithoutEventInput[]
+  updateMany?: Prisma.ProductUpdateManyWithWhereWithoutEventInput | Prisma.ProductUpdateManyWithWhereWithoutEventInput[]
+  deleteMany?: Prisma.ProductScalarWhereInput | Prisma.ProductScalarWhereInput[]
+}
+
+export type ProductUncheckedUpdateManyWithoutEventNestedInput = {
+  create?: Prisma.XOR<Prisma.ProductCreateWithoutEventInput, Prisma.ProductUncheckedCreateWithoutEventInput> | Prisma.ProductCreateWithoutEventInput[] | Prisma.ProductUncheckedCreateWithoutEventInput[]
+  connectOrCreate?: Prisma.ProductCreateOrConnectWithoutEventInput | Prisma.ProductCreateOrConnectWithoutEventInput[]
+  upsert?: Prisma.ProductUpsertWithWhereUniqueWithoutEventInput | Prisma.ProductUpsertWithWhereUniqueWithoutEventInput[]
+  createMany?: Prisma.ProductCreateManyEventInputEnvelope
+  set?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  disconnect?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  delete?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  connect?: Prisma.ProductWhereUniqueInput | Prisma.ProductWhereUniqueInput[]
+  update?: Prisma.ProductUpdateWithWhereUniqueWithoutEventInput | Prisma.ProductUpdateWithWhereUniqueWithoutEventInput[]
+  updateMany?: Prisma.ProductUpdateManyWithWhereWithoutEventInput | Prisma.ProductUpdateManyWithWhereWithoutEventInput[]
+  deleteMany?: Prisma.ProductScalarWhereInput | Prisma.ProductScalarWhereInput[]
+}
+
 export type ProductCreateNestedOneWithoutItemsInput = {
   create?: Prisma.XOR<Prisma.ProductCreateWithoutItemsInput, Prisma.ProductUncheckedCreateWithoutItemsInput>
   connectOrCreate?: Prisma.ProductCreateOrConnectWithoutItemsInput
@@ -578,11 +645,13 @@ export type ProductCreateWithoutClubInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  event?: Prisma.EventNightCreateNestedOneWithoutProductsInput
   items?: Prisma.OrderItemCreateNestedManyWithoutProductInput
 }
 
 export type ProductUncheckedCreateWithoutClubInput = {
   id?: string
+  eventId?: string | null
   name: string
   description?: string | null
   category?: string | null
@@ -627,6 +696,7 @@ export type ProductScalarWhereInput = {
   NOT?: Prisma.ProductScalarWhereInput | Prisma.ProductScalarWhereInput[]
   id?: Prisma.StringFilter<"Product"> | string
   clubId?: Prisma.StringFilter<"Product"> | string
+  eventId?: Prisma.StringNullableFilter<"Product"> | string | null
   name?: Prisma.StringFilter<"Product"> | string
   description?: Prisma.StringNullableFilter<"Product"> | string | null
   category?: Prisma.StringNullableFilter<"Product"> | string | null
@@ -636,6 +706,62 @@ export type ProductScalarWhereInput = {
   isActive?: Prisma.BoolFilter<"Product"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Product"> | Date | string
+}
+
+export type ProductCreateWithoutEventInput = {
+  id?: string
+  name: string
+  description?: string | null
+  category?: string | null
+  imageUrl?: string | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  stock?: number
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  club: Prisma.ClubCreateNestedOneWithoutProductsInput
+  items?: Prisma.OrderItemCreateNestedManyWithoutProductInput
+}
+
+export type ProductUncheckedCreateWithoutEventInput = {
+  id?: string
+  clubId: string
+  name: string
+  description?: string | null
+  category?: string | null
+  imageUrl?: string | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  stock?: number
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutProductInput
+}
+
+export type ProductCreateOrConnectWithoutEventInput = {
+  where: Prisma.ProductWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProductCreateWithoutEventInput, Prisma.ProductUncheckedCreateWithoutEventInput>
+}
+
+export type ProductCreateManyEventInputEnvelope = {
+  data: Prisma.ProductCreateManyEventInput | Prisma.ProductCreateManyEventInput[]
+  skipDuplicates?: boolean
+}
+
+export type ProductUpsertWithWhereUniqueWithoutEventInput = {
+  where: Prisma.ProductWhereUniqueInput
+  update: Prisma.XOR<Prisma.ProductUpdateWithoutEventInput, Prisma.ProductUncheckedUpdateWithoutEventInput>
+  create: Prisma.XOR<Prisma.ProductCreateWithoutEventInput, Prisma.ProductUncheckedCreateWithoutEventInput>
+}
+
+export type ProductUpdateWithWhereUniqueWithoutEventInput = {
+  where: Prisma.ProductWhereUniqueInput
+  data: Prisma.XOR<Prisma.ProductUpdateWithoutEventInput, Prisma.ProductUncheckedUpdateWithoutEventInput>
+}
+
+export type ProductUpdateManyWithWhereWithoutEventInput = {
+  where: Prisma.ProductScalarWhereInput
+  data: Prisma.XOR<Prisma.ProductUpdateManyMutationInput, Prisma.ProductUncheckedUpdateManyWithoutEventInput>
 }
 
 export type ProductCreateWithoutItemsInput = {
@@ -650,11 +776,13 @@ export type ProductCreateWithoutItemsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutProductsInput
+  event?: Prisma.EventNightCreateNestedOneWithoutProductsInput
 }
 
 export type ProductUncheckedCreateWithoutItemsInput = {
   id?: string
   clubId: string
+  eventId?: string | null
   name: string
   description?: string | null
   category?: string | null
@@ -694,11 +822,13 @@ export type ProductUpdateWithoutItemsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutProductsNestedInput
+  event?: Prisma.EventNightUpdateOneWithoutProductsNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clubId?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -712,6 +842,7 @@ export type ProductUncheckedUpdateWithoutItemsInput = {
 
 export type ProductCreateManyClubInput = {
   id?: string
+  eventId?: string | null
   name: string
   description?: string | null
   category?: string | null
@@ -734,11 +865,13 @@ export type ProductUpdateWithoutClubInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  event?: Prisma.EventNightUpdateOneWithoutProductsNestedInput
   items?: Prisma.OrderItemUpdateManyWithoutProductNestedInput
 }
 
 export type ProductUncheckedUpdateWithoutClubInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -753,6 +886,65 @@ export type ProductUncheckedUpdateWithoutClubInput = {
 
 export type ProductUncheckedUpdateManyWithoutClubInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  eventId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stock?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ProductCreateManyEventInput = {
+  id?: string
+  clubId: string
+  name: string
+  description?: string | null
+  category?: string | null
+  imageUrl?: string | null
+  price: runtime.Decimal | runtime.DecimalJsLike | number | string
+  stock?: number
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ProductUpdateWithoutEventInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stock?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  club?: Prisma.ClubUpdateOneRequiredWithoutProductsNestedInput
+  items?: Prisma.OrderItemUpdateManyWithoutProductNestedInput
+}
+
+export type ProductUncheckedUpdateWithoutEventInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clubId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  stock?: Prisma.IntFieldUpdateOperationsInput | number
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  items?: Prisma.OrderItemUncheckedUpdateManyWithoutProductNestedInput
+}
+
+export type ProductUncheckedUpdateManyWithoutEventInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clubId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -798,6 +990,7 @@ export type ProductCountOutputTypeCountItemsArgs<ExtArgs extends runtime.Types.E
 export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   clubId?: boolean
+  eventId?: boolean
   name?: boolean
   description?: boolean
   category?: boolean
@@ -808,6 +1001,7 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   createdAt?: boolean
   updatedAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.Product$eventArgs<ExtArgs>
   items?: boolean | Prisma.Product$itemsArgs<ExtArgs>
   _count?: boolean | Prisma.ProductCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["product"]>
@@ -815,6 +1009,7 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   clubId?: boolean
+  eventId?: boolean
   name?: boolean
   description?: boolean
   category?: boolean
@@ -825,11 +1020,13 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdAt?: boolean
   updatedAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.Product$eventArgs<ExtArgs>
 }, ExtArgs["result"]["product"]>
 
 export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   clubId?: boolean
+  eventId?: boolean
   name?: boolean
   description?: boolean
   category?: boolean
@@ -840,11 +1037,13 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdAt?: boolean
   updatedAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.Product$eventArgs<ExtArgs>
 }, ExtArgs["result"]["product"]>
 
 export type ProductSelectScalar = {
   id?: boolean
   clubId?: boolean
+  eventId?: boolean
   name?: boolean
   description?: boolean
   category?: boolean
@@ -856,28 +1055,33 @@ export type ProductSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clubId" | "name" | "description" | "category" | "imageUrl" | "price" | "stock" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clubId" | "eventId" | "name" | "description" | "category" | "imageUrl" | "price" | "stock" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.Product$eventArgs<ExtArgs>
   items?: boolean | Prisma.Product$itemsArgs<ExtArgs>
   _count?: boolean | Prisma.ProductCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProductIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.Product$eventArgs<ExtArgs>
 }
 export type ProductIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
+  event?: boolean | Prisma.Product$eventArgs<ExtArgs>
 }
 
 export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Product"
   objects: {
     club: Prisma.$ClubPayload<ExtArgs>
+    event: Prisma.$EventNightPayload<ExtArgs> | null
     items: Prisma.$OrderItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     clubId: string
+    eventId: string | null
     name: string
     description: string | null
     category: string | null
@@ -1282,6 +1486,7 @@ readonly fields: ProductFieldRefs;
 export interface Prisma__ProductClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   club<T extends Prisma.ClubDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClubDefaultArgs<ExtArgs>>): Prisma.Prisma__ClubClient<runtime.Types.Result.GetResult<Prisma.$ClubPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  event<T extends Prisma.Product$eventArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$eventArgs<ExtArgs>>): Prisma.Prisma__EventNightClient<runtime.Types.Result.GetResult<Prisma.$EventNightPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   items<T extends Prisma.Product$itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Product$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1314,6 +1519,7 @@ export interface Prisma__ProductClient<T, Null = never, ExtArgs extends runtime.
 export interface ProductFieldRefs {
   readonly id: Prisma.FieldRef<"Product", 'String'>
   readonly clubId: Prisma.FieldRef<"Product", 'String'>
+  readonly eventId: Prisma.FieldRef<"Product", 'String'>
   readonly name: Prisma.FieldRef<"Product", 'String'>
   readonly description: Prisma.FieldRef<"Product", 'String'>
   readonly category: Prisma.FieldRef<"Product", 'String'>
@@ -1721,6 +1927,25 @@ export type ProductDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Limit how many Products to delete.
    */
   limit?: number
+}
+
+/**
+ * Product.event
+ */
+export type Product$eventArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventNight
+   */
+  select?: Prisma.EventNightSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EventNight
+   */
+  omit?: Prisma.EventNightOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventNightInclude<ExtArgs> | null
+  where?: Prisma.EventNightWhereInput
 }
 
 /**

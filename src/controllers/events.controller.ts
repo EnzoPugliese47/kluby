@@ -253,6 +253,7 @@ export const deleteEvent = async (
     }
 
     await prisma.$transaction([
+      prisma.product.deleteMany({ where: { eventId } }),
       prisma.clubTable.deleteMany({ where: { eventId } }),
       prisma.eventNight.delete({ where: { id: eventId } }),
     ]);

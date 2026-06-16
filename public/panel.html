@@ -146,6 +146,12 @@
       .table-card.taken { border-color: rgba(255,77,141,0.35); }
       .table-card .t-name { font-weight: 700; font-size: 15px; }
       .table-card .t-meta { color: var(--muted); font-size: 12px; margin: 6px 0 12px; line-height: 1.5; }
+      .bottles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+      .bottle-card { padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface-2); display: flex; flex-direction: column; gap: 8px; }
+      .bottle-card .b-name { font-weight: 700; font-size: 15px; }
+      .bottle-card .b-meta { color: var(--muted); font-size: 12px; line-height: 1.45; flex: 1; }
+      .bottle-card .b-price { font-size: 18px; font-weight: 800; color: var(--accent); }
+      .bottle-card .b-actions { display: flex; gap: 8px; flex-wrap: wrap; }
       .pick-list { max-height: 260px; overflow: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
       .pick-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; }
       .pick-row small { color: var(--muted); display: block; }
@@ -342,6 +348,8 @@
       const fmtNum = (n) => new Intl.NumberFormat("es-AR").format(n || 0);
 
       const PALETTE = ["#7c5cff", "#c44bff", "#2de2c6", "#ff4d8d", "#ffb454", "#4d9bff", "#6be585"];
+      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const attr = (s) => esc(s).replace(/[\r\n]+/g, " ");
 
       async function api(path, options = {}) {
         const res = await fetch(API + path, {
@@ -475,7 +483,10 @@
                 <small>📍 ${esc(c.address)}, ${esc(c.city)}</small>
                 ${c.musicGenre ? `<small>🎵 ${esc(c.musicGenre)}</small>` : ""}
               </div>
-              <button class="btn-sm btn-danger" onclick='deleteClub(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Eliminar</button>
+              <div class="btn-row">
+                <button type="button" class="btn-sm ghost" onclick="editClub('${c.id}')">Editar</button>
+                <button type="button" class="btn-sm btn-danger" onclick='deleteClub(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Eliminar</button>
+              </div>
             </div>`).join("");
         } catch (e) {
           if (String(e.message).includes("401")) return logout();
@@ -483,28 +494,37 @@
         }
       }
 
+      function editClub(id) {
+        const club = _clubsCache.find((c) => c.id === id);
+        if (!club) { toast("Boliche no encontrado", "err"); return; }
+        openClubForm(club);
+      }
+
       let _clubLogo = null;
-      function openClubForm() {
-        _clubLogo = null;
+      let _editingClubId = null;
+      function openClubForm(club) {
+        const editing = club && club.id;
+        _editingClubId = editing ? club.id : null;
+        _clubLogo = editing && club.imageUrl ? club.imageUrl : null;
         openModal(`
-          <h3>Nuevo boliche</h3>
-          <p class="sub">El logo debe ser como máximo 500×500 píxeles.</p>
+          <h3>${editing ? "Editar boliche" : "Nuevo boliche"}</h3>
+          <p class="sub">${editing ? "Modificá los datos del boliche." : "El logo debe ser como máximo 500×500 píxeles."}</p>
           <label style="margin-top:0">Nombre</label>
-          <input id="c-name" placeholder="Ej. Club VISA" />
+          <input id="c-name" value="${editing ? attr(club.name) : ""}" placeholder="Ej. Club VISA" />
           <label>Dirección</label>
-          <input id="c-address" placeholder="Calle y número" />
+          <input id="c-address" value="${editing ? attr(club.address) : ""}" placeholder="Calle y número" />
           <label>Ciudad</label>
-          <input id="c-city" placeholder="Ej. Buenos Aires" />
+          <input id="c-city" value="${editing ? attr(club.city) : ""}" placeholder="Ej. Buenos Aires" />
           <label>Género musical (opcional)</label>
-          <input id="c-genre" placeholder="Ej. Electrónica" />
+          <input id="c-genre" value="${editing && club.musicGenre ? attr(club.musicGenre) : ""}" placeholder="Ej. Electrónica" />
           <label>Descripción (opcional)</label>
-          <input id="c-desc" placeholder="Breve descripción" />
+          <input id="c-desc" value="${editing && club.description ? attr(club.description) : ""}" placeholder="Breve descripción" />
           <label>Logo (máx. 500×500 px)</label>
           <input id="c-logo" type="file" accept="image/png,image/jpeg,image/webp" onchange="onClubLogo(event)" />
-          <div id="c-logo-preview" style="margin-top:10px"><span class="role-pill">PNG, JPG o WebP · máx. 500×500</span></div>
+          <div id="c-logo-preview" style="margin-top:10px">${_clubLogo ? `<img src="${esc(_clubLogo)}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--border)"/>` : '<span class="role-pill">PNG, JPG o WebP · máx. 500×500</span>'}</div>
           <div class="btn-row" style="margin-top:20px">
-            <button class="ghost" onclick="closeModal()">Cancelar</button>
-            <button style="flex:1" onclick="saveClub()">Crear boliche</button>
+            <button type="button" class="ghost" onclick="closeModal()">Cancelar</button>
+            <button type="button" style="flex:1" onclick="saveClub()">${editing ? "Guardar cambios" : "Crear boliche"}</button>
           </div>
           <div class="error" id="c-err"></div>`);
       }
@@ -553,21 +573,32 @@
       }
 
       async function saveClub() {
-        const name = document.getElementById("c-name").value.trim();
+        const clubId = _editingClubId;
+        const errEl = document.getElementById("c-err");
+        const nameEl = document.getElementById("c-name");
+        if (!nameEl) { toast("No se pudo leer el formulario. Cerrá y volvé a abrir.", "err"); return; }
+        const name = nameEl.value.trim();
         const address = document.getElementById("c-address").value.trim();
         const city = document.getElementById("c-city").value.trim();
         const musicGenre = document.getElementById("c-genre").value.trim();
         const description = document.getElementById("c-desc").value.trim();
-        if (!name || !address || !city) { document.getElementById("c-err").textContent = "Nombre, dirección y ciudad son obligatorios."; return; }
-        const body = { name, address, city, ownerId: currentUser.id, musicGenre, description };
+        if (!name || !address || !city) { errEl.textContent = "Nombre, dirección y ciudad son obligatorios."; return; }
+        const body = { name, address, city, musicGenre, description };
         if (_clubLogo) body.imageUrl = _clubLogo;
         try {
-          await api("/clubs", { method: "POST", body: JSON.stringify(body) });
-          toast("Boliche creado", "ok");
+          if (clubId) {
+            await api("/clubs/" + clubId, { method: "PATCH", body: JSON.stringify(body) });
+            toast("Boliche actualizado", "ok");
+          } else {
+            body.ownerId = currentUser.id;
+            await api("/clubs", { method: "POST", body: JSON.stringify(body) });
+            toast("Boliche creado", "ok");
+          }
+          _editingClubId = null;
           closeModal();
           await loadClubs();
           loadClubsAdmin();
-        } catch (e) { document.getElementById("c-err").textContent = e.message; }
+        } catch (e) { errEl.textContent = e.message; toast(e.message, "err"); }
       }
 
       // ---------- Helpers UI ----------
@@ -585,7 +616,6 @@
         document.getElementById("overlay").classList.add("show");
       }
       function closeModal() { document.getElementById("overlay").classList.remove("show"); document.getElementById("modal-content").classList.remove("wide"); }
-      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
       const fdt = (d) => new Date(d).toLocaleString("es-AR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
       const ROLE_LABEL = { CLIENT: "Cliente", STAFF: "Staff", CLUB_ADMIN: "Admin", SUPER_ADMIN: "Super Admin" };
 
@@ -667,12 +697,14 @@
         localStorage.setItem("kluby_events_club", document.getElementById("event-club-select").value);
         loadEvents();
       }
+      let _eventsCache = [];
       async function loadEvents() {
         const clubId = document.getElementById("event-club-select").value;
         const area = document.getElementById("events-area");
         if (!clubId) { area.innerHTML = '<div class="empty">Seleccioná un boliche.</div>'; return; }
         try {
           const events = await api("/clubs/" + clubId + "/events");
+          _eventsCache = events;
           if (!events.length) { area.innerHTML = '<div class="empty">Este boliche no tiene eventos. Agregá uno con el botón de arriba.</div>'; return; }
           area.innerHTML = `<div class="card panel" style="padding:0;overflow:hidden"><table class="data">
             <thead><tr><th>Evento</th><th>Fecha</th><th>Género</th><th></th></tr></thead>
@@ -690,43 +722,51 @@
           <td><div class="btn-row">
             <button class="btn-sm btn-accent" onclick='openEventTables(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Ver mesas</button>
             <button class="btn-sm" onclick='openDesigner(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Diseñar mesas</button>
-            <button class="btn-sm ghost" onclick='openEventForm(${JSON.stringify(e)})'>Editar</button>
+            <button class="btn-sm" onclick='openEventBottles(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Botellas</button>
+            <button type="button" class="btn-sm ghost" onclick="editEvent('${e.id}')">Editar</button>
             <button class="btn-sm btn-danger" onclick='deleteEvent(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Eliminar</button>
           </div></td>
         </tr>`;
       }
       async function deleteEvent(id, name) {
-        if (!confirm(`¿Eliminar el evento "${name}"?\nSe borrarán todas sus mesas (si no hay reservas activas).`)) return;
+        if (!confirm(`¿Eliminar el evento "${name}"?\nSe borrarán todas sus mesas, botellas y carta (si no hay reservas activas).`)) return;
         try {
           await api("/events/" + id, { method: "DELETE" });
           toast("Evento eliminado", "ok");
           loadEvents();
         } catch (e) { toast(e.message, "err"); }
       }
+      function editEvent(id) {
+        const ev = _eventsCache.find((e) => e.id === id);
+        if (!ev) { toast("Evento no encontrado", "err"); return; }
+        openEventForm(ev);
+      }
       function toLocalInput(d) {
         const dt = d ? new Date(d) : new Date();
         const off = dt.getTimezoneOffset();
         return new Date(dt.getTime() - off * 60000).toISOString().slice(0, 16);
       }
-      let _eventBg = null; // URL de la imagen de fondo elegida/cargada
+      let _eventBg = null;
+      let _editingEventId = null;
       function openEventForm(ev) {
         const editing = ev && ev.id;
+        _editingEventId = editing ? ev.id : null;
         _eventBg = editing && ev.backgroundImage ? ev.backgroundImage : null;
         openModal(`
           <h3>${editing ? "Editar evento" : "Nuevo evento"}</h3>
           <p class="sub">${editing ? "Modificá los datos de la fecha." : "Creá una nueva fecha para el boliche seleccionado."}</p>
           <label style="margin-top:0">Nombre</label>
-          <input id="ev-name" value="${editing ? esc(ev.name) : ""}" placeholder="Ej. Saturday Night" />
+          <input id="ev-name" value="${editing ? attr(ev.name) : ""}" placeholder="Ej. Saturday Night" />
           <label>Fecha y hora</label>
           <input id="ev-date" type="datetime-local" value="${toLocalInput(editing ? ev.date : null)}" />
           <label>Género musical</label>
-          <input id="ev-genre" value="${editing && ev.musicGenre ? esc(ev.musicGenre) : ""}" placeholder="Ej. Electrónica" />
+          <input id="ev-genre" value="${editing && ev.musicGenre ? attr(ev.musicGenre) : ""}" placeholder="Ej. Electrónica" />
           <label>Plano del salón (imagen de fondo)</label>
           <input id="ev-img" type="file" accept="image/*" onchange="onEventImage(event)" />
           <div id="ev-img-preview" style="margin-top:10px">${_eventBg ? `<img src="${esc(_eventBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>` : '<span class="role-pill">Sin imagen. El mapa usará la grilla por defecto.</span>'}</div>
           <div class="btn-row" style="margin-top:20px">
-            <button class="ghost" onclick="closeModal()">Cancelar</button>
-            <button style="flex:1" id="ev-save" onclick="saveEvent(${editing ? JSON.stringify(ev.id) : "null"})">${editing ? "Guardar cambios" : "Crear evento"}</button>
+            <button type="button" class="ghost" onclick="closeModal()">Cancelar</button>
+            <button type="button" style="flex:1" id="ev-save" onclick="saveEvent()">${editing ? "Guardar cambios" : "Crear evento"}</button>
           </div>
           <div class="error" id="ev-err"></div>`);
       }
@@ -748,13 +788,19 @@
           toast("Imagen cargada", "ok");
         } catch (err) { prev.innerHTML = `<span style="color:var(--pink)">${esc(err.message)}</span>`; }
       }
-      async function saveEvent(eventId) {
-        const name = document.getElementById("ev-name").value.trim();
+      async function saveEvent() {
+        const eventId = _editingEventId;
+        const errEl = document.getElementById("ev-err");
+        const nameEl = document.getElementById("ev-name");
+        if (!nameEl) { toast("No se pudo leer el formulario. Cerrá y volvé a abrir.", "err"); return; }
+        const name = nameEl.value.trim();
         const dateVal = document.getElementById("ev-date").value;
         const musicGenre = document.getElementById("ev-genre").value.trim();
-        if (!name || !dateVal) { document.getElementById("ev-err").textContent = "Nombre y fecha son obligatorios."; return; }
+        if (!name || !dateVal) { errEl.textContent = "Nombre y fecha son obligatorios."; return; }
         const body = { name, date: new Date(dateVal).toISOString(), musicGenre };
         if (_eventBg) body.backgroundImage = _eventBg;
+        const btn = document.getElementById("ev-save");
+        if (btn) { btn.disabled = true; btn.textContent = "Guardando..."; }
         try {
           if (eventId) {
             await api("/events/" + eventId, { method: "PATCH", body: JSON.stringify(body) });
@@ -764,8 +810,110 @@
             await api("/clubs/" + clubId + "/events", { method: "POST", body: JSON.stringify(body) });
             toast("Evento creado", "ok");
           }
-          closeModal(); loadEvents();
-        } catch (e) { document.getElementById("ev-err").textContent = e.message; }
+          _editingEventId = null;
+          closeModal();
+          loadEvents();
+        } catch (e) {
+          errEl.textContent = e.message;
+          toast(e.message, "err");
+          if (btn) { btn.disabled = false; btn.textContent = eventId ? "Guardar cambios" : "Crear evento"; }
+        }
+      }
+
+      // Botellas del evento (carta de bebidas)
+      let _evtBottles = { id: null, name: "" };
+      async function openEventBottles(eventId, eventName) {
+        _evtBottles = { id: eventId, name: eventName };
+        openModal('<div class="empty">Cargando carta...</div>');
+        try {
+          const products = await api("/events/" + eventId + "/products");
+          const cards = products.length
+            ? renderBottleList(products)
+            : '<div class="empty">Todavía no hay botellas en este evento. Agregá la primera con el botón de abajo.</div>';
+          openModal(`
+            <h3>Botellas · ${esc(eventName)}</h3>
+            <p class="sub">Carta de bebidas visible para los clientes en este evento.</p>
+            <div class="bottles-grid">${cards}</div>
+            <div class="btn-row" style="margin-top:16px">
+              <button class="btn-sm btn-accent" onclick="openBottleForm()">+ Agregar botella</button>
+              <button class="ghost" style="flex:1" onclick="closeModal()">Cerrar</button>
+            </div>`);
+        } catch (e) { openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`); }
+      }
+      function renderBottleList(products) {
+        let html = "";
+        let lastCategory = null;
+        for (const p of products) {
+          const cat = p.category || "General";
+          if (cat !== lastCategory) {
+            html += `<div style="grid-column:1/-1;font-weight:700;margin:${lastCategory ? "16px" : "0"} 0 8px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px">🍾 ${esc(cat)}</div>`;
+            lastCategory = cat;
+          }
+          html += bottleCard(p);
+        }
+        return html;
+      }
+      function bottleCard(p) {
+        return `<div class="bottle-card">
+          <div class="b-name">${esc(p.name)}</div>
+          <div class="b-meta">${p.description ? esc(p.description) + "<br/>" : ""}Stock: ${p.stock}</div>
+          <div class="b-price">${fmtMoney(Number(p.price))}</div>
+          <div class="b-actions">
+            <button class="btn-sm ghost" onclick='openBottleForm(${JSON.stringify(p)})'>Editar</button>
+            <button class="btn-sm btn-danger" onclick='deleteBottle(${JSON.stringify(p.id)}, ${JSON.stringify(p.name)})'>Eliminar</button>
+          </div>
+        </div>`;
+      }
+      function openBottleForm(product) {
+        const editing = product && product.id;
+        openModal(`
+          <h3>${editing ? "Editar botella" : "Nueva botella"}</h3>
+          <p class="sub">${editing ? "Modificá los datos de la bebida." : "Se agregará a la carta de " + esc(_evtBottles.name) + "."}</p>
+          <label style="margin-top:0">Nombre</label>
+          <input id="b-name" value="${editing ? esc(product.name) : ""}" placeholder="Ej. Vodka Absolut 750ml" />
+          <label>Categoría (opcional)</label>
+          <input id="b-cat" value="${editing && product.category ? esc(product.category) : ""}" placeholder="Ej. Vodka, Gin, Combo" />
+          <label>Precio ($)</label>
+          <input id="b-price" type="number" min="0" step="1" value="${editing ? Number(product.price) : ""}" placeholder="45000" />
+          <label>Stock</label>
+          <input id="b-stock" type="number" min="0" step="1" value="${editing ? product.stock : "0"}" />
+          <label>Descripción (opcional)</label>
+          <input id="b-desc" value="${editing && product.description ? esc(product.description) : ""}" placeholder="Ej. Incluye hielo y 4 energéticas" />
+          <div class="btn-row" style="margin-top:20px">
+            <button class="ghost" onclick='openEventBottles(${JSON.stringify(_evtBottles.id)}, ${JSON.stringify(_evtBottles.name)})'>← Volver</button>
+            <button style="flex:1" onclick='saveBottle(${editing ? JSON.stringify(product.id) : "null"})'>${editing ? "Guardar" : "Agregar"}</button>
+          </div>
+          <div class="error" id="b-err"></div>`);
+      }
+      async function saveBottle(productId) {
+        const name = document.getElementById("b-name").value.trim();
+        const category = document.getElementById("b-cat").value.trim();
+        const price = Number(document.getElementById("b-price").value);
+        const stock = Number(document.getElementById("b-stock").value);
+        const description = document.getElementById("b-desc").value.trim();
+        if (!name || !Number.isFinite(price) || price < 0) {
+          document.getElementById("b-err").textContent = "Nombre y precio válido son obligatorios.";
+          return;
+        }
+        const body = { name, category, price, stock, description };
+        try {
+          if (productId) {
+            await api("/products/" + productId, { method: "PATCH", body: JSON.stringify(body) });
+            toast("Botella actualizada", "ok");
+          } else {
+            await api("/events/" + _evtBottles.id + "/products", { method: "POST", body: JSON.stringify(body) });
+            toast("Botella agregada", "ok");
+          }
+          openEventBottles(_evtBottles.id, _evtBottles.name);
+        } catch (e) { document.getElementById("b-err").textContent = e.message; }
+      }
+      async function deleteBottle(id, name) {
+        if (!confirm(`¿Eliminar "${name}" de la carta?`)) return;
+        try {
+          await api("/products/" + id, { method: "DELETE" });
+          toast("Botella eliminada", "ok");
+          openEventBottles(_evtBottles.id, _evtBottles.name);
+        } catch (e) { toast(e.message, "err"); }
       }
 
       // Mapa de mesas del evento (asignar / quitar usuarios)

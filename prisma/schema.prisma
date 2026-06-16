@@ -210,6 +210,7 @@ model EventNight {
   club         Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
   tables       ClubTable[]
   reservations Reservation[]
+  products     Product[]
 
   @@index([clubId])
   @@index([date])
@@ -305,9 +306,11 @@ model Payment {
 // ---------------------------------------------------------------------------
 
 /// Producto del catalogo del boliche (bebidas, combos, botellas).
+/// Cada evento tiene su propia carta; eventId apunta al evento concreto.
 model Product {
   id          String   @id @default(uuid())
   clubId      String
+  eventId     String?
   name        String
   description String?
   category    String? // Ej. "Vodka", "Cerveza", "Combo"
@@ -319,9 +322,11 @@ model Product {
   updatedAt   DateTime @updatedAt
 
   club  Club        @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  event EventNight? @relation(fields: [eventId], references: [id], onDelete: Cascade)
   items OrderItem[]
 
   @@index([clubId])
+  @@index([eventId])
   @@index([category])
 }
 

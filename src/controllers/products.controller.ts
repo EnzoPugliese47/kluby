@@ -12,6 +12,73 @@ import {
   requireString,
 } from "../utils/validation";
 
+/** GET /api/events/:eventId/products - Carta de botellas del evento. */
+export const listProductsByEvent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const eventId = requireParam(req.params, "eventId");
+    const event = await prisma.eventNight.findUnique({ where: { id: eventId } });
+    if (event === null) {
+      throw new AppError("Evento no encontrado", 404);
+    }
+
+    const products = await prisma.product.findMany({
+      where: { eventId, isActive: true },
+      orderBy: [{ category: "asc" }, { name: "asc" }],
+    });
+    sendSuccess(res, products);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/** POST /api/events/:eventId/products - Alta de botella en la carta del evento. */
+export const createProductForEvent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const eventId = requireParam(req.params, "eventId");
+    const body = asRecord(req.body);
+    const name = requireString(body, "name");
+    const price = requireNumber(body, "price");
+    const stock = optionalNumber(body, "stock") ?? 0;
+    const category = optionalString(body, "category");
+    const description = optionalString(body, "description");
+    const imageUrl = optionalString(body, "imageUrl");
+
+    if (price < 0) throw new AppError("El precio no puede ser negativo", 400);
+    if (stock < 0 || !Number.isInteger(stock)) {
+      throw new AppError("El stock debe ser un entero >= 0", 400);
+    }
+
+    const event = await prisma.eventNight.findUnique({ where: { id: eventId } });
+    if (event === null) {
+      throw new AppError("Evento no encontrado", 404);
+    }
+
+    const product = await prisma.product.create({
+      data: {
+        clubId: event.clubId,
+        eventId,
+        name,
+        price: new Prisma.Decimal(price),
+        stock,
+        category: category ?? null,
+        description: description ?? null,
+        imageUrl: imageUrl ?? null,
+      },
+    });
+    sendSuccess(res, product, 201);
+  } catch (error) {
+    next(error);
+  }
+};
+
 /** POST /api/clubs/:clubId/products - Alta de producto en el catalogo. */
 export const createProduct = async (
   req: Request,
