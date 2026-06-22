@@ -25,12 +25,20 @@ import {
   getTableRanking,
   getTopProducts,
 } from "../controllers/reports.controller";
-import { authenticate, authorize } from "../middlewares/auth";
+import {
+  createClubJoinInvite,
+  deactivateClubJoinInvite,
+  listClubJoinInvites,
+  listClubMembers,
+  listStaffClubEvents,
+  deactivateClubMember,
+} from "../controllers/invites.controller";
+import { authenticate, authorize, optionalAuthenticate } from "../middlewares/auth";
 
 const router = Router();
 
 // Lecturas publicas.
-router.get("/", listClubs);
+router.get("/", optionalAuthenticate, listClubs);
 router.get("/:id", getClubById);
 router.get("/:clubId/tables", listTablesByClub);
 router.get("/:clubId/events", listEventsByClub);
@@ -41,7 +49,7 @@ const adminOnly = [authenticate, authorize("CLUB_ADMIN", "SUPER_ADMIN")];
 // Gestion de eventos: staff y administradores.
 const staffOrAdmin = [
   authenticate,
-  authorize("STAFF", "CLUB_ADMIN", "SUPER_ADMIN"),
+  authorize("CLUB_ADMIN", "SUPER_ADMIN"),
 ];
 
 router.post("/", ...adminOnly, createClub);
@@ -50,6 +58,13 @@ router.delete("/:id", ...adminOnly, deleteClub);
 router.post("/:clubId/tables", ...staffOrAdmin, createTable);
 router.post("/:clubId/events", ...staffOrAdmin, createEvent);
 router.post("/:clubId/products", ...adminOnly, createProduct);
+
+router.get("/:clubId/staff-events", authenticate, authorize("STAFF", "CLUB_ADMIN", "SUPER_ADMIN"), listStaffClubEvents);
+router.get("/:clubId/join-invites", ...adminOnly, listClubJoinInvites);
+router.post("/:clubId/join-invites", ...adminOnly, createClubJoinInvite);
+router.delete("/:clubId/join-invites/:inviteId", ...adminOnly, deactivateClubJoinInvite);
+router.get("/:clubId/members", ...adminOnly, listClubMembers);
+router.patch("/:clubId/members/:memberId/deactivate", ...adminOnly, deactivateClubMember);
 
 // Reportes BI (RN20): solo administradores.
 router.get("/:clubId/reports/dashboard", ...adminOnly, getDashboard);

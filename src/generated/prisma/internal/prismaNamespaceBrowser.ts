@@ -52,6 +52,10 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  ClubMember: 'ClubMember',
+  ClubJoinInvite: 'ClubJoinInvite',
+  EventInvite: 'EventInvite',
+  EventInviteGuest: 'EventInviteGuest',
   PasswordResetToken: 'PasswordResetToken',
   Club: 'Club',
   ClubTable: 'ClubTable',
@@ -63,7 +67,8 @@ export const ModelName = {
   Order: 'Order',
   OrderItem: 'OrderItem',
   LoyaltyTransaction: 'LoyaltyTransaction',
-  ChatMessage: 'ChatMessage'
+  ChatMessage: 'ChatMessage',
+  StoredAsset: 'StoredAsset'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -88,6 +93,7 @@ export const UserScalarFieldEnum = {
   passwordHash: 'passwordHash',
   fullName: 'fullName',
   phone: 'phone',
+  profileImageUrl: 'profileImageUrl',
   dni: 'dni',
   birthDate: 'birthDate',
   role: 'role',
@@ -98,6 +104,62 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const ClubMemberScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  clubId: 'clubId',
+  isActive: 'isActive',
+  invitedBy: 'invitedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClubMemberScalarFieldEnum = (typeof ClubMemberScalarFieldEnum)[keyof typeof ClubMemberScalarFieldEnum]
+
+
+export const ClubJoinInviteScalarFieldEnum = {
+  id: 'id',
+  clubId: 'clubId',
+  code: 'code',
+  role: 'role',
+  createdBy: 'createdBy',
+  expiresAt: 'expiresAt',
+  maxUses: 'maxUses',
+  useCount: 'useCount',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
+} as const
+
+export type ClubJoinInviteScalarFieldEnum = (typeof ClubJoinInviteScalarFieldEnum)[keyof typeof ClubJoinInviteScalarFieldEnum]
+
+
+export const EventInviteScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  clubId: 'clubId',
+  code: 'code',
+  createdBy: 'createdBy',
+  expiresAt: 'expiresAt',
+  maxUses: 'maxUses',
+  useCount: 'useCount',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
+} as const
+
+export type EventInviteScalarFieldEnum = (typeof EventInviteScalarFieldEnum)[keyof typeof EventInviteScalarFieldEnum]
+
+
+export const EventInviteGuestScalarFieldEnum = {
+  id: 'id',
+  eventInviteId: 'eventInviteId',
+  eventId: 'eventId',
+  userId: 'userId',
+  redeemedAt: 'redeemedAt'
+} as const
+
+export type EventInviteGuestScalarFieldEnum = (typeof EventInviteGuestScalarFieldEnum)[keyof typeof EventInviteGuestScalarFieldEnum]
 
 
 export const PasswordResetTokenScalarFieldEnum = {
@@ -121,6 +183,8 @@ export const ClubScalarFieldEnum = {
   musicGenre: 'musicGenre',
   imageUrl: 'imageUrl',
   floorMapUrl: 'floorMapUrl',
+  contactEmail: 'contactEmail',
+  contactPhone: 'contactPhone',
   pointValue: 'pointValue',
   isActive: 'isActive',
   createdAt: 'createdAt',
@@ -290,6 +354,18 @@ export const ChatMessageScalarFieldEnum = {
 } as const
 
 export type ChatMessageScalarFieldEnum = (typeof ChatMessageScalarFieldEnum)[keyof typeof ChatMessageScalarFieldEnum]
+
+
+export const StoredAssetScalarFieldEnum = {
+  id: 'id',
+  mime: 'mime',
+  filename: 'filename',
+  size: 'size',
+  data: 'data',
+  createdAt: 'createdAt'
+} as const
+
+export type StoredAssetScalarFieldEnum = (typeof StoredAssetScalarFieldEnum)[keyof typeof StoredAssetScalarFieldEnum]
 
 
 export const SortOrder = {

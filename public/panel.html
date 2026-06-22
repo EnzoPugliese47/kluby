@@ -89,6 +89,38 @@
       .kpi { padding: 20px; }
       .kpi .k-label { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 8px; }
       .kpi .k-value { font-size: 28px; font-weight: 800; margin-top: 8px; }
+      .kpi .k-sub { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+      .kpi .k-delta {
+        display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
+        font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+      }
+      .kpi .k-delta.up { background: rgba(45,226,198,0.14); color: var(--accent); }
+      .kpi .k-delta.down { background: rgba(255,77,141,0.14); color: var(--pink); }
+      .kpi .k-delta.flat { background: var(--surface-2); color: var(--muted); }
+      .stats-range { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+      .stats-range button {
+        background: transparent; border: 1px solid var(--border); color: var(--muted);
+        padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 600;
+      }
+      .stats-range button.active {
+        background: linear-gradient(135deg, var(--primary), var(--primary-2));
+        color: #fff; border-color: transparent;
+      }
+      .stats-period-label { color: var(--muted); font-size: 13px; margin: -6px 0 18px; }
+      .export-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+      .export-row .btn-export {
+        background: transparent; border: 1px solid var(--border); color: var(--text);
+        padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+      }
+      .export-row .btn-export:hover { border-color: var(--accent); color: var(--accent); }
+      .compare-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: end; margin-bottom: 14px; }
+      .compare-row .field { min-width: 260px; flex: 1; }
+      .compare-row.hidden { display: none; }
+      .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+      @media (max-width: 640px) { .mode-cards { grid-template-columns: 1fr; } }
+      .mode-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; font-size: 13px; line-height: 1.55; }
+      .mode-card b { display: block; font-size: 14px; margin-bottom: 6px; }
+      .hidden { display: none !important; }
       .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
       .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
@@ -187,10 +219,21 @@
       .club-logo.lg { width: 56px; height: 56px; }
       .club-logo.placeholder { display: grid; place-items: center; font-weight: 800; font-size: 18px; color: var(--primary); }
       .clubs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
-      .club-admin-card { padding: 16px; display: flex; gap: 14px; align-items: center; }
-      .club-admin-card .info { flex: 1; min-width: 0; }
+      .club-admin-card {
+        padding: 16px;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-areas:
+          "logo info"
+          "actions actions";
+        gap: 12px 14px;
+        align-items: start;
+      }
+      .club-admin-card .club-logo { grid-area: logo; }
+      .club-admin-card .info { grid-area: info; min-width: 0; }
+      .club-admin-card .btn-row { grid-area: actions; }
       .club-admin-card .info b { display: block; margin-bottom: 4px; }
-      .club-admin-card .info small { color: var(--muted); font-size: 12px; }
+      .club-admin-card .info small { display: block; color: var(--muted); font-size: 12px; line-height: 1.45; margin-top: 4px; }
       .stats-club-pick { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
       .stats-club-pick .field { flex: 1; min-width: 220px; }
     </style>
@@ -212,7 +255,7 @@
         <input id="password" type="password" placeholder="••••••••" value="password123" />
         <button class="btn-full" onclick="login()">Ingresar</button>
         <div class="error" id="login-error"></div>
-        <p class="hint">Acceso exclusivo para administradores de boliche.<br />Demo: <b>admin@kluby.com</b> / <b>password123</b></p>
+        <p class="hint">Super admin: <b>admin@kluby.com</b> · Dueños: <b>duenokluby1@kluby.com</b> … <b>duenokluby3@kluby.com</b><br />Contraseña demo: <b>password123</b></p>
       </div>
     </div>
 
@@ -229,6 +272,7 @@
         <div class="tabs" id="tabs">
           <button class="tab" id="tab-stats" onclick="showView('stats')">Estadísticas</button>
           <button class="tab" id="tab-clubs" onclick="showView('clubs')">Boliches</button>
+          <button class="tab" id="tab-team" onclick="showView('team')">Personal</button>
           <button class="tab active" id="tab-users" onclick="showView('users')">Usuarios</button>
           <button class="tab" id="tab-events" onclick="showView('events')">Eventos</button>
         </div>
@@ -238,7 +282,7 @@
             <small id="who-role">—</small>
           </div>
           <a class="ghost" href="/" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">Sitio cliente</a>
-          <a class="ghost" href="/staff.html" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">Staff</a>
+          <a class="ghost" href="/staff.html" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">Puerta</a>
           <button class="ghost" onclick="logout()">Salir</button>
         </div>
       </div>
@@ -251,16 +295,64 @@
             <label for="club-select">Boliche para estadísticas</label>
             <select id="club-select" onchange="onStatsClubChange()"></select>
           </div>
+          <div class="field" style="min-width:280px">
+            <label for="stats-event-select">Evento</label>
+            <select id="stats-event-select" onchange="onStatsEventChange()">
+              <option value="">Todos (según período)</option>
+            </select>
+          </div>
           <button class="ghost" onclick="loadDashboard()">↻ Actualizar</button>
         </div>
-        <p class="role-pill" style="margin:-8px 0 18px">Las estadísticas corresponden al boliche seleccionado arriba.</p>
+        <div class="stats-range" style="margin-bottom:10px">
+          <span class="role-pill">Período:</span>
+          <button type="button" id="range-week" onclick="setStatsRange('week')">Semana</button>
+          <button type="button" id="range-month" class="active" onclick="setStatsRange('month')">Mes</button>
+          <button type="button" id="range-last_event" onclick="setStatsRange('last_event')">Última noche</button>
+        </div>
+        <div class="export-row">
+          <span class="role-pill">Exportar reporte:</span>
+          <button type="button" class="btn-export" onclick="exportReport()">⬇ PDF (imprimir)</button>
+        </div>
+        <p class="stats-period-label" id="stats-period-label">Las estadísticas corresponden al boliche seleccionado.</p>
+
+        <div class="compare-row hidden" id="compare-row">
+          <div class="field">
+            <label for="stats-compare-select">Comparar evento con</label>
+            <select id="stats-compare-select" onchange="onStatsCompareChange()">
+              <option value="">Evento anterior (automático)</option>
+            </select>
+          </div>
+        </div>
 
         <div class="kpis" id="kpis"></div>
 
         <div class="grid">
+          <div class="card panel col-12 hidden" id="panel-compare">
+            <h3>Comparación entre eventos</h3>
+            <p class="sub" id="compare-sub">Ingresos, ocupación y asistencia lado a lado</p>
+            <div class="chart-wrap"><canvas id="chart-compare"></canvas></div>
+          </div>
+
+          <div class="card panel col-6">
+            <h3>Mesa estándar vs Mesa abierta</h3>
+            <p class="sub">Split Bill · invitados y revenue por modalidad</p>
+            <div class="chart-wrap" style="height:220px"><canvas id="chart-modes"></canvas></div>
+            <div class="mode-cards" id="mode-cards"></div>
+          </div>
+          <div class="card panel col-6">
+            <h3>Flujo de consumo por hora</h3>
+            <p class="sub">Pedidos confirmados · identificá la hora pico de ventas</p>
+            <div class="chart-wrap"><canvas id="chart-hourly"></canvas></div>
+          </div>
+          <div class="card panel col-6">
+            <h3>Anticipación de reservas</h3>
+            <p class="sub">Con cuánta anticipación reservan tus clientes</p>
+            <div class="chart-wrap"><canvas id="chart-leadtime"></canvas></div>
+          </div>
+
           <div class="card panel col-8">
             <h3>Recaudación por día</h3>
-            <p class="sub">Evolución de ingresos confirmados</p>
+            <p class="sub">Evolución de ingresos confirmados en el período</p>
             <div class="chart-wrap"><canvas id="chart-sales"></canvas></div>
           </div>
           <div class="card panel col-4">
@@ -270,24 +362,24 @@
           </div>
 
           <div class="card panel col-6">
-            <h3>Mesas más reservadas</h3>
-            <p class="sub">Ranking por cantidad de reservas</p>
-            <div class="chart-wrap"><canvas id="chart-tables"></canvas></div>
-          </div>
-          <div class="card panel col-6">
-            <h3>Bebidas más vendidas</h3>
-            <p class="sub">Top de productos por unidades</p>
+            <h3>Top 5 botellas / productos</h3>
+            <p class="sub">Más vendidos por unidades en el boliche</p>
             <div class="chart-wrap"><canvas id="chart-products"></canvas></div>
           </div>
-
           <div class="card panel col-6">
             <h3>Composición de ingresos</h3>
             <p class="sub">Desglose por tipo de pago</p>
             <div class="chart-wrap"><canvas id="chart-types"></canvas></div>
           </div>
+
           <div class="card panel col-6">
-            <h3>Resumen</h3>
-            <p class="sub">Indicadores del boliche seleccionado</p>
+            <h3>Mesas más reservadas</h3>
+            <p class="sub">Ranking por cantidad de reservas en el período</p>
+            <div class="chart-wrap"><canvas id="chart-tables"></canvas></div>
+          </div>
+          <div class="card panel col-6">
+            <h3>Resumen operativo</h3>
+            <p class="sub">Indicadores clave del boliche seleccionado</p>
             <div id="summary" class="empty">—</div>
           </div>
         </div>
@@ -297,10 +389,25 @@
       <div class="container view" id="view-clubs">
         <div class="controls">
           <div class="field" style="flex:1"><label>Boliches registrados</label><p class="role-pill" style="margin-top:4px">Agregá locales con su logo (máx. 500×500 px).</p></div>
-          <button class="btn-sm btn-accent" onclick="openClubForm()">+ Agregar boliche</button>
+          <button class="btn-sm btn-accent" id="btn-add-club" onclick="openClubForm()">+ Agregar boliche</button>
           <button class="ghost" onclick="loadClubsAdmin()">↻ Actualizar</button>
         </div>
         <div id="clubs-admin" class="clubs-grid"><div class="empty">Cargando...</div></div>
+      </div>
+
+      <!-- VISTA: PERSONAL (trabajadores del boliche) -->
+      <div class="container view" id="view-team">
+        <div class="controls">
+          <div class="field">
+            <label for="team-club-select">Boliche</label>
+            <select id="team-club-select" onchange="onTeamClubChange()"></select>
+          </div>
+          <button class="btn-sm btn-accent" onclick="openTeamInvitesFromTab()">+ Códigos de ingreso</button>
+          <button class="ghost" onclick="loadTeam()">↻ Actualizar</button>
+        </div>
+        <div class="card panel" style="padding:0;overflow:hidden">
+          <div id="team-table"><div class="empty">Cargando...</div></div>
+        </div>
       </div>
 
       <!-- VISTA: USUARIOS -->
@@ -310,6 +417,14 @@
             <label for="user-search">Buscar usuario</label>
             <input id="user-search" placeholder="Nombre, email o teléfono..." oninput="debouncedUsers()" />
           </div>
+          <div class="field" id="user-role-filter-wrap" style="display:none;min-width:180px">
+            <label for="user-role-filter">Filtrar por rol</label>
+            <select id="user-role-filter" onchange="loadUsers()">
+              <option value="CLUB_ADMIN" selected>Dueños</option>
+              <option value="">Todos los usuarios</option>
+            </select>
+          </div>
+          <button class="btn-sm btn-accent" id="btn-add-owner" style="display:none" onclick="openOwnerForm()">+ Nuevo dueño</button>
           <button class="ghost" onclick="loadUsers()">↻ Actualizar</button>
         </div>
         <div class="card panel" style="padding:0;overflow:hidden">
@@ -374,7 +489,7 @@
         errEl.textContent = "";
         try {
           const data = await api("/users/login", { method: "POST", body: JSON.stringify({ email, password }) });
-          if (!["CLUB_ADMIN", "SUPER_ADMIN", "STAFF"].includes(data.user.role)) {
+          if (!["CLUB_ADMIN", "SUPER_ADMIN"].includes(data.user.role)) {
             errEl.textContent = "Este panel es solo para personal del boliche.";
             return;
           }
@@ -397,37 +512,60 @@
         document.getElementById("login-view").style.display = "grid";
       }
 
-      const isAdmin = () => ["CLUB_ADMIN", "SUPER_ADMIN"].includes(currentUser?.role);
+      const isSuperAdmin = () => currentUser?.role === "SUPER_ADMIN";
+      const isClubOwner = () => currentUser?.role === "CLUB_ADMIN";
+      const isPanelManager = () => isSuperAdmin() || isClubOwner();
+      const canManageUsers = () => isSuperAdmin();
+      const ROLE_LABEL = { CLIENT: "Cliente", STAFF: "Publi", PUERTA: "Puerta", CLUB_ADMIN: "Dueño", SUPER_ADMIN: "Super Admin" };
       let _clubsCache = [];
 
       async function enterApp() {
         document.getElementById("login-view").style.display = "none";
         document.getElementById("app-view").style.display = "block";
         document.getElementById("who-name").textContent = currentUser?.fullName || "—";
-        document.getElementById("who-role").textContent = currentUser?.role || "—";
-        document.getElementById("tab-stats").style.display = isAdmin() ? "" : "none";
-        document.getElementById("tab-clubs").style.display = isAdmin() ? "" : "none";
+        document.getElementById("who-role").textContent = ROLE_LABEL[currentUser?.role] || currentUser?.role || "—";
+        document.getElementById("tab-stats").style.display = isPanelManager() ? "" : "none";
+        document.getElementById("tab-clubs").style.display = isPanelManager() ? "" : "none";
+        document.getElementById("tab-users").style.display = canManageUsers() ? "" : "none";
+        document.getElementById("tab-events").style.display = isPanelManager() ? "" : "none";
+        document.getElementById("tab-team").style.display = isClubOwner() ? "" : "none";
+        const btnAdd = document.getElementById("btn-add-club");
+        if (btnAdd) btnAdd.style.display = isSuperAdmin() ? "" : "none";
+        const btnAddOwner = document.getElementById("btn-add-owner");
+        if (btnAddOwner) btnAddOwner.style.display = isSuperAdmin() ? "" : "none";
+        const roleFilterWrap = document.getElementById("user-role-filter-wrap");
+        if (roleFilterWrap) roleFilterWrap.style.display = isSuperAdmin() ? "" : "none";
         await loadClubs();
-        showView(isAdmin() ? "stats" : "users");
+        showView(isPanelManager() ? "stats" : "users");
       }
 
       function showView(name) {
-        if (name === "stats" && !isAdmin()) name = "users";
-        if (name === "clubs" && !isAdmin()) name = "users";
-        ["stats", "clubs", "users", "events"].forEach((v) => {
+        if (name === "stats" && !isPanelManager()) name = "users";
+        if (name === "clubs" && !isPanelManager()) name = "users";
+        if (name === "events" && !isPanelManager()) name = "users";
+        if (name === "team" && !isClubOwner()) name = isPanelManager() ? "stats" : "users";
+        if (name === "users" && !canManageUsers()) name = isPanelManager() ? "stats" : "users";
+        ["stats", "clubs", "users", "events", "team"].forEach((v) => {
           document.getElementById("view-" + v).classList.toggle("active", v === name);
           document.getElementById("tab-" + v).classList.toggle("active", v === name);
         });
-        if (name === "stats") loadDashboard();
+        if (name === "stats") {
+          const cid = document.getElementById("club-select")?.value;
+          if (cid) loadStatsEvents(cid).then(() => loadDashboard());
+          else loadDashboard();
+        }
         if (name === "clubs") loadClubsAdmin();
         if (name === "users") loadUsers();
         if (name === "events") loadEvents();
+        if (name === "team") loadTeam();
       }
 
       function clubLogoHtml(url, name, cls = "club-logo") {
-        if (url) return `<img class="${cls}" src="${esc(url)}" alt="${esc(name)}" />`;
-        const initial = (name || "K").charAt(0).toUpperCase();
-        return `<div class="${cls} placeholder">${esc(initial)}</div>`;
+        const initial = esc((name || "K").charAt(0).toUpperCase());
+        if (url) {
+          return `<img class="${cls}" src="${esc(url)}" alt="${esc(name)}" onerror="this.outerHTML='<div class=&quot;${cls} placeholder&quot;>${initial}</div>'" />`;
+        }
+        return `<div class="${cls} placeholder">${initial}</div>`;
       }
 
       async function loadClubs() {
@@ -435,6 +573,7 @@
         _clubsCache = clubs;
         const savedStats = localStorage.getItem("kluby_stats_club");
         const savedEvents = localStorage.getItem("kluby_events_club");
+        const savedTeam = localStorage.getItem("kluby_team_club");
         const fillSelect = (selId, saved) => {
           const sel = document.getElementById(selId);
           if (!sel) return;
@@ -450,14 +589,75 @@
         };
         fillSelect("club-select", savedStats);
         fillSelect("event-club-select", savedEvents);
+        fillSelect("team-club-select", savedTeam);
         updateStatsClubLogo();
+        loadStatsEvents(document.getElementById("club-select")?.value || "");
+      }
+
+      function formatStatsEventDate(d) {
+        return new Date(d).toLocaleString("es-AR", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      async function loadStatsEvents(clubId) {
+        const sel = document.getElementById("stats-event-select");
+        if (!sel) return;
+        const saved = localStorage.getItem("kluby_stats_event") || "";
+        sel.innerHTML = '<option value="">Todos (según período)</option>';
+        if (!clubId) {
+          syncStatsPeriodUi();
+          return;
+        }
+        try {
+          const events = await api("/clubs/" + clubId + "/events");
+          events
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .forEach((e) => {
+              const opt = document.createElement("option");
+              opt.value = e.id;
+              opt.textContent = e.name + " · " + formatStatsEventDate(e.date);
+              sel.appendChild(opt);
+            });
+          _statsEventsCache = events;
+          if (saved && events.some((e) => e.id === saved)) sel.value = saved;
+          fillCompareSelect(events, sel.value);
+        } catch (e) {
+          toast("No se pudieron cargar los eventos", "err");
+        }
+        syncStatsPeriodUi();
       }
 
       function onStatsClubChange() {
         const id = document.getElementById("club-select").value;
         localStorage.setItem("kluby_stats_club", id);
+        localStorage.removeItem("kluby_stats_event");
+        localStorage.removeItem("kluby_stats_compare");
         updateStatsClubLogo();
+        loadStatsEvents(id);
         loadDashboard();
+      }
+
+      function onStatsEventChange() {
+        const id = document.getElementById("stats-event-select").value;
+        if (id) localStorage.setItem("kluby_stats_event", id);
+        else localStorage.removeItem("kluby_stats_event");
+        fillCompareSelect(_statsEventsCache, id);
+        syncStatsPeriodUi();
+        loadDashboard();
+      }
+
+      function syncStatsPeriodUi() {
+        const eventSelected = !!document.getElementById("stats-event-select")?.value;
+        document.querySelectorAll(".stats-range button").forEach((btn) => {
+          btn.disabled = eventSelected;
+          btn.style.opacity = eventSelected ? "0.45" : "1";
+          btn.style.cursor = eventSelected ? "not-allowed" : "pointer";
+        });
       }
 
       function updateStatsClubLogo() {
@@ -485,7 +685,8 @@
               </div>
               <div class="btn-row">
                 <button type="button" class="btn-sm ghost" onclick="editClub('${c.id}')">Editar</button>
-                <button type="button" class="btn-sm btn-danger" onclick='deleteClub(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Eliminar</button>
+                <button type="button" class="btn-sm btn-accent" onclick='openTeamInvites(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Códigos equipo</button>
+                ${isSuperAdmin() ? `<button type="button" class="btn-sm btn-danger" onclick='deleteClub(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Eliminar</button>` : ""}
               </div>
             </div>`).join("");
         } catch (e) {
@@ -500,15 +701,75 @@
         openClubForm(club);
       }
 
+      async function openTeamInvites(clubId, clubName) {
+        openModal('<div class="empty">Cargando códigos...</div>');
+        try {
+          const invites = await api("/clubs/" + clubId + "/join-invites");
+          const rows = invites.length
+            ? invites.map((inv) => `
+              <div class="pick-row">
+                <div>
+                  <b>${esc(inv.code)}</b>
+                  <small>${inv.role === "STAFF" ? "Publi" : "Puerta"} · usos ${inv.useCount}/${inv.maxUses} · vence ${fdt(inv.expiresAt)}</small>
+                </div>
+                <button type="button" class="btn-sm ghost" onclick="copyText('${esc(inv.code)}')">Copiar</button>
+              </div>`).join("")
+            : '<div class="empty">Todavía no hay códigos activos.</div>';
+          openModal(`
+            <h3>Códigos de equipo · ${esc(clubName)}</h3>
+            <p class="sub">Compartí un código para que un cliente se sume como publi o personal de puerta de este boliche.</p>
+            <div class="btn-row" style="margin-bottom:14px">
+              <button type="button" class="btn-sm btn-accent" onclick="createTeamInvite('${clubId}','STAFF')">+ Publi</button>
+              <button type="button" class="btn-sm" onclick="createTeamInvite('${clubId}','PUERTA')">+ Puerta</button>
+            </div>
+            <div class="pick-list">${rows}</div>
+            <button type="button" class="btn-full ghost" style="margin-top:16px" onclick="closeModal()">Cerrar</button>`);
+        } catch (e) {
+          openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`);
+        }
+      }
+
+      async function createTeamInvite(clubId, role) {
+        try {
+          const inv = await api("/clubs/" + clubId + "/join-invites", {
+            method: "POST",
+            body: JSON.stringify({ role, maxUses: role === "PUERTA" ? 1 : 5, expiresInHours: 72 }),
+          });
+          toast("Código creado: " + inv.code, "ok");
+          const club = _clubsCache.find((c) => c.id === clubId);
+          openTeamInvites(clubId, club?.name || "Boliche");
+        } catch (e) { toast(e.message, "err"); }
+      }
+
+      function copyText(text) {
+        navigator.clipboard?.writeText(text).then(() => toast("Copiado", "ok")).catch(() => toast(text, "ok"));
+      }
+
       let _clubLogo = null;
       let _editingClubId = null;
-      function openClubForm(club) {
+      async function openClubForm(club) {
         const editing = club && club.id;
         _editingClubId = editing ? club.id : null;
         _clubLogo = editing && club.imageUrl ? club.imageUrl : null;
+        let ownerField = "";
+        if (!editing && isSuperAdmin()) {
+          try {
+            const users = await api("/users");
+            const owners = users.filter((u) => u.role === "CLUB_ADMIN");
+            if (!owners.length) {
+              toast("No hay dueños registrados para asignar", "err");
+              return;
+            }
+            ownerField = `<label>Dueño del boliche</label><select id="c-owner">${owners.map((o) => `<option value="${esc(o.id)}">${esc(o.fullName)} (${esc(o.email)})</option>`).join("")}</select>`;
+          } catch (e) {
+            toast(e.message, "err");
+            return;
+          }
+        }
         openModal(`
           <h3>${editing ? "Editar boliche" : "Nuevo boliche"}</h3>
           <p class="sub">${editing ? "Modificá los datos del boliche." : "El logo debe ser como máximo 500×500 píxeles."}</p>
+          ${ownerField}
           <label style="margin-top:0">Nombre</label>
           <input id="c-name" value="${editing ? attr(club.name) : ""}" placeholder="Ej. Club VISA" />
           <label>Dirección</label>
@@ -519,6 +780,10 @@
           <input id="c-genre" value="${editing && club.musicGenre ? attr(club.musicGenre) : ""}" placeholder="Ej. Electrónica" />
           <label>Descripción (opcional)</label>
           <input id="c-desc" value="${editing && club.description ? attr(club.description) : ""}" placeholder="Breve descripción" />
+          <label>Email de contacto</label>
+          <input id="c-email" type="email" value="${editing && club.contactEmail ? attr(club.contactEmail) : ""}" placeholder="contacto@boliche.com" />
+          <label>Teléfono de contacto (opcional)</label>
+          <input id="c-phone" type="tel" value="${editing && club.contactPhone ? attr(club.contactPhone) : ""}" placeholder="Ej. +54 11 1234-5678" />
           <label>Logo (máx. 500×500 px)</label>
           <input id="c-logo" type="file" accept="image/png,image/jpeg,image/webp" onchange="onClubLogo(event)" />
           <div id="c-logo-preview" style="margin-top:10px">${_clubLogo ? `<img src="${esc(_clubLogo)}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--border)"/>` : '<span class="role-pill">PNG, JPG o WebP · máx. 500×500</span>'}</div>
@@ -582,15 +847,27 @@
         const city = document.getElementById("c-city").value.trim();
         const musicGenre = document.getElementById("c-genre").value.trim();
         const description = document.getElementById("c-desc").value.trim();
+        const contactEmail = document.getElementById("c-email").value.trim();
+        const contactPhone = document.getElementById("c-phone").value.trim();
         if (!name || !address || !city) { errEl.textContent = "Nombre, dirección y ciudad son obligatorios."; return; }
-        const body = { name, address, city, musicGenre, description };
+        if (!contactEmail) { errEl.textContent = "El email de contacto es obligatorio."; return; }
+        if (!contactEmail.includes("@")) { errEl.textContent = "El email de contacto no es válido."; return; }
+        const body = { name, address, city, musicGenre, description, contactEmail };
+        if (clubId) body.contactPhone = contactPhone || null;
+        else if (contactPhone) body.contactPhone = contactPhone;
         if (_clubLogo) body.imageUrl = _clubLogo;
         try {
           if (clubId) {
             await api("/clubs/" + clubId, { method: "PATCH", body: JSON.stringify(body) });
             toast("Boliche actualizado", "ok");
           } else {
-            body.ownerId = currentUser.id;
+            if (isSuperAdmin()) {
+              const ownerId = document.getElementById("c-owner")?.value;
+              if (!ownerId) { errEl.textContent = "Seleccioná un dueño para el boliche."; return; }
+              body.ownerId = ownerId;
+            } else {
+              body.ownerId = currentUser.id;
+            }
             await api("/clubs", { method: "POST", body: JSON.stringify(body) });
             toast("Boliche creado", "ok");
           }
@@ -617,18 +894,145 @@
       }
       function closeModal() { document.getElementById("overlay").classList.remove("show"); document.getElementById("modal-content").classList.remove("wide"); }
       const fdt = (d) => new Date(d).toLocaleString("es-AR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
-      const ROLE_LABEL = { CLIENT: "Cliente", STAFF: "Staff", CLUB_ADMIN: "Admin", SUPER_ADMIN: "Super Admin" };
+
+      // ---------- PERSONAL (trabajadores) ----------
+      function onTeamClubChange() {
+        const id = document.getElementById("team-club-select")?.value;
+        if (id) localStorage.setItem("kluby_team_club", id);
+        loadTeam();
+      }
+
+      function openTeamInvitesFromTab() {
+        const clubId = document.getElementById("team-club-select")?.value;
+        const club = _clubsCache.find((c) => c.id === clubId);
+        if (!clubId || !club) { toast("Seleccioná un boliche", "err"); return; }
+        openTeamInvites(clubId, club.name);
+      }
+
+      async function loadTeam() {
+        const cont = document.getElementById("team-table");
+        const clubId = document.getElementById("team-club-select")?.value;
+        if (!clubId) {
+          cont.innerHTML = '<div class="empty">No hay boliche seleccionado.</div>';
+          return;
+        }
+        cont.innerHTML = '<div class="empty">Cargando...</div>';
+        try {
+          const members = await api("/clubs/" + clubId + "/members");
+          const active = members.filter((m) => m.isActive);
+          if (!active.length) {
+            cont.innerHTML = '<div class="empty">Todavía no hay trabajadores. Generá un código de ingreso para sumar publis o personal de puerta.</div>';
+            return;
+          }
+          cont.innerHTML = `
+            <table class="data">
+              <thead><tr><th>Nombre</th><th>Contacto</th><th>Rol</th><th>Desde</th><th>Estado</th><th></th></tr></thead>
+              <tbody>${active.map(teamRow).join("")}</tbody>
+            </table>`;
+        } catch (e) {
+          if (String(e.message).includes("401")) return logout();
+          cont.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+
+      function teamRow(m) {
+        const u = m.user;
+        const roleLabel = u.role === "STAFF" ? "Publi" : u.role === "PUERTA" ? "Puerta" : ROLE_LABEL[u.role] || u.role;
+        const status = u.isActive
+          ? (m.isActive ? '<span class="badge green">Activo</span>' : '<span class="badge red">Inactivo</span>')
+          : '<span class="badge red">Cuenta baneada</span>';
+        const canRemove = m.isActive && u.isActive;
+        return `<tr>
+          <td><b>${esc(u.fullName)}</b></td>
+          <td>${esc(u.email)}<br/><span class="role-pill">${esc(u.phone || "sin teléfono")}</span></td>
+          <td>${roleLabel}</td>
+          <td>${fdt(m.createdAt)}</td>
+          <td>${status}</td>
+          <td>${canRemove ? `<button type="button" class="btn-sm btn-danger" onclick="deactivateTeamMember('${m.id}')">Quitar acceso</button>` : ""}</td>
+        </tr>`;
+      }
+
+      async function deactivateTeamMember(memberId) {
+        const clubId = document.getElementById("team-club-select")?.value;
+        if (!clubId) return;
+        if (!confirm("¿Quitar el acceso de este trabajador a este boliche?")) return;
+        try {
+          await api("/clubs/" + clubId + "/members/" + memberId + "/deactivate", { method: "PATCH" });
+          toast("Acceso removido", "ok");
+          loadTeam();
+        } catch (e) { toast(e.message, "err"); }
+      }
 
       // ---------- USUARIOS ----------
       let usersTimer;
       function debouncedUsers() { clearTimeout(usersTimer); usersTimer = setTimeout(loadUsers, 300); }
 
+      function openOwnerForm() {
+        if (!isSuperAdmin()) return;
+        openModal(`
+          <h3>Nuevo dueño de boliche</h3>
+          <p class="sub">Creá un usuario con acceso al panel para gestionar su boliche y estadísticas.</p>
+          <label style="margin-top:0">Nombre completo</label>
+          <input id="o-name" placeholder="Ej. Juan Pérez" />
+          <label>Email</label>
+          <input id="o-email" type="email" placeholder="duenokluby4@kluby.com" />
+          <label>Contraseña</label>
+          <input id="o-password" type="password" placeholder="Mínimo 8 caracteres" />
+          <label>Teléfono (opcional)</label>
+          <input id="o-phone" type="tel" placeholder="Ej. +54 9 11 1234-5678" />
+          <div class="btn-row" style="margin-top:20px">
+            <button type="button" class="ghost" onclick="closeModal()">Cancelar</button>
+            <button type="button" style="flex:1" onclick="saveOwner()">Crear dueño</button>
+          </div>
+          <div class="error" id="o-err"></div>`);
+      }
+
+      async function saveOwner() {
+        if (!isSuperAdmin()) return;
+        const errEl = document.getElementById("o-err");
+        const fullName = document.getElementById("o-name")?.value.trim() || "";
+        const email = document.getElementById("o-email")?.value.trim().toLowerCase() || "";
+        const password = document.getElementById("o-password")?.value || "";
+        const phone = document.getElementById("o-phone")?.value.trim() || "";
+        if (!fullName || !email || !password) {
+          errEl.textContent = "Nombre, email y contraseña son obligatorios.";
+          return;
+        }
+        if (password.length < 8) {
+          errEl.textContent = "La contraseña debe tener al menos 8 caracteres.";
+          return;
+        }
+        if (!email.includes("@")) {
+          errEl.textContent = "El email no es válido.";
+          return;
+        }
+        const body = { fullName, email, password };
+        if (phone) body.phone = phone;
+        try {
+          await api("/users/owners", { method: "POST", body: JSON.stringify(body) });
+          closeModal();
+          toast("Dueño creado correctamente", "ok");
+          loadUsers();
+        } catch (e) {
+          errEl.textContent = e.message;
+          toast(e.message, "err");
+        }
+      }
+
       async function loadUsers() {
         const search = document.getElementById("user-search")?.value.trim() || "";
+        const role = document.getElementById("user-role-filter")?.value ?? "";
         const cont = document.getElementById("users-table");
         try {
-          const users = await api("/users" + (search ? "?search=" + encodeURIComponent(search) : ""));
-          if (!users.length) { cont.innerHTML = '<div class="empty">No se encontraron usuarios.</div>'; return; }
+          const params = new URLSearchParams();
+          if (search) params.set("search", search);
+          if (role) params.set("role", role);
+          const qs = params.toString();
+          const users = await api("/users" + (qs ? "?" + qs : ""));
+          if (!users.length) {
+            cont.innerHTML = `<div class="empty">${role === "CLUB_ADMIN" ? "No hay dueños registrados." : "No se encontraron usuarios."}</div>`;
+            return;
+          }
           cont.innerHTML = `
             <table class="data">
               <thead><tr><th>Usuario</th><th>Contacto</th><th>Rol</th><th>Reservas</th><th>Estado</th><th></th></tr></thead>
@@ -641,27 +1045,66 @@
       }
       function userRow(u) {
         const reservas = (u._count?.reservations || 0) + (u._count?.guestEntries || 0);
-        const canBan = !["CLUB_ADMIN", "SUPER_ADMIN"].includes(u.role) && u.id !== currentUser.id;
-        const action = !canBan ? "" : u.isActive
-          ? `<button class="btn-sm btn-danger" onclick="banUser('${u.id}')">Banear</button>`
-          : `<button class="btn-sm btn-accent" onclick="unbanUser('${u.id}')">Reactivar</button>`;
+        const canBan =
+          u.id !== currentUser.id &&
+          u.role !== "SUPER_ADMIN" &&
+          (u.role !== "CLUB_ADMIN" || isSuperAdmin());
+        const banBtn = !canBan
+          ? ""
+          : u.isActive
+            ? `<button class="btn-sm btn-danger" onclick="banUser('${u.id}', ${u.role === "CLUB_ADMIN"})">Banear</button>`
+            : `<button class="btn-sm btn-accent" onclick="unbanUser('${u.id}')">Reactivar</button>`;
+        const detailBtn =
+          u.role === "CLUB_ADMIN"
+            ? `<button class="btn-sm ghost" onclick="viewUserClubs('${u.id}','${esc(u.fullName)}')">Ver boliches</button>`
+            : u.role === "CLIENT" || u.role === "PUERTA"
+              ? `<button class="btn-sm ghost" onclick="viewUserTables('${u.id}','${esc(u.fullName)}')">Ver mesas</button>`
+              : "";
         return `<tr>
           <td><b>${esc(u.fullName)}</b></td>
           <td>${esc(u.email)}<br/><span class="role-pill">${esc(u.phone || "sin teléfono")}</span></td>
           <td>${ROLE_LABEL[u.role] || u.role}</td>
           <td>${reservas}</td>
           <td>${u.isActive ? '<span class="badge green">Activo</span>' : '<span class="badge red">Baneado</span>'}</td>
-          <td><div class="btn-row"><button class="btn-sm ghost" onclick="viewUserTables('${u.id}','${esc(u.fullName)}')">Ver mesas</button>${action}</div></td>
+          <td><div class="btn-row">${detailBtn}${banBtn}</div></td>
         </tr>`;
       }
-      async function banUser(id) {
-        if (!confirm("¿Banear a este usuario? No podrá iniciar sesión ni reservar.")) return;
+      async function banUser(id, isOwner = false) {
+        const msg = isOwner
+          ? "¿Banear a este dueño? No podrá acceder al panel ni gestionar sus boliches."
+          : "¿Banear a este usuario? No podrá iniciar sesión ni reservar.";
+        if (!confirm(msg)) return;
         try { await api("/users/" + id + "/ban", { method: "POST" }); toast("Usuario baneado", "ok"); loadUsers(); }
         catch (e) { toast(e.message, "err"); }
       }
       async function unbanUser(id) {
         try { await api("/users/" + id + "/unban", { method: "POST" }); toast("Usuario reactivado", "ok"); loadUsers(); }
         catch (e) { toast(e.message, "err"); }
+      }
+      async function viewUserClubs(ownerId, name) {
+        openModal('<div class="empty">Cargando...</div>');
+        try {
+          const clubs = await api("/clubs");
+          const owned = clubs.filter((c) => c.ownerId === ownerId);
+          const rows = owned.length
+            ? owned.map((c) => `
+              <div class="pick-row">
+                <div>
+                  <b>${esc(c.name)}</b>
+                  <small>📍 ${esc(c.address)}, ${esc(c.city)}</small>
+                  ${c.musicGenre ? `<small>🎵 ${esc(c.musicGenre)}</small>` : ""}
+                </div>
+                <span class="badge ${c.isActive ? "green" : "red"}">${c.isActive ? "Activo" : "Inactivo"}</span>
+              </div>`).join("")
+            : '<div class="empty">Este dueño no tiene boliches asignados.</div>';
+          openModal(`
+            <h3>Boliches de ${esc(name)}</h3>
+            <p class="sub">Locales que administra este dueño en la plataforma.</p>
+            <div class="pick-list">${rows}</div>
+            <button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`);
+        } catch (e) {
+          openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`);
+        }
       }
       async function viewUserTables(id, name) {
         openModal('<div class="empty">Cargando...</div>');
@@ -1149,21 +1592,309 @@
         } catch (e) { toast(e.message, "err"); }
       }
 
-      function renderKpis(k) {
+      function renderKpis(k, periodLabel) {
+        const deltaHtml = (pct) => {
+          if (pct === 0) return `<span class="k-delta flat">— sin cambio</span>`;
+          const sign = pct > 0 ? "+" : "";
+          return `<span class="k-delta ${pct > 0 ? "up" : "down"}">${sign}${pct}% vs período anterior</span>`;
+        };
         const items = [
-          { label: "Recaudación total", value: fmtMoney(k.totalRevenue), color: "#7c5cff" },
-          { label: "Reservas", value: fmtNum(k.reservationsCount), color: "#2de2c6" },
-          { label: "Ticket promedio", value: fmtMoney(k.avgTicket), color: "#ffb454" },
-          { label: "Unidades vendidas", value: fmtNum(k.unitsSold), color: "#ff4d8d" },
+          {
+            label: "Ingresos totales",
+            value: fmtMoney(k.totalRevenue),
+            color: "#7c5cff",
+            delta: deltaHtml(k.revenueChangePct),
+            sub: periodLabel,
+          },
+          {
+            label: "Ticket promedio VIP",
+            value: k.avgVipTicket ? fmtMoney(k.avgVipTicket) : "—",
+            color: "#ffb454",
+            delta: k.avgVipTicket ? deltaHtml(k.avgVipTicketChangePct) : `<span class="k-delta flat">Sin mesas VIP</span>`,
+            sub: "Mesas VIP / Premium / Privado",
+          },
+          {
+            label: "Tasa de asistencia",
+            value: k.showRate + "%",
+            color: "#2de2c6",
+            delta: `<span class="k-delta ${k.noShowRate > 20 ? "down" : "up"}">${k.noShowRate}% no-show</span>`,
+            sub: `${fmtNum(k.attendedCount)} ingresaron · ${fmtNum(k.noShowCount)} no llegaron`,
+          },
+          {
+            label: "Ocupación de mesas",
+            value: k.occupancyRate + "%",
+            color: "#ff4d8d",
+            delta: `<span class="k-delta flat">${fmtNum(k.occupiedTableSlots)}/${fmtNum(k.totalTableSlots)} mesas</span>`,
+            sub: `${fmtNum(k.eventsInPeriod)} evento(s) en el período`,
+          },
         ];
         document.getElementById("kpis").innerHTML = items
           .map(
             (i) => `<div class="card kpi">
               <div class="k-label"><span class="dot" style="background:${i.color}"></span>${i.label}</div>
               <div class="k-value">${i.value}</div>
+              ${i.delta}
+              <div class="k-sub">${i.sub}</div>
             </div>`
           )
           .join("");
+      }
+
+      let _statsRange = localStorage.getItem("kluby_stats_range") || "month";
+      let _statsEventsCache = [];
+      let _lastDashboardData = null;
+
+      const PAYMENT_TYPE_LABEL = {
+        DEPOSIT: "Señas",
+        FULL: "Pago total",
+        GUEST_SHARE: "Split Bill",
+        CONSUMPTION: "Consumición",
+        BALANCE: "Saldo",
+        REFUND: "Reembolsos",
+      };
+
+      function buildDashboardUrl() {
+        const clubId = document.getElementById("club-select")?.value;
+        if (!clubId) return null;
+        const eventId = document.getElementById("stats-event-select")?.value || "";
+        const compareId = document.getElementById("stats-compare-select")?.value || "";
+        let url = `/clubs/${clubId}/reports/dashboard?range=${encodeURIComponent(_statsRange)}`;
+        if (eventId) url += `&eventId=${encodeURIComponent(eventId)}`;
+        if (eventId && compareId) url += `&compareEventId=${encodeURIComponent(compareId)}`;
+        return url;
+      }
+
+      function buildReportHtml(d, clubName) {
+        const k = d.kpis;
+        const escH = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const money = (n) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(Number(n) || 0);
+        const tableRows = (rows, cols) => rows.map((r) => `<tr>${cols.map((c) => `<td>${escH(typeof c === "function" ? c(r) : r[c])}</td>`).join("")}</tr>`).join("");
+        let compareHtml = "";
+        if (d.eventComparison) {
+          const c = d.eventComparison.current;
+          const p = d.eventComparison.compare;
+          compareHtml = `<h2>Comparación de eventos</h2><table><tr><th>Métrica</th><th>${escH(c.name)}</th><th>${escH(p.name)}</th></tr>
+            <tr><td>Ingresos</td><td>${money(c.totalRevenue)}</td><td>${money(p.totalRevenue)}</td></tr>
+            <tr><td>Ocupación</td><td>${c.occupancyRate}%</td><td>${p.occupancyRate}%</td></tr>
+            <tr><td>Asistencia</td><td>${c.showRate}%</td><td>${p.showRate}%</td></tr></table>`;
+        }
+        let modesHtml = "";
+        if (d.modeBreakdown) {
+          const s = d.modeBreakdown.standard;
+          const o = d.modeBreakdown.openTable;
+          modesHtml = `<h2>Modalidad de reserva</h2><table><tr><th>Tipo</th><th>Cant.</th><th>Ingresos</th><th>Ticket prom.</th></tr>
+            <tr><td>Estándar</td><td>${s.count}</td><td>${money(s.revenue)}</td><td>${money(s.avgTicket)}</td></tr>
+            <tr><td>Mesa abierta</td><td>${o.count} (${o.pctOfReservations}%)</td><td>${money(o.revenue)} + ${money(o.guestShareRevenue)} inv.</td><td>${money(o.avgTicket)}</td></tr></table>`;
+        }
+        return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/><title>Kluby Reporte</title>
+          <style>
+            body{font-family:Segoe UI,system-ui,sans-serif;color:#111;padding:32px;max-width:900px;margin:0 auto}
+            h1{font-size:22px;margin:0 0 4px} .sub{color:#555;margin:0 0 24px;font-size:13px}
+            h2{font-size:15px;margin:28px 0 10px;border-bottom:1px solid #ddd;padding-bottom:6px}
+            table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px}
+            th,td{border:1px solid #ddd;padding:8px 10px;text-align:left}
+            th{background:#f5f5f5}.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+            .kpi{border:1px solid #ddd;border-radius:8px;padding:12px}.kpi small{display:block;color:#666;font-size:11px}.kpi b{font-size:18px}
+            @media print{body{padding:16px}}
+          </style></head><body>
+          <h1>Kluby · Reporte de estadísticas</h1>
+          <p class="sub"><b>${escH(clubName)}</b> · ${escH(d.period?.label || "")} · Generado ${escH(new Date().toLocaleString("es-AR"))}</p>
+          <div class="kpis">
+            <div class="kpi"><small>Ingresos totales</small><b>${money(k.totalRevenue)}</b></div>
+            <div class="kpi"><small>Ocupación</small><b>${k.occupancyRate}%</b></div>
+            <div class="kpi"><small>Asistencia</small><b>${k.showRate}%</b></div>
+            <div class="kpi"><small>Ticket VIP</small><b>${money(k.avgVipTicket)}</b></div>
+            <div class="kpi"><small>Reservas</small><b>${k.reservationsCount}</b></div>
+            <div class="kpi"><small>Ticket prom.</small><b>${money(k.avgTicket)}</b></div>
+          </div>
+          <h2>Ingresos por tipo de pago</h2>
+          <table><tr><th>Tipo</th><th>Monto</th><th>Cant.</th></tr>
+          ${tableRows(d.salesByType || [], [(r) => PAYMENT_TYPE_LABEL[r.type] || r.type, (r) => money(r.total), "count"])}</table>
+          <h2>Top mesas</h2>
+          <table><tr><th>Mesa</th><th>Reservas</th><th>Ingresos</th></tr>
+          ${tableRows((d.topTables || []).slice(0, 15), ["label", "reservationCount", (r) => money(r.revenue)])}</table>
+          <h2>Top productos</h2>
+          <table><tr><th>Producto</th><th>Unidades</th><th>Ingresos</th></tr>
+          ${tableRows(d.topProducts || [], ["name", "unitsSold", (r) => money(r.revenue)])}</table>
+          ${modesHtml}${compareHtml}
+          <p class="sub" style="margin-top:32px">Kluby · Documento para contabilidad y socios</p>
+          </body></html>`;
+      }
+
+      async function exportReport() {
+        const clubId = document.getElementById("club-select")?.value;
+        if (!clubId) { toast("Elegí un boliche", "err"); return; }
+        const club = _clubsCache.find((c) => c.id === clubId);
+        const url = buildDashboardUrl();
+        if (!url) return;
+        try {
+          toast("Generando reporte...", "ok");
+          const d = await api(url);
+          _lastDashboardData = d;
+          const w = window.open("", "_blank");
+          if (!w) { toast("Permití ventanas emergentes para exportar PDF", "err"); return; }
+          w.document.write(buildReportHtml(d, club?.name || "Boliche"));
+          w.document.close();
+          w.focus();
+          setTimeout(() => { w.print(); }, 400);
+          toast("Usá «Guardar como PDF» en el diálogo de impresión", "ok");
+        } catch (e) {
+          toast("Error al exportar: " + e.message, "err");
+        }
+      }
+
+      function fillCompareSelect(events, currentEventId) {
+        const sel = document.getElementById("stats-compare-select");
+        const row = document.getElementById("compare-row");
+        if (!sel || !row) return;
+        const saved = localStorage.getItem("kluby_stats_compare") || "";
+        sel.innerHTML = '<option value="">Evento anterior (automático)</option>';
+        if (!currentEventId) {
+          row.classList.add("hidden");
+          return;
+        }
+        row.classList.remove("hidden");
+        events
+          .filter((e) => e.id !== currentEventId)
+          .forEach((e) => {
+            const opt = document.createElement("option");
+            opt.value = e.id;
+            opt.textContent = e.name + " · " + formatStatsEventDate(e.date);
+            sel.appendChild(opt);
+          });
+        if (saved && events.some((e) => e.id === saved && e.id !== currentEventId)) sel.value = saved;
+      }
+
+      function onStatsCompareChange() {
+        const id = document.getElementById("stats-compare-select")?.value || "";
+        if (id) localStorage.setItem("kluby_stats_compare", id);
+        else localStorage.removeItem("kluby_stats_compare");
+        loadDashboard();
+      }
+
+      function renderEventComparison(comp) {
+        const panel = document.getElementById("panel-compare");
+        if (!panel || !comp?.current || !comp?.compare) {
+          if (panel) panel.classList.add("hidden");
+          return;
+        }
+        panel.classList.remove("hidden");
+        const sub = document.getElementById("compare-sub");
+        if (sub) {
+          sub.textContent = `${comp.current.name} vs ${comp.compare.name} · barras relativas (100% = el mayor de cada métrica)`;
+        }
+        const norm = (a, b) => {
+          const max = Math.max(a, b, 1);
+          return [Math.round((a / max) * 100), Math.round((b / max) * 100)];
+        };
+        const rev = norm(comp.current.totalRevenue, comp.compare.totalRevenue);
+        const occ = norm(comp.current.occupancyRate, comp.compare.occupancyRate);
+        const show = norm(comp.current.showRate, comp.compare.showRate);
+        const cur = comp.current;
+        const cmp = comp.compare;
+        makeChart("chart-compare", {
+          type: "bar",
+          data: {
+            labels: ["Ingresos", "Ocupación", "Asistencia"],
+            datasets: [
+              {
+                label: cur.name,
+                data: [rev[0], occ[0], show[0]],
+                backgroundColor: "rgba(124,92,255,0.75)",
+                borderRadius: 6,
+              },
+              {
+                label: cmp.name,
+                data: [rev[1], occ[1], show[1]],
+                backgroundColor: "rgba(45,226,198,0.65)",
+                borderRadius: 6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: "top", labels: { boxWidth: 12, font: { size: 12 } } },
+              tooltip: {
+                callbacks: {
+                  label: (c) => {
+                    const idx = c.dataIndex;
+                    const isCur = c.datasetIndex === 0;
+                    const snap = isCur ? cur : cmp;
+                    if (idx === 0) return c.dataset.label + ": " + fmtMoney(snap.totalRevenue);
+                    if (idx === 1) return c.dataset.label + ": " + snap.occupancyRate + "% ocupación";
+                    return c.dataset.label + ": " + snap.showRate + "% asistencia";
+                  },
+                },
+              },
+            },
+            scales: {
+              x: { grid: { display: false } },
+              y: { max: 100, ticks: { callback: (v) => v + "%" } },
+            },
+          },
+        });
+      }
+
+      function renderModeBreakdown(mb) {
+        const cards = document.getElementById("mode-cards");
+        if (!mb) {
+          if (cards) cards.innerHTML = "";
+          makeChart("chart-modes", {
+            type: "doughnut",
+            data: { labels: ["Sin datos"], datasets: [{ data: [1], backgroundColor: ["#2a2a3d"] }] },
+            options: doughnutOpts(),
+          });
+          return;
+        }
+        const s = mb.standard;
+        const o = mb.openTable;
+        if (cards) {
+          cards.innerHTML = `
+            <div class="mode-card">
+              <b>Reserva estándar</b>
+              ${fmtNum(s.count)} reservas · ${fmtMoney(s.revenue)}<br/>
+              Ticket prom. ${fmtMoney(s.avgTicket)}
+            </div>
+            <div class="mode-card">
+              <b>Mesa abierta (Split Bill)</b>
+              ${fmtNum(o.count)} mesas (${o.pctOfReservations}% del total)<br/>
+              ${fmtMoney(o.revenue)} mesa + ${fmtMoney(o.guestShareRevenue)} invitados<br/>
+              ~${fmtNum(o.avgGuestsPerTable)} personas/mesa · ticket ${fmtMoney(o.avgTicket)}
+            </div>`;
+        }
+        makeChart("chart-modes", {
+          type: "doughnut",
+          data: {
+            labels: ["Estándar", "Mesa abierta"],
+            datasets: [{
+              data: [s.count, o.count],
+              backgroundColor: ["#7c5cff", "#2de2c6"],
+              borderColor: "#14141f",
+              borderWidth: 2,
+            }],
+          },
+          options: doughnutOpts(),
+        });
+      }
+
+      function setStatsRange(range) {
+        if (document.getElementById("stats-event-select")?.value) return;
+        _statsRange = range;
+        localStorage.setItem("kluby_stats_range", range);
+        ["week", "month", "last_event"].forEach((r) => {
+          const btn = document.getElementById("range-" + r);
+          if (btn) btn.classList.toggle("active", r === range);
+        });
+        loadDashboard();
+      }
+
+      function syncStatsRangeUi() {
+        ["week", "month", "last_event"].forEach((r) => {
+          const btn = document.getElementById("range-" + r);
+          if (btn) btn.classList.toggle("active", r === _statsRange);
+        });
       }
 
       function makeChart(id, config) {
@@ -1178,24 +1909,72 @@
       async function loadDashboard() {
         const clubId = document.getElementById("club-select").value;
         if (!clubId) return;
+        syncStatsRangeUi();
+        syncStatsPeriodUi();
+        const url = buildDashboardUrl();
+        if (!url) return;
         let d;
         try {
-          d = await api(`/clubs/${clubId}/reports/dashboard`);
+          d = await api(url);
+          _lastDashboardData = d;
         } catch (e) {
           if (String(e.message).includes("401")) return logout();
           alert("Error cargando datos: " + e.message);
           return;
         }
 
-        renderKpis(d.kpis);
+        const eventId = document.getElementById("stats-event-select")?.value || "";
+
+        const periodLbl = document.getElementById("stats-period-label");
+        if (periodLbl) {
+          periodLbl.textContent = eventId
+            ? "Evento seleccionado · compará con otro evento del mismo boliche abajo."
+            : (d.period?.label || "Período seleccionado");
+        }
+
+        renderKpis(d.kpis, d.period?.label || "");
+        renderEventComparison(d.eventComparison);
+        renderModeBreakdown(d.modeBreakdown);
+
+        const peakHour = [...(d.consumptionByHour || [])].sort((a, b) => b.total - a.total)[0];
+        makeChart("chart-hourly", {
+          type: "bar",
+          data: {
+            labels: (d.consumptionByHour || []).map((x) => x.label),
+            datasets: [{
+              label: "Consumo",
+              data: (d.consumptionByHour || []).map((x) => x.total),
+              backgroundColor: (d.consumptionByHour || []).map((x) =>
+                peakHour && x.hour === peakHour.hour ? "#2de2c6" : "rgba(124,92,255,0.65)"
+              ),
+              borderRadius: 4,
+            }],
+          },
+          options: chartOpts({ money: true }),
+        });
+
+        const lead = d.bookingLeadTime || [];
+        makeChart("chart-leadtime", {
+          type: "doughnut",
+          data: {
+            labels: lead.length ? lead.map((x) => x.label) : ["Sin datos"],
+            datasets: [{
+              data: lead.length ? lead.map((x) => x.count) : [1],
+              backgroundColor: PALETTE,
+              borderColor: "#14141f",
+              borderWidth: 2,
+            }],
+          },
+          options: doughnutOpts(),
+        });
 
         // Recaudación por día (línea)
         makeChart("chart-sales", {
           type: "line",
           data: {
-            labels: d.salesByDate.map((x) => x.date.slice(5)),
+            labels: (d.salesByDate || []).map((x) => x.date.slice(5)),
             datasets: [{
-              data: d.salesByDate.map((x) => x.total),
+              data: (d.salesByDate || []).map((x) => x.total),
               borderColor: "#7c5cff",
               backgroundColor: "rgba(124,92,255,0.15)",
               fill: true, tension: 0.35, pointRadius: 3, borderWidth: 2,
@@ -1208,14 +1987,14 @@
         makeChart("chart-weekday", {
           type: "bar",
           data: {
-            labels: d.salesByWeekday.map((x) => x.weekday.slice(0, 3)),
-            datasets: [{ data: d.salesByWeekday.map((x) => x.total), backgroundColor: "#2de2c6", borderRadius: 6 }],
+            labels: (d.salesByWeekday || []).map((x) => x.weekday.slice(0, 3)),
+            datasets: [{ data: (d.salesByWeekday || []).map((x) => x.total), backgroundColor: "#2de2c6", borderRadius: 6 }],
           },
           options: chartOpts({ money: true }),
         });
 
         // Mesas más reservadas (barras horizontales)
-        const tt = d.topTables.slice(0, 7);
+        const tt = (d.topTables || []).slice(0, 7);
         makeChart("chart-tables", {
           type: "bar",
           data: {
@@ -1225,15 +2004,19 @@
           options: { ...chartOpts({}), indexAxis: "y" },
         });
 
-        // Bebidas más vendidas (doughnut)
-        const tp = d.topProducts.slice(0, 6);
+        // Top 5 productos (barras horizontales)
+        const tp = (d.topProducts || []).slice(0, 5);
         makeChart("chart-products", {
-          type: "doughnut",
+          type: "bar",
           data: {
             labels: tp.length ? tp.map((x) => x.name) : ["Sin ventas"],
-            datasets: [{ data: tp.length ? tp.map((x) => x.unitsSold) : [1], backgroundColor: PALETTE, borderColor: "#14141f", borderWidth: 2 }],
+            datasets: [{
+              data: tp.length ? tp.map((x) => x.unitsSold) : [0],
+              backgroundColor: "#ffb454",
+              borderRadius: 6,
+            }],
           },
-          options: doughnutOpts(),
+          options: { ...chartOpts({}), indexAxis: "y" },
         });
 
         // Composición de ingresos (doughnut)
@@ -1241,23 +2024,25 @@
         makeChart("chart-types", {
           type: "doughnut",
           data: {
-            labels: d.salesByType.map((x) => TYPE_LABEL[x.type] || x.type),
-            datasets: [{ data: d.salesByType.map((x) => x.total), backgroundColor: PALETTE, borderColor: "#14141f", borderWidth: 2 }],
+            labels: (d.salesByType || []).map((x) => TYPE_LABEL[x.type] || x.type),
+            datasets: [{ data: (d.salesByType || []).map((x) => x.total), backgroundColor: PALETTE, borderColor: "#14141f", borderWidth: 2 }],
           },
           options: doughnutOpts({ money: true }),
         });
 
-        // Resumen
-        const topTable = d.topTables[0];
-        const topProduct = d.topProducts[0];
-        const bestDay = [...d.salesByWeekday].sort((a, b) => b.total - a.total)[0];
+        // Resumen operativo
+        const topTable = (d.topTables || [])[0];
+        const topProduct = (d.topProducts || [])[0];
+        const bestDay = [...(d.salesByWeekday || [])].sort((a, b) => b.total - a.total)[0];
         document.getElementById("summary").className = "";
         document.getElementById("summary").innerHTML = `
           <div style="display:flex;flex-direction:column;gap:14px;font-size:14px">
-            <div>🏆 <b>Mesa estrella:</b> ${topTable ? topTable.label + " (" + topTable.reservationCount + " reservas)" : "—"}</div>
-            <div>🍾 <b>Bebida top:</b> ${topProduct ? topProduct.name + " (" + topProduct.unitsSold + " u.)" : "—"}</div>
+            <div>🏆 <b>Mesa estrella:</b> ${topTable ? esc(topTable.label) + " (" + topTable.reservationCount + " reservas)" : "—"}</div>
+            <div>🍾 <b>Botella top:</b> ${topProduct ? esc(topProduct.name) + " (" + topProduct.unitsSold + " u.)" : "—"}</div>
             <div>📅 <b>Mejor día:</b> ${bestDay ? bestDay.weekday + " · " + fmtMoney(bestDay.total) : "—"}</div>
-            <div>🎟️ <b>Reservas activas:</b> ${fmtNum(d.kpis.activeReservations)}</div>
+            <div>⏰ <b>Hora pico:</b> ${peakHour && peakHour.total > 0 ? peakHour.label + " · " + fmtMoney(peakHour.total) : "—"}</div>
+            <div>👥 <b>Mesas abiertas:</b> ${d.modeBreakdown ? fmtNum(d.modeBreakdown.openTable.count) + " (" + d.modeBreakdown.openTable.pctOfReservations + "%)" : "—"}</div>
+            <div>🎟️ <b>Reservas activas:</b> ${fmtNum(d.kpis.activeReservations)} · Ticket prom. ${fmtMoney(d.kpis.avgTicket)}</div>
           </div>`;
       }
 

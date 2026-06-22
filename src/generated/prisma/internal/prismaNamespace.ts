@@ -385,6 +385,10 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  ClubMember: 'ClubMember',
+  ClubJoinInvite: 'ClubJoinInvite',
+  EventInvite: 'EventInvite',
+  EventInviteGuest: 'EventInviteGuest',
   PasswordResetToken: 'PasswordResetToken',
   Club: 'Club',
   ClubTable: 'ClubTable',
@@ -396,7 +400,8 @@ export const ModelName = {
   Order: 'Order',
   OrderItem: 'OrderItem',
   LoyaltyTransaction: 'LoyaltyTransaction',
-  ChatMessage: 'ChatMessage'
+  ChatMessage: 'ChatMessage',
+  StoredAsset: 'StoredAsset'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -412,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "passwordResetToken" | "club" | "clubTable" | "eventNight" | "reservation" | "reservationGuest" | "payment" | "product" | "order" | "orderItem" | "loyaltyTransaction" | "chatMessage"
+    modelProps: "user" | "clubMember" | "clubJoinInvite" | "eventInvite" | "eventInviteGuest" | "passwordResetToken" | "club" | "clubTable" | "eventNight" | "reservation" | "reservationGuest" | "payment" | "product" | "order" | "orderItem" | "loyaltyTransaction" | "chatMessage" | "storedAsset"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -487,6 +492,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    ClubMember: {
+      payload: Prisma.$ClubMemberPayload<ExtArgs>
+      fields: Prisma.ClubMemberFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClubMemberFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubMemberPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClubMemberFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubMemberPayload>
+        }
+        findFirst: {
+          args: Prisma.ClubMemberFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubMemberPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClubMemberFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubMemberPayload>
+        }
+        findMany: {
+          args: Prisma.ClubMemberFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubMemberPayload>[]
+        }
+        create: {
+          args: Prisma.ClubMemberCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubMemberPayload>
+        }
+        createMany: {
+          args: Prisma.ClubMemberCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ClubMemberCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubMemberPayload>[]
+        }
+        delete: {
+          args: Prisma.ClubMemberDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubMemberPayload>
+        }
+        update: {
+          args: Prisma.ClubMemberUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubMemberPayload>
+        }
+        deleteMany: {
+          args: Prisma.ClubMemberDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClubMemberUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ClubMemberUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubMemberPayload>[]
+        }
+        upsert: {
+          args: Prisma.ClubMemberUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubMemberPayload>
+        }
+        aggregate: {
+          args: Prisma.ClubMemberAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClubMember>
+        }
+        groupBy: {
+          args: Prisma.ClubMemberGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClubMemberGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClubMemberCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClubMemberCountAggregateOutputType> | number
+        }
+      }
+    }
+    ClubJoinInvite: {
+      payload: Prisma.$ClubJoinInvitePayload<ExtArgs>
+      fields: Prisma.ClubJoinInviteFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClubJoinInviteFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubJoinInvitePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClubJoinInviteFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubJoinInvitePayload>
+        }
+        findFirst: {
+          args: Prisma.ClubJoinInviteFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubJoinInvitePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClubJoinInviteFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubJoinInvitePayload>
+        }
+        findMany: {
+          args: Prisma.ClubJoinInviteFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubJoinInvitePayload>[]
+        }
+        create: {
+          args: Prisma.ClubJoinInviteCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubJoinInvitePayload>
+        }
+        createMany: {
+          args: Prisma.ClubJoinInviteCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ClubJoinInviteCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubJoinInvitePayload>[]
+        }
+        delete: {
+          args: Prisma.ClubJoinInviteDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubJoinInvitePayload>
+        }
+        update: {
+          args: Prisma.ClubJoinInviteUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubJoinInvitePayload>
+        }
+        deleteMany: {
+          args: Prisma.ClubJoinInviteDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClubJoinInviteUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ClubJoinInviteUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubJoinInvitePayload>[]
+        }
+        upsert: {
+          args: Prisma.ClubJoinInviteUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClubJoinInvitePayload>
+        }
+        aggregate: {
+          args: Prisma.ClubJoinInviteAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClubJoinInvite>
+        }
+        groupBy: {
+          args: Prisma.ClubJoinInviteGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClubJoinInviteGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClubJoinInviteCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClubJoinInviteCountAggregateOutputType> | number
+        }
+      }
+    }
+    EventInvite: {
+      payload: Prisma.$EventInvitePayload<ExtArgs>
+      fields: Prisma.EventInviteFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EventInviteFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInvitePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EventInviteFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInvitePayload>
+        }
+        findFirst: {
+          args: Prisma.EventInviteFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInvitePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EventInviteFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInvitePayload>
+        }
+        findMany: {
+          args: Prisma.EventInviteFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInvitePayload>[]
+        }
+        create: {
+          args: Prisma.EventInviteCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInvitePayload>
+        }
+        createMany: {
+          args: Prisma.EventInviteCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EventInviteCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInvitePayload>[]
+        }
+        delete: {
+          args: Prisma.EventInviteDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInvitePayload>
+        }
+        update: {
+          args: Prisma.EventInviteUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInvitePayload>
+        }
+        deleteMany: {
+          args: Prisma.EventInviteDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EventInviteUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EventInviteUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInvitePayload>[]
+        }
+        upsert: {
+          args: Prisma.EventInviteUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInvitePayload>
+        }
+        aggregate: {
+          args: Prisma.EventInviteAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEventInvite>
+        }
+        groupBy: {
+          args: Prisma.EventInviteGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventInviteGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EventInviteCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventInviteCountAggregateOutputType> | number
+        }
+      }
+    }
+    EventInviteGuest: {
+      payload: Prisma.$EventInviteGuestPayload<ExtArgs>
+      fields: Prisma.EventInviteGuestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EventInviteGuestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInviteGuestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EventInviteGuestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInviteGuestPayload>
+        }
+        findFirst: {
+          args: Prisma.EventInviteGuestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInviteGuestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EventInviteGuestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInviteGuestPayload>
+        }
+        findMany: {
+          args: Prisma.EventInviteGuestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInviteGuestPayload>[]
+        }
+        create: {
+          args: Prisma.EventInviteGuestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInviteGuestPayload>
+        }
+        createMany: {
+          args: Prisma.EventInviteGuestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EventInviteGuestCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInviteGuestPayload>[]
+        }
+        delete: {
+          args: Prisma.EventInviteGuestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInviteGuestPayload>
+        }
+        update: {
+          args: Prisma.EventInviteGuestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInviteGuestPayload>
+        }
+        deleteMany: {
+          args: Prisma.EventInviteGuestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EventInviteGuestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EventInviteGuestUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInviteGuestPayload>[]
+        }
+        upsert: {
+          args: Prisma.EventInviteGuestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventInviteGuestPayload>
+        }
+        aggregate: {
+          args: Prisma.EventInviteGuestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEventInviteGuest>
+        }
+        groupBy: {
+          args: Prisma.EventInviteGuestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventInviteGuestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EventInviteGuestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventInviteGuestCountAggregateOutputType> | number
         }
       }
     }
@@ -1378,6 +1679,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    StoredAsset: {
+      payload: Prisma.$StoredAssetPayload<ExtArgs>
+      fields: Prisma.StoredAssetFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StoredAssetFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoredAssetPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StoredAssetFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoredAssetPayload>
+        }
+        findFirst: {
+          args: Prisma.StoredAssetFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoredAssetPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StoredAssetFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoredAssetPayload>
+        }
+        findMany: {
+          args: Prisma.StoredAssetFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoredAssetPayload>[]
+        }
+        create: {
+          args: Prisma.StoredAssetCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoredAssetPayload>
+        }
+        createMany: {
+          args: Prisma.StoredAssetCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StoredAssetCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoredAssetPayload>[]
+        }
+        delete: {
+          args: Prisma.StoredAssetDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoredAssetPayload>
+        }
+        update: {
+          args: Prisma.StoredAssetUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoredAssetPayload>
+        }
+        deleteMany: {
+          args: Prisma.StoredAssetDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StoredAssetUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StoredAssetUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoredAssetPayload>[]
+        }
+        upsert: {
+          args: Prisma.StoredAssetUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StoredAssetPayload>
+        }
+        aggregate: {
+          args: Prisma.StoredAssetAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStoredAsset>
+        }
+        groupBy: {
+          args: Prisma.StoredAssetGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StoredAssetGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StoredAssetCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StoredAssetCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1423,6 +1798,7 @@ export const UserScalarFieldEnum = {
   passwordHash: 'passwordHash',
   fullName: 'fullName',
   phone: 'phone',
+  profileImageUrl: 'profileImageUrl',
   dni: 'dni',
   birthDate: 'birthDate',
   role: 'role',
@@ -1433,6 +1809,62 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const ClubMemberScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  clubId: 'clubId',
+  isActive: 'isActive',
+  invitedBy: 'invitedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ClubMemberScalarFieldEnum = (typeof ClubMemberScalarFieldEnum)[keyof typeof ClubMemberScalarFieldEnum]
+
+
+export const ClubJoinInviteScalarFieldEnum = {
+  id: 'id',
+  clubId: 'clubId',
+  code: 'code',
+  role: 'role',
+  createdBy: 'createdBy',
+  expiresAt: 'expiresAt',
+  maxUses: 'maxUses',
+  useCount: 'useCount',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
+} as const
+
+export type ClubJoinInviteScalarFieldEnum = (typeof ClubJoinInviteScalarFieldEnum)[keyof typeof ClubJoinInviteScalarFieldEnum]
+
+
+export const EventInviteScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  clubId: 'clubId',
+  code: 'code',
+  createdBy: 'createdBy',
+  expiresAt: 'expiresAt',
+  maxUses: 'maxUses',
+  useCount: 'useCount',
+  isActive: 'isActive',
+  createdAt: 'createdAt'
+} as const
+
+export type EventInviteScalarFieldEnum = (typeof EventInviteScalarFieldEnum)[keyof typeof EventInviteScalarFieldEnum]
+
+
+export const EventInviteGuestScalarFieldEnum = {
+  id: 'id',
+  eventInviteId: 'eventInviteId',
+  eventId: 'eventId',
+  userId: 'userId',
+  redeemedAt: 'redeemedAt'
+} as const
+
+export type EventInviteGuestScalarFieldEnum = (typeof EventInviteGuestScalarFieldEnum)[keyof typeof EventInviteGuestScalarFieldEnum]
 
 
 export const PasswordResetTokenScalarFieldEnum = {
@@ -1456,6 +1888,8 @@ export const ClubScalarFieldEnum = {
   musicGenre: 'musicGenre',
   imageUrl: 'imageUrl',
   floorMapUrl: 'floorMapUrl',
+  contactEmail: 'contactEmail',
+  contactPhone: 'contactPhone',
   pointValue: 'pointValue',
   isActive: 'isActive',
   createdAt: 'createdAt',
@@ -1627,6 +2061,18 @@ export const ChatMessageScalarFieldEnum = {
 export type ChatMessageScalarFieldEnum = (typeof ChatMessageScalarFieldEnum)[keyof typeof ChatMessageScalarFieldEnum]
 
 
+export const StoredAssetScalarFieldEnum = {
+  id: 'id',
+  mime: 'mime',
+  filename: 'filename',
+  size: 'size',
+  data: 'data',
+  createdAt: 'createdAt'
+} as const
+
+export type StoredAssetScalarFieldEnum = (typeof StoredAssetScalarFieldEnum)[keyof typeof StoredAssetScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1707,16 +2153,16 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'Decimal'
+ * Reference to a field of type 'ClubPersonnelInviteRole'
  */
-export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+export type EnumClubPersonnelInviteRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClubPersonnelInviteRole'>
     
 
 
 /**
- * Reference to a field of type 'Decimal[]'
+ * Reference to a field of type 'ClubPersonnelInviteRole[]'
  */
-export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+export type ListEnumClubPersonnelInviteRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClubPersonnelInviteRole[]'>
     
 
 
@@ -1731,6 +2177,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal'
+ */
+export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal[]'
+ */
+export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
     
 
 
@@ -1873,6 +2333,20 @@ export type EnumLoyaltyTxTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
 export type ListEnumLoyaltyTxTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LoyaltyTxType[]'>
     
 
+
+/**
+ * Reference to a field of type 'Bytes'
+ */
+export type BytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes'>
+    
+
+
+/**
+ * Reference to a field of type 'Bytes[]'
+ */
+export type ListBytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -1984,6 +2458,10 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  clubMember?: Prisma.ClubMemberOmit
+  clubJoinInvite?: Prisma.ClubJoinInviteOmit
+  eventInvite?: Prisma.EventInviteOmit
+  eventInviteGuest?: Prisma.EventInviteGuestOmit
   passwordResetToken?: Prisma.PasswordResetTokenOmit
   club?: Prisma.ClubOmit
   clubTable?: Prisma.ClubTableOmit
@@ -1996,6 +2474,7 @@ export type GlobalOmitConfig = {
   orderItem?: Prisma.OrderItemOmit
   loyaltyTransaction?: Prisma.LoyaltyTransactionOmit
   chatMessage?: Prisma.ChatMessageOmit
+  storedAsset?: Prisma.StoredAssetOmit
 }
 
 /* Types for Logging */

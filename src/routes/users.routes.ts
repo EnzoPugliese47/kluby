@@ -1,11 +1,13 @@
 import { Router } from "express";
 import {
   banUser,
+  createClubOwner,
   createStaffUser,
   deactivateUser,
   forgotPassword,
   getUserById,
   getUserTables,
+  listMyClubMemberships,
   listUsers,
   loginUser,
   registerUser,
@@ -19,18 +21,20 @@ import { authenticate, authorize } from "../middlewares/auth";
 
 const router = Router();
 
-// Personal interno (staff + administradores).
-const staffOrAdmin = [
-  authenticate,
-  authorize("STAFF", "CLUB_ADMIN", "SUPER_ADMIN"),
-];
+const adminOnly = [authenticate, authorize("CLUB_ADMIN", "SUPER_ADMIN")];
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 
-// Alta de personal interno: solo administradores.
+router.post(
+  "/owners",
+  authenticate,
+  authorize("SUPER_ADMIN"),
+  createClubOwner
+);
+
 router.post(
   "/staff",
   authenticate,
@@ -38,13 +42,18 @@ router.post(
   createStaffUser
 );
 
-// Gestion de usuarios (staff/admin): listar, banear y ver sus mesas.
-router.get("/", ...staffOrAdmin, listUsers);
-router.post("/:id/ban", ...staffOrAdmin, banUser);
-router.post("/:id/unban", ...staffOrAdmin, unbanUser);
-router.get("/:id/tables", ...staffOrAdmin, getUserTables);
+router.get(
+  "/me/memberships",
+  authenticate,
+  authorize("STAFF", "PUERTA"),
+  listMyClubMemberships
+);
 
-// Rutas protegidas: requieren JWT valido.
+router.get("/", authenticate, authorize("SUPER_ADMIN"), listUsers);
+router.post("/:id/ban", ...adminOnly, banUser);
+router.post("/:id/unban", ...adminOnly, unbanUser);
+router.get("/:id/tables", ...adminOnly, getUserTables);
+
 router.get("/:id", authenticate, getUserById);
 router.patch("/:id", authenticate, updateUser);
 router.delete("/:id", authenticate, deactivateUser);

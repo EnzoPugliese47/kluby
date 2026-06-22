@@ -12,6 +12,33 @@ export const getAuthUser = (req: Request): JwtPayload => {
 };
 
 /**
+ * Si hay Bearer token valido, adjunta req.user. No falla si falta o es invalido.
+ * Util para rutas publicas que filtran por rol cuando hay sesion.
+ */
+export const optionalAuthenticate: RequestHandler = (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+): void => {
+  const header = req.headers.authorization;
+  if (header === undefined || !header.startsWith("Bearer ")) {
+    next();
+    return;
+  }
+  const token = header.slice("Bearer ".length).trim();
+  if (token === "") {
+    next();
+    return;
+  }
+  try {
+    req.user = verifyToken(token);
+  } catch {
+    // Token invalido en ruta publica: ignorar y seguir sin usuario.
+  }
+  next();
+};
+
+/**
  * Middleware de autenticacion: valida el JWT del header Authorization
  * (formato "Bearer <token>") y adjunta el usuario al request.
  */

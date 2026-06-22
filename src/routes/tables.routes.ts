@@ -9,7 +9,7 @@ const router = Router();
 
 const staffOrAdmin = [
   authenticate,
-  authorize("STAFF", "CLUB_ADMIN", "SUPER_ADMIN"),
+  authorize("CLUB_ADMIN", "SUPER_ADMIN"),
 ];
 
 router.patch("/:id", ...staffOrAdmin, updateTable);

@@ -30,6 +30,7 @@ export type UserMinAggregateOutputType = {
   passwordHash: string | null
   fullName: string | null
   phone: string | null
+  profileImageUrl: string | null
   dni: string | null
   birthDate: Date | null
   role: $Enums.UserRole | null
@@ -45,6 +46,7 @@ export type UserMaxAggregateOutputType = {
   passwordHash: string | null
   fullName: string | null
   phone: string | null
+  profileImageUrl: string | null
   dni: string | null
   birthDate: Date | null
   role: $Enums.UserRole | null
@@ -60,6 +62,7 @@ export type UserCountAggregateOutputType = {
   passwordHash: number
   fullName: number
   phone: number
+  profileImageUrl: number
   dni: number
   birthDate: number
   role: number
@@ -77,6 +80,7 @@ export type UserMinAggregateInputType = {
   passwordHash?: true
   fullName?: true
   phone?: true
+  profileImageUrl?: true
   dni?: true
   birthDate?: true
   role?: true
@@ -92,6 +96,7 @@ export type UserMaxAggregateInputType = {
   passwordHash?: true
   fullName?: true
   phone?: true
+  profileImageUrl?: true
   dni?: true
   birthDate?: true
   role?: true
@@ -107,6 +112,7 @@ export type UserCountAggregateInputType = {
   passwordHash?: true
   fullName?: true
   phone?: true
+  profileImageUrl?: true
   dni?: true
   birthDate?: true
   role?: true
@@ -195,6 +201,7 @@ export type UserGroupByOutputType = {
   passwordHash: string
   fullName: string
   phone: string | null
+  profileImageUrl: string | null
   dni: string | null
   birthDate: Date | null
   role: $Enums.UserRole
@@ -231,6 +238,7 @@ export type UserWhereInput = {
   passwordHash?: Prisma.StringFilter<"User"> | string
   fullName?: Prisma.StringFilter<"User"> | string
   phone?: Prisma.StringNullableFilter<"User"> | string | null
+  profileImageUrl?: Prisma.StringNullableFilter<"User"> | string | null
   dni?: Prisma.StringNullableFilter<"User"> | string | null
   birthDate?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
@@ -239,6 +247,11 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   ownedClubs?: Prisma.ClubListRelationFilter
+  clubMemberships?: Prisma.ClubMemberListRelationFilter
+  invitedMembers?: Prisma.ClubMemberListRelationFilter
+  clubJoinInvites?: Prisma.ClubJoinInviteListRelationFilter
+  eventInvites?: Prisma.EventInviteListRelationFilter
+  eventGuestInvites?: Prisma.EventInviteGuestListRelationFilter
   reservations?: Prisma.ReservationListRelationFilter
   guestEntries?: Prisma.ReservationGuestListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
@@ -254,6 +267,7 @@ export type UserOrderByWithRelationInput = {
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  profileImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   dni?: Prisma.SortOrderInput | Prisma.SortOrder
   birthDate?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
@@ -262,6 +276,11 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   ownedClubs?: Prisma.ClubOrderByRelationAggregateInput
+  clubMemberships?: Prisma.ClubMemberOrderByRelationAggregateInput
+  invitedMembers?: Prisma.ClubMemberOrderByRelationAggregateInput
+  clubJoinInvites?: Prisma.ClubJoinInviteOrderByRelationAggregateInput
+  eventInvites?: Prisma.EventInviteOrderByRelationAggregateInput
+  eventGuestInvites?: Prisma.EventInviteGuestOrderByRelationAggregateInput
   reservations?: Prisma.ReservationOrderByRelationAggregateInput
   guestEntries?: Prisma.ReservationGuestOrderByRelationAggregateInput
   payments?: Prisma.PaymentOrderByRelationAggregateInput
@@ -281,6 +300,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   passwordHash?: Prisma.StringFilter<"User"> | string
   fullName?: Prisma.StringFilter<"User"> | string
   phone?: Prisma.StringNullableFilter<"User"> | string | null
+  profileImageUrl?: Prisma.StringNullableFilter<"User"> | string | null
   birthDate?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   isVerified?: Prisma.BoolFilter<"User"> | boolean
@@ -288,6 +308,11 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   ownedClubs?: Prisma.ClubListRelationFilter
+  clubMemberships?: Prisma.ClubMemberListRelationFilter
+  invitedMembers?: Prisma.ClubMemberListRelationFilter
+  clubJoinInvites?: Prisma.ClubJoinInviteListRelationFilter
+  eventInvites?: Prisma.EventInviteListRelationFilter
+  eventGuestInvites?: Prisma.EventInviteGuestListRelationFilter
   reservations?: Prisma.ReservationListRelationFilter
   guestEntries?: Prisma.ReservationGuestListRelationFilter
   payments?: Prisma.PaymentListRelationFilter
@@ -303,6 +328,7 @@ export type UserOrderByWithAggregationInput = {
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
+  profileImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   dni?: Prisma.SortOrderInput | Prisma.SortOrder
   birthDate?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
@@ -324,6 +350,7 @@ export type UserScalarWhereWithAggregatesInput = {
   passwordHash?: Prisma.StringWithAggregatesFilter<"User"> | string
   fullName?: Prisma.StringWithAggregatesFilter<"User"> | string
   phone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  profileImageUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   dni?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   birthDate?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   role?: Prisma.EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
@@ -339,6 +366,7 @@ export type UserCreateInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -347,6 +375,11 @@ export type UserCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
@@ -362,6 +395,7 @@ export type UserUncheckedCreateInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -370,6 +404,11 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubUncheckedCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
@@ -385,6 +424,7 @@ export type UserUpdateInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -393,6 +433,11 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
@@ -408,6 +453,7 @@ export type UserUncheckedUpdateInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -416,6 +462,11 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUncheckedUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUncheckedUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUncheckedUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
@@ -431,6 +482,7 @@ export type UserCreateManyInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -446,6 +498,7 @@ export type UserUpdateManyMutationInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -461,6 +514,7 @@ export type UserUncheckedUpdateManyInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -476,6 +530,7 @@ export type UserCountOrderByAggregateInput = {
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  profileImageUrl?: Prisma.SortOrder
   dni?: Prisma.SortOrder
   birthDate?: Prisma.SortOrder
   role?: Prisma.SortOrder
@@ -491,6 +546,7 @@ export type UserMaxOrderByAggregateInput = {
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  profileImageUrl?: Prisma.SortOrder
   dni?: Prisma.SortOrder
   birthDate?: Prisma.SortOrder
   role?: Prisma.SortOrder
@@ -506,6 +562,7 @@ export type UserMinOrderByAggregateInput = {
   passwordHash?: Prisma.SortOrder
   fullName?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  profileImageUrl?: Prisma.SortOrder
   dni?: Prisma.SortOrder
   birthDate?: Prisma.SortOrder
   role?: Prisma.SortOrder
@@ -518,6 +575,11 @@ export type UserMinOrderByAggregateInput = {
 export type UserScalarRelationFilter = {
   is?: Prisma.UserWhereInput
   isNot?: Prisma.UserWhereInput
+}
+
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
 }
 
 export type StringFieldUpdateOperationsInput = {
@@ -542,6 +604,78 @@ export type BoolFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type UserCreateNestedOneWithoutClubMembershipsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutClubMembershipsInput, Prisma.UserUncheckedCreateWithoutClubMembershipsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClubMembershipsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutInvitedMembersInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutInvitedMembersInput, Prisma.UserUncheckedCreateWithoutInvitedMembersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutInvitedMembersInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutClubMembershipsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutClubMembershipsInput, Prisma.UserUncheckedCreateWithoutClubMembershipsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClubMembershipsInput
+  upsert?: Prisma.UserUpsertWithoutClubMembershipsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutClubMembershipsInput, Prisma.UserUpdateWithoutClubMembershipsInput>, Prisma.UserUncheckedUpdateWithoutClubMembershipsInput>
+}
+
+export type UserUpdateOneWithoutInvitedMembersNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutInvitedMembersInput, Prisma.UserUncheckedCreateWithoutInvitedMembersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutInvitedMembersInput
+  upsert?: Prisma.UserUpsertWithoutInvitedMembersInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutInvitedMembersInput, Prisma.UserUpdateWithoutInvitedMembersInput>, Prisma.UserUncheckedUpdateWithoutInvitedMembersInput>
+}
+
+export type UserCreateNestedOneWithoutClubJoinInvitesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutClubJoinInvitesInput, Prisma.UserUncheckedCreateWithoutClubJoinInvitesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClubJoinInvitesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutClubJoinInvitesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutClubJoinInvitesInput, Prisma.UserUncheckedCreateWithoutClubJoinInvitesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClubJoinInvitesInput
+  upsert?: Prisma.UserUpsertWithoutClubJoinInvitesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutClubJoinInvitesInput, Prisma.UserUpdateWithoutClubJoinInvitesInput>, Prisma.UserUncheckedUpdateWithoutClubJoinInvitesInput>
+}
+
+export type UserCreateNestedOneWithoutEventInvitesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEventInvitesInput, Prisma.UserUncheckedCreateWithoutEventInvitesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEventInvitesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutEventInvitesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEventInvitesInput, Prisma.UserUncheckedCreateWithoutEventInvitesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEventInvitesInput
+  upsert?: Prisma.UserUpsertWithoutEventInvitesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEventInvitesInput, Prisma.UserUpdateWithoutEventInvitesInput>, Prisma.UserUncheckedUpdateWithoutEventInvitesInput>
+}
+
+export type UserCreateNestedOneWithoutEventGuestInvitesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEventGuestInvitesInput, Prisma.UserUncheckedCreateWithoutEventGuestInvitesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEventGuestInvitesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutEventGuestInvitesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEventGuestInvitesInput, Prisma.UserUncheckedCreateWithoutEventGuestInvitesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEventGuestInvitesInput
+  upsert?: Prisma.UserUpsertWithoutEventGuestInvitesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEventGuestInvitesInput, Prisma.UserUpdateWithoutEventGuestInvitesInput>, Prisma.UserUncheckedUpdateWithoutEventGuestInvitesInput>
 }
 
 export type UserCreateNestedOneWithoutResetTokensInput = {
@@ -656,12 +790,13 @@ export type UserUpdateOneRequiredWithoutChatMessagesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutChatMessagesInput, Prisma.UserUpdateWithoutChatMessagesInput>, Prisma.UserUncheckedUpdateWithoutChatMessagesInput>
 }
 
-export type UserCreateWithoutResetTokensInput = {
+export type UserCreateWithoutClubMembershipsInput = {
   id?: string
   email: string
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -670,6 +805,651 @@ export type UserCreateWithoutResetTokensInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubCreateNestedManyWithoutOwnerInput
+  invitedMembers?: Prisma.ClubMemberCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestCreateNestedManyWithoutUserInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutHostInput
+  guestEntries?: Prisma.ReservationGuestCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutUserInput
+  chatMessages?: Prisma.ChatMessageCreateNestedManyWithoutUserInput
+  resetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutClubMembershipsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  profileImageUrl?: string | null
+  dni?: string | null
+  birthDate?: Date | string | null
+  role?: $Enums.UserRole
+  isVerified?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedClubs?: Prisma.ClubUncheckedCreateNestedManyWithoutOwnerInput
+  invitedMembers?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedCreateNestedManyWithoutUserInput
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutHostInput
+  guestEntries?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutUserInput
+  chatMessages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutUserInput
+  resetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutClubMembershipsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutClubMembershipsInput, Prisma.UserUncheckedCreateWithoutClubMembershipsInput>
+}
+
+export type UserCreateWithoutInvitedMembersInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  profileImageUrl?: string | null
+  dni?: string | null
+  birthDate?: Date | string | null
+  role?: $Enums.UserRole
+  isVerified?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedClubs?: Prisma.ClubCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberCreateNestedManyWithoutUserInput
+  clubJoinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestCreateNestedManyWithoutUserInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutHostInput
+  guestEntries?: Prisma.ReservationGuestCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutUserInput
+  chatMessages?: Prisma.ChatMessageCreateNestedManyWithoutUserInput
+  resetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutInvitedMembersInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  profileImageUrl?: string | null
+  dni?: string | null
+  birthDate?: Date | string | null
+  role?: $Enums.UserRole
+  isVerified?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedClubs?: Prisma.ClubUncheckedCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutUserInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedCreateNestedManyWithoutUserInput
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutHostInput
+  guestEntries?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutUserInput
+  chatMessages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutUserInput
+  resetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutInvitedMembersInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutInvitedMembersInput, Prisma.UserUncheckedCreateWithoutInvitedMembersInput>
+}
+
+export type UserUpsertWithoutClubMembershipsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutClubMembershipsInput, Prisma.UserUncheckedUpdateWithoutClubMembershipsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutClubMembershipsInput, Prisma.UserUncheckedCreateWithoutClubMembershipsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutClubMembershipsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutClubMembershipsInput, Prisma.UserUncheckedUpdateWithoutClubMembershipsInput>
+}
+
+export type UserUpdateWithoutClubMembershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedClubs?: Prisma.ClubUpdateManyWithoutOwnerNestedInput
+  invitedMembers?: Prisma.ClubMemberUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUpdateManyWithoutUserNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutHostNestedInput
+  guestEntries?: Prisma.ReservationGuestUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutUserNestedInput
+  chatMessages?: Prisma.ChatMessageUpdateManyWithoutUserNestedInput
+  resetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutClubMembershipsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedClubs?: Prisma.ClubUncheckedUpdateManyWithoutOwnerNestedInput
+  invitedMembers?: Prisma.ClubMemberUncheckedUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedUpdateManyWithoutUserNestedInput
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutHostNestedInput
+  guestEntries?: Prisma.ReservationGuestUncheckedUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutUserNestedInput
+  chatMessages?: Prisma.ChatMessageUncheckedUpdateManyWithoutUserNestedInput
+  resetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserUpsertWithoutInvitedMembersInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutInvitedMembersInput, Prisma.UserUncheckedUpdateWithoutInvitedMembersInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutInvitedMembersInput, Prisma.UserUncheckedCreateWithoutInvitedMembersInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutInvitedMembersInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutInvitedMembersInput, Prisma.UserUncheckedUpdateWithoutInvitedMembersInput>
+}
+
+export type UserUpdateWithoutInvitedMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedClubs?: Prisma.ClubUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUpdateManyWithoutUserNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUpdateManyWithoutUserNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutHostNestedInput
+  guestEntries?: Prisma.ReservationGuestUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutUserNestedInput
+  chatMessages?: Prisma.ChatMessageUpdateManyWithoutUserNestedInput
+  resetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutInvitedMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedClubs?: Prisma.ClubUncheckedUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUncheckedUpdateManyWithoutUserNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedUpdateManyWithoutUserNestedInput
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutHostNestedInput
+  guestEntries?: Prisma.ReservationGuestUncheckedUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutUserNestedInput
+  chatMessages?: Prisma.ChatMessageUncheckedUpdateManyWithoutUserNestedInput
+  resetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutClubJoinInvitesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  profileImageUrl?: string | null
+  dni?: string | null
+  birthDate?: Date | string | null
+  role?: $Enums.UserRole
+  isVerified?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedClubs?: Prisma.ClubCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberCreateNestedManyWithoutInviterInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestCreateNestedManyWithoutUserInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutHostInput
+  guestEntries?: Prisma.ReservationGuestCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutUserInput
+  chatMessages?: Prisma.ChatMessageCreateNestedManyWithoutUserInput
+  resetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutClubJoinInvitesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  profileImageUrl?: string | null
+  dni?: string | null
+  birthDate?: Date | string | null
+  role?: $Enums.UserRole
+  isVerified?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedClubs?: Prisma.ClubUncheckedCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutInviterInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedCreateNestedManyWithoutUserInput
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutHostInput
+  guestEntries?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutUserInput
+  chatMessages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutUserInput
+  resetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutClubJoinInvitesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutClubJoinInvitesInput, Prisma.UserUncheckedCreateWithoutClubJoinInvitesInput>
+}
+
+export type UserUpsertWithoutClubJoinInvitesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutClubJoinInvitesInput, Prisma.UserUncheckedUpdateWithoutClubJoinInvitesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutClubJoinInvitesInput, Prisma.UserUncheckedCreateWithoutClubJoinInvitesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutClubJoinInvitesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutClubJoinInvitesInput, Prisma.UserUncheckedUpdateWithoutClubJoinInvitesInput>
+}
+
+export type UserUpdateWithoutClubJoinInvitesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedClubs?: Prisma.ClubUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUpdateManyWithoutInviterNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUpdateManyWithoutUserNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutHostNestedInput
+  guestEntries?: Prisma.ReservationGuestUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutUserNestedInput
+  chatMessages?: Prisma.ChatMessageUpdateManyWithoutUserNestedInput
+  resetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutClubJoinInvitesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedClubs?: Prisma.ClubUncheckedUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUncheckedUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUncheckedUpdateManyWithoutInviterNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedUpdateManyWithoutUserNestedInput
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutHostNestedInput
+  guestEntries?: Prisma.ReservationGuestUncheckedUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutUserNestedInput
+  chatMessages?: Prisma.ChatMessageUncheckedUpdateManyWithoutUserNestedInput
+  resetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutEventInvitesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  profileImageUrl?: string | null
+  dni?: string | null
+  birthDate?: Date | string | null
+  role?: $Enums.UserRole
+  isVerified?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedClubs?: Prisma.ClubCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestCreateNestedManyWithoutUserInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutHostInput
+  guestEntries?: Prisma.ReservationGuestCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutUserInput
+  chatMessages?: Prisma.ChatMessageCreateNestedManyWithoutUserInput
+  resetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutEventInvitesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  profileImageUrl?: string | null
+  dni?: string | null
+  birthDate?: Date | string | null
+  role?: $Enums.UserRole
+  isVerified?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedClubs?: Prisma.ClubUncheckedCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedCreateNestedManyWithoutUserInput
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutHostInput
+  guestEntries?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutUserInput
+  chatMessages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutUserInput
+  resetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutEventInvitesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutEventInvitesInput, Prisma.UserUncheckedCreateWithoutEventInvitesInput>
+}
+
+export type UserUpsertWithoutEventInvitesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutEventInvitesInput, Prisma.UserUncheckedUpdateWithoutEventInvitesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutEventInvitesInput, Prisma.UserUncheckedCreateWithoutEventInvitesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutEventInvitesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutEventInvitesInput, Prisma.UserUncheckedUpdateWithoutEventInvitesInput>
+}
+
+export type UserUpdateWithoutEventInvitesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedClubs?: Prisma.ClubUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUpdateManyWithoutUserNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutHostNestedInput
+  guestEntries?: Prisma.ReservationGuestUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutUserNestedInput
+  chatMessages?: Prisma.ChatMessageUpdateManyWithoutUserNestedInput
+  resetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutEventInvitesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedClubs?: Prisma.ClubUncheckedUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUncheckedUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUncheckedUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedUpdateManyWithoutUserNestedInput
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutHostNestedInput
+  guestEntries?: Prisma.ReservationGuestUncheckedUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutUserNestedInput
+  chatMessages?: Prisma.ChatMessageUncheckedUpdateManyWithoutUserNestedInput
+  resetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutEventGuestInvitesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  profileImageUrl?: string | null
+  dni?: string | null
+  birthDate?: Date | string | null
+  role?: $Enums.UserRole
+  isVerified?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedClubs?: Prisma.ClubCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutCreatorInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutHostInput
+  guestEntries?: Prisma.ReservationGuestCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderCreateNestedManyWithoutUserInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutUserInput
+  chatMessages?: Prisma.ChatMessageCreateNestedManyWithoutUserInput
+  resetTokens?: Prisma.PasswordResetTokenCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutEventGuestInvitesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  profileImageUrl?: string | null
+  dni?: string | null
+  birthDate?: Date | string | null
+  role?: $Enums.UserRole
+  isVerified?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedClubs?: Prisma.ClubUncheckedCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutCreatorInput
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutHostInput
+  guestEntries?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutUserInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutUserInput
+  chatMessages?: Prisma.ChatMessageUncheckedCreateNestedManyWithoutUserInput
+  resetTokens?: Prisma.PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutEventGuestInvitesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutEventGuestInvitesInput, Prisma.UserUncheckedCreateWithoutEventGuestInvitesInput>
+}
+
+export type UserUpsertWithoutEventGuestInvitesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutEventGuestInvitesInput, Prisma.UserUncheckedUpdateWithoutEventGuestInvitesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutEventGuestInvitesInput, Prisma.UserUncheckedCreateWithoutEventGuestInvitesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutEventGuestInvitesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutEventGuestInvitesInput, Prisma.UserUncheckedUpdateWithoutEventGuestInvitesInput>
+}
+
+export type UserUpdateWithoutEventGuestInvitesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedClubs?: Prisma.ClubUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutCreatorNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutHostNestedInput
+  guestEntries?: Prisma.ReservationGuestUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutUserNestedInput
+  chatMessages?: Prisma.ChatMessageUpdateManyWithoutUserNestedInput
+  resetTokens?: Prisma.PasswordResetTokenUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutEventGuestInvitesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownedClubs?: Prisma.ClubUncheckedUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUncheckedUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUncheckedUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutHostNestedInput
+  guestEntries?: Prisma.ReservationGuestUncheckedUpdateManyWithoutUserNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutUserNestedInput
+  chatMessages?: Prisma.ChatMessageUncheckedUpdateManyWithoutUserNestedInput
+  resetTokens?: Prisma.PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutResetTokensInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  fullName: string
+  phone?: string | null
+  profileImageUrl?: string | null
+  dni?: string | null
+  birthDate?: Date | string | null
+  role?: $Enums.UserRole
+  isVerified?: boolean
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownedClubs?: Prisma.ClubCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
@@ -684,6 +1464,7 @@ export type UserUncheckedCreateWithoutResetTokensInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -692,6 +1473,11 @@ export type UserUncheckedCreateWithoutResetTokensInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubUncheckedCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
@@ -722,6 +1508,7 @@ export type UserUpdateWithoutResetTokensInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -730,6 +1517,11 @@ export type UserUpdateWithoutResetTokensInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
@@ -744,6 +1536,7 @@ export type UserUncheckedUpdateWithoutResetTokensInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -752,6 +1545,11 @@ export type UserUncheckedUpdateWithoutResetTokensInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUncheckedUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUncheckedUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUncheckedUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
@@ -766,6 +1564,7 @@ export type UserCreateWithoutOwnedClubsInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -773,6 +1572,11 @@ export type UserCreateWithoutOwnedClubsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clubMemberships?: Prisma.ClubMemberCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
@@ -788,6 +1592,7 @@ export type UserUncheckedCreateWithoutOwnedClubsInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -795,6 +1600,11 @@ export type UserUncheckedCreateWithoutOwnedClubsInput = {
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  clubMemberships?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
@@ -826,6 +1636,7 @@ export type UserUpdateWithoutOwnedClubsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -833,6 +1644,11 @@ export type UserUpdateWithoutOwnedClubsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clubMemberships?: Prisma.ClubMemberUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
@@ -848,6 +1664,7 @@ export type UserUncheckedUpdateWithoutOwnedClubsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -855,6 +1672,11 @@ export type UserUncheckedUpdateWithoutOwnedClubsInput = {
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  clubMemberships?: Prisma.ClubMemberUncheckedUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUncheckedUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
@@ -870,6 +1692,7 @@ export type UserCreateWithoutReservationsInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -878,6 +1701,11 @@ export type UserCreateWithoutReservationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestCreateNestedManyWithoutUserInput
   guestEntries?: Prisma.ReservationGuestCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
@@ -892,6 +1720,7 @@ export type UserUncheckedCreateWithoutReservationsInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -900,6 +1729,11 @@ export type UserUncheckedCreateWithoutReservationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubUncheckedCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedCreateNestedManyWithoutUserInput
   guestEntries?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
@@ -930,6 +1764,7 @@ export type UserUpdateWithoutReservationsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -938,6 +1773,11 @@ export type UserUpdateWithoutReservationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUpdateManyWithoutUserNestedInput
   guestEntries?: Prisma.ReservationGuestUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
@@ -952,6 +1792,7 @@ export type UserUncheckedUpdateWithoutReservationsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -960,6 +1801,11 @@ export type UserUncheckedUpdateWithoutReservationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUncheckedUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUncheckedUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUncheckedUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedUpdateManyWithoutUserNestedInput
   guestEntries?: Prisma.ReservationGuestUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -974,6 +1820,7 @@ export type UserCreateWithoutGuestEntriesInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -982,6 +1829,11 @@ export type UserCreateWithoutGuestEntriesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutHostInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
@@ -996,6 +1848,7 @@ export type UserUncheckedCreateWithoutGuestEntriesInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -1004,6 +1857,11 @@ export type UserUncheckedCreateWithoutGuestEntriesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubUncheckedCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutHostInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
@@ -1034,6 +1892,7 @@ export type UserUpdateWithoutGuestEntriesInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -1042,6 +1901,11 @@ export type UserUpdateWithoutGuestEntriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutHostNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
@@ -1056,6 +1920,7 @@ export type UserUncheckedUpdateWithoutGuestEntriesInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -1064,6 +1929,11 @@ export type UserUncheckedUpdateWithoutGuestEntriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUncheckedUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUncheckedUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUncheckedUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutHostNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -1078,6 +1948,7 @@ export type UserCreateWithoutPaymentsInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -1086,6 +1957,11 @@ export type UserCreateWithoutPaymentsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutUserInput
@@ -1100,6 +1976,7 @@ export type UserUncheckedCreateWithoutPaymentsInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -1108,6 +1985,11 @@ export type UserUncheckedCreateWithoutPaymentsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubUncheckedCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutUserInput
@@ -1138,6 +2020,7 @@ export type UserUpdateWithoutPaymentsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -1146,6 +2029,11 @@ export type UserUpdateWithoutPaymentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutUserNestedInput
@@ -1160,6 +2048,7 @@ export type UserUncheckedUpdateWithoutPaymentsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -1168,6 +2057,11 @@ export type UserUncheckedUpdateWithoutPaymentsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUncheckedUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUncheckedUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUncheckedUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutUserNestedInput
@@ -1182,6 +2076,7 @@ export type UserCreateWithoutOrdersInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -1190,6 +2085,11 @@ export type UserCreateWithoutOrdersInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
@@ -1204,6 +2104,7 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -1212,6 +2113,11 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubUncheckedCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
@@ -1242,6 +2148,7 @@ export type UserUpdateWithoutOrdersInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -1250,6 +2157,11 @@ export type UserUpdateWithoutOrdersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
@@ -1264,6 +2176,7 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -1272,6 +2185,11 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUncheckedUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUncheckedUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUncheckedUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
@@ -1286,6 +2204,7 @@ export type UserCreateWithoutLoyaltyTxnsInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -1294,6 +2213,11 @@ export type UserCreateWithoutLoyaltyTxnsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
@@ -1308,6 +2232,7 @@ export type UserUncheckedCreateWithoutLoyaltyTxnsInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -1316,6 +2241,11 @@ export type UserUncheckedCreateWithoutLoyaltyTxnsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubUncheckedCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
@@ -1346,6 +2276,7 @@ export type UserUpdateWithoutLoyaltyTxnsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -1354,6 +2285,11 @@ export type UserUpdateWithoutLoyaltyTxnsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
@@ -1368,6 +2304,7 @@ export type UserUncheckedUpdateWithoutLoyaltyTxnsInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -1376,6 +2313,11 @@ export type UserUncheckedUpdateWithoutLoyaltyTxnsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUncheckedUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUncheckedUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUncheckedUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
@@ -1390,6 +2332,7 @@ export type UserCreateWithoutChatMessagesInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -1398,6 +2341,11 @@ export type UserCreateWithoutChatMessagesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
@@ -1412,6 +2360,7 @@ export type UserUncheckedCreateWithoutChatMessagesInput = {
   passwordHash: string
   fullName: string
   phone?: string | null
+  profileImageUrl?: string | null
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
@@ -1420,6 +2369,11 @@ export type UserUncheckedCreateWithoutChatMessagesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   ownedClubs?: Prisma.ClubUncheckedCreateNestedManyWithoutOwnerInput
+  clubMemberships?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutUserInput
+  invitedMembers?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutInviterInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutCreatorInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedCreateNestedManyWithoutUserInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutHostInput
   guestEntries?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutUserInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
@@ -1450,6 +2404,7 @@ export type UserUpdateWithoutChatMessagesInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -1458,6 +2413,11 @@ export type UserUpdateWithoutChatMessagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
@@ -1472,6 +2432,7 @@ export type UserUncheckedUpdateWithoutChatMessagesInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   fullName?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
@@ -1480,6 +2441,11 @@ export type UserUncheckedUpdateWithoutChatMessagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ownedClubs?: Prisma.ClubUncheckedUpdateManyWithoutOwnerNestedInput
+  clubMemberships?: Prisma.ClubMemberUncheckedUpdateManyWithoutUserNestedInput
+  invitedMembers?: Prisma.ClubMemberUncheckedUpdateManyWithoutInviterNestedInput
+  clubJoinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutCreatorNestedInput
+  eventGuestInvites?: Prisma.EventInviteGuestUncheckedUpdateManyWithoutUserNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutHostNestedInput
   guestEntries?: Prisma.ReservationGuestUncheckedUpdateManyWithoutUserNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
@@ -1495,6 +2461,11 @@ export type UserUncheckedUpdateWithoutChatMessagesInput = {
 
 export type UserCountOutputType = {
   ownedClubs: number
+  clubMemberships: number
+  invitedMembers: number
+  clubJoinInvites: number
+  eventInvites: number
+  eventGuestInvites: number
   reservations: number
   guestEntries: number
   payments: number
@@ -1506,6 +2477,11 @@ export type UserCountOutputType = {
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ownedClubs?: boolean | UserCountOutputTypeCountOwnedClubsArgs
+  clubMemberships?: boolean | UserCountOutputTypeCountClubMembershipsArgs
+  invitedMembers?: boolean | UserCountOutputTypeCountInvitedMembersArgs
+  clubJoinInvites?: boolean | UserCountOutputTypeCountClubJoinInvitesArgs
+  eventInvites?: boolean | UserCountOutputTypeCountEventInvitesArgs
+  eventGuestInvites?: boolean | UserCountOutputTypeCountEventGuestInvitesArgs
   reservations?: boolean | UserCountOutputTypeCountReservationsArgs
   guestEntries?: boolean | UserCountOutputTypeCountGuestEntriesArgs
   payments?: boolean | UserCountOutputTypeCountPaymentsArgs
@@ -1530,6 +2506,41 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
  */
 export type UserCountOutputTypeCountOwnedClubsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ClubWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountClubMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClubMemberWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountInvitedMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClubMemberWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountClubJoinInvitesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClubJoinInviteWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountEventInvitesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventInviteWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountEventGuestInvitesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventInviteGuestWhereInput
 }
 
 /**
@@ -1588,6 +2599,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   passwordHash?: boolean
   fullName?: boolean
   phone?: boolean
+  profileImageUrl?: boolean
   dni?: boolean
   birthDate?: boolean
   role?: boolean
@@ -1596,6 +2608,11 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   ownedClubs?: boolean | Prisma.User$ownedClubsArgs<ExtArgs>
+  clubMemberships?: boolean | Prisma.User$clubMembershipsArgs<ExtArgs>
+  invitedMembers?: boolean | Prisma.User$invitedMembersArgs<ExtArgs>
+  clubJoinInvites?: boolean | Prisma.User$clubJoinInvitesArgs<ExtArgs>
+  eventInvites?: boolean | Prisma.User$eventInvitesArgs<ExtArgs>
+  eventGuestInvites?: boolean | Prisma.User$eventGuestInvitesArgs<ExtArgs>
   reservations?: boolean | Prisma.User$reservationsArgs<ExtArgs>
   guestEntries?: boolean | Prisma.User$guestEntriesArgs<ExtArgs>
   payments?: boolean | Prisma.User$paymentsArgs<ExtArgs>
@@ -1612,6 +2629,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   passwordHash?: boolean
   fullName?: boolean
   phone?: boolean
+  profileImageUrl?: boolean
   dni?: boolean
   birthDate?: boolean
   role?: boolean
@@ -1627,6 +2645,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   passwordHash?: boolean
   fullName?: boolean
   phone?: boolean
+  profileImageUrl?: boolean
   dni?: boolean
   birthDate?: boolean
   role?: boolean
@@ -1642,6 +2661,7 @@ export type UserSelectScalar = {
   passwordHash?: boolean
   fullName?: boolean
   phone?: boolean
+  profileImageUrl?: boolean
   dni?: boolean
   birthDate?: boolean
   role?: boolean
@@ -1651,9 +2671,14 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "fullName" | "phone" | "dni" | "birthDate" | "role" | "isVerified" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "fullName" | "phone" | "profileImageUrl" | "dni" | "birthDate" | "role" | "isVerified" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ownedClubs?: boolean | Prisma.User$ownedClubsArgs<ExtArgs>
+  clubMemberships?: boolean | Prisma.User$clubMembershipsArgs<ExtArgs>
+  invitedMembers?: boolean | Prisma.User$invitedMembersArgs<ExtArgs>
+  clubJoinInvites?: boolean | Prisma.User$clubJoinInvitesArgs<ExtArgs>
+  eventInvites?: boolean | Prisma.User$eventInvitesArgs<ExtArgs>
+  eventGuestInvites?: boolean | Prisma.User$eventGuestInvitesArgs<ExtArgs>
   reservations?: boolean | Prisma.User$reservationsArgs<ExtArgs>
   guestEntries?: boolean | Prisma.User$guestEntriesArgs<ExtArgs>
   payments?: boolean | Prisma.User$paymentsArgs<ExtArgs>
@@ -1670,6 +2695,11 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "User"
   objects: {
     ownedClubs: Prisma.$ClubPayload<ExtArgs>[]
+    clubMemberships: Prisma.$ClubMemberPayload<ExtArgs>[]
+    invitedMembers: Prisma.$ClubMemberPayload<ExtArgs>[]
+    clubJoinInvites: Prisma.$ClubJoinInvitePayload<ExtArgs>[]
+    eventInvites: Prisma.$EventInvitePayload<ExtArgs>[]
+    eventGuestInvites: Prisma.$EventInviteGuestPayload<ExtArgs>[]
     reservations: Prisma.$ReservationPayload<ExtArgs>[]
     guestEntries: Prisma.$ReservationGuestPayload<ExtArgs>[]
     payments: Prisma.$PaymentPayload<ExtArgs>[]
@@ -1684,6 +2714,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     passwordHash: string
     fullName: string
     phone: string | null
+    profileImageUrl: string | null
     dni: string | null
     birthDate: Date | null
     role: $Enums.UserRole
@@ -2086,6 +3117,11 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   ownedClubs<T extends Prisma.User$ownedClubsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ownedClubsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClubPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  clubMemberships<T extends Prisma.User$clubMembershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$clubMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClubMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  invitedMembers<T extends Prisma.User$invitedMembersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$invitedMembersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClubMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  clubJoinInvites<T extends Prisma.User$clubJoinInvitesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$clubJoinInvitesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClubJoinInvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  eventInvites<T extends Prisma.User$eventInvitesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$eventInvitesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventInvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  eventGuestInvites<T extends Prisma.User$eventGuestInvitesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$eventGuestInvitesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventInviteGuestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reservations<T extends Prisma.User$reservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   guestEntries<T extends Prisma.User$guestEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$guestEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReservationGuestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payments<T extends Prisma.User$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2127,6 +3163,7 @@ export interface UserFieldRefs {
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>
   readonly fullName: Prisma.FieldRef<"User", 'String'>
   readonly phone: Prisma.FieldRef<"User", 'String'>
+  readonly profileImageUrl: Prisma.FieldRef<"User", 'String'>
   readonly dni: Prisma.FieldRef<"User", 'String'>
   readonly birthDate: Prisma.FieldRef<"User", 'DateTime'>
   readonly role: Prisma.FieldRef<"User", 'UserRole'>
@@ -2548,6 +3585,126 @@ export type User$ownedClubsArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.ClubScalarFieldEnum | Prisma.ClubScalarFieldEnum[]
+}
+
+/**
+ * User.clubMemberships
+ */
+export type User$clubMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClubMember
+   */
+  select?: Prisma.ClubMemberSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClubMember
+   */
+  omit?: Prisma.ClubMemberOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClubMemberInclude<ExtArgs> | null
+  where?: Prisma.ClubMemberWhereInput
+  orderBy?: Prisma.ClubMemberOrderByWithRelationInput | Prisma.ClubMemberOrderByWithRelationInput[]
+  cursor?: Prisma.ClubMemberWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClubMemberScalarFieldEnum | Prisma.ClubMemberScalarFieldEnum[]
+}
+
+/**
+ * User.invitedMembers
+ */
+export type User$invitedMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClubMember
+   */
+  select?: Prisma.ClubMemberSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClubMember
+   */
+  omit?: Prisma.ClubMemberOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClubMemberInclude<ExtArgs> | null
+  where?: Prisma.ClubMemberWhereInput
+  orderBy?: Prisma.ClubMemberOrderByWithRelationInput | Prisma.ClubMemberOrderByWithRelationInput[]
+  cursor?: Prisma.ClubMemberWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClubMemberScalarFieldEnum | Prisma.ClubMemberScalarFieldEnum[]
+}
+
+/**
+ * User.clubJoinInvites
+ */
+export type User$clubJoinInvitesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClubJoinInvite
+   */
+  select?: Prisma.ClubJoinInviteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClubJoinInvite
+   */
+  omit?: Prisma.ClubJoinInviteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClubJoinInviteInclude<ExtArgs> | null
+  where?: Prisma.ClubJoinInviteWhereInput
+  orderBy?: Prisma.ClubJoinInviteOrderByWithRelationInput | Prisma.ClubJoinInviteOrderByWithRelationInput[]
+  cursor?: Prisma.ClubJoinInviteWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClubJoinInviteScalarFieldEnum | Prisma.ClubJoinInviteScalarFieldEnum[]
+}
+
+/**
+ * User.eventInvites
+ */
+export type User$eventInvitesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventInvite
+   */
+  select?: Prisma.EventInviteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EventInvite
+   */
+  omit?: Prisma.EventInviteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventInviteInclude<ExtArgs> | null
+  where?: Prisma.EventInviteWhereInput
+  orderBy?: Prisma.EventInviteOrderByWithRelationInput | Prisma.EventInviteOrderByWithRelationInput[]
+  cursor?: Prisma.EventInviteWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventInviteScalarFieldEnum | Prisma.EventInviteScalarFieldEnum[]
+}
+
+/**
+ * User.eventGuestInvites
+ */
+export type User$eventGuestInvitesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventInviteGuest
+   */
+  select?: Prisma.EventInviteGuestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EventInviteGuest
+   */
+  omit?: Prisma.EventInviteGuestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventInviteGuestInclude<ExtArgs> | null
+  where?: Prisma.EventInviteGuestWhereInput
+  orderBy?: Prisma.EventInviteGuestOrderByWithRelationInput | Prisma.EventInviteGuestOrderByWithRelationInput[]
+  cursor?: Prisma.EventInviteGuestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventInviteGuestScalarFieldEnum | Prisma.EventInviteGuestScalarFieldEnum[]
 }
 
 /**

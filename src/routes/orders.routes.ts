@@ -11,7 +11,7 @@ router.post("/:orderId/pay", authenticate, payOrder);
 router.patch(
   "/:orderId/status",
   authenticate,
-  authorize("STAFF", "CLUB_ADMIN", "SUPER_ADMIN"),
+  authorize("CLUB_ADMIN", "SUPER_ADMIN"),
   updateOrderStatus
 );
 

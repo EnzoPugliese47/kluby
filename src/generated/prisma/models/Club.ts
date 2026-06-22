@@ -43,6 +43,8 @@ export type ClubMinAggregateOutputType = {
   musicGenre: string | null
   imageUrl: string | null
   floorMapUrl: string | null
+  contactEmail: string | null
+  contactPhone: string | null
   pointValue: runtime.Decimal | null
   isActive: boolean | null
   createdAt: Date | null
@@ -59,6 +61,8 @@ export type ClubMaxAggregateOutputType = {
   musicGenre: string | null
   imageUrl: string | null
   floorMapUrl: string | null
+  contactEmail: string | null
+  contactPhone: string | null
   pointValue: runtime.Decimal | null
   isActive: boolean | null
   createdAt: Date | null
@@ -75,6 +79,8 @@ export type ClubCountAggregateOutputType = {
   musicGenre: number
   imageUrl: number
   floorMapUrl: number
+  contactEmail: number
+  contactPhone: number
   pointValue: number
   isActive: number
   createdAt: number
@@ -101,6 +107,8 @@ export type ClubMinAggregateInputType = {
   musicGenre?: true
   imageUrl?: true
   floorMapUrl?: true
+  contactEmail?: true
+  contactPhone?: true
   pointValue?: true
   isActive?: true
   createdAt?: true
@@ -117,6 +125,8 @@ export type ClubMaxAggregateInputType = {
   musicGenre?: true
   imageUrl?: true
   floorMapUrl?: true
+  contactEmail?: true
+  contactPhone?: true
   pointValue?: true
   isActive?: true
   createdAt?: true
@@ -133,6 +143,8 @@ export type ClubCountAggregateInputType = {
   musicGenre?: true
   imageUrl?: true
   floorMapUrl?: true
+  contactEmail?: true
+  contactPhone?: true
   pointValue?: true
   isActive?: true
   createdAt?: true
@@ -236,6 +248,8 @@ export type ClubGroupByOutputType = {
   musicGenre: string | null
   imageUrl: string | null
   floorMapUrl: string | null
+  contactEmail: string
+  contactPhone: string | null
   pointValue: runtime.Decimal
   isActive: boolean
   createdAt: Date
@@ -275,6 +289,8 @@ export type ClubWhereInput = {
   musicGenre?: Prisma.StringNullableFilter<"Club"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Club"> | string | null
   floorMapUrl?: Prisma.StringNullableFilter<"Club"> | string | null
+  contactEmail?: Prisma.StringFilter<"Club"> | string
+  contactPhone?: Prisma.StringNullableFilter<"Club"> | string | null
   pointValue?: Prisma.DecimalFilter<"Club"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFilter<"Club"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Club"> | Date | string
@@ -286,6 +302,9 @@ export type ClubWhereInput = {
   reservations?: Prisma.ReservationListRelationFilter
   products?: Prisma.ProductListRelationFilter
   loyaltyTxns?: Prisma.LoyaltyTransactionListRelationFilter
+  members?: Prisma.ClubMemberListRelationFilter
+  joinInvites?: Prisma.ClubJoinInviteListRelationFilter
+  eventInvites?: Prisma.EventInviteListRelationFilter
 }
 
 export type ClubOrderByWithRelationInput = {
@@ -297,6 +316,8 @@ export type ClubOrderByWithRelationInput = {
   musicGenre?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   pointValue?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -308,6 +329,9 @@ export type ClubOrderByWithRelationInput = {
   reservations?: Prisma.ReservationOrderByRelationAggregateInput
   products?: Prisma.ProductOrderByRelationAggregateInput
   loyaltyTxns?: Prisma.LoyaltyTransactionOrderByRelationAggregateInput
+  members?: Prisma.ClubMemberOrderByRelationAggregateInput
+  joinInvites?: Prisma.ClubJoinInviteOrderByRelationAggregateInput
+  eventInvites?: Prisma.EventInviteOrderByRelationAggregateInput
 }
 
 export type ClubWhereUniqueInput = Prisma.AtLeast<{
@@ -322,6 +346,8 @@ export type ClubWhereUniqueInput = Prisma.AtLeast<{
   musicGenre?: Prisma.StringNullableFilter<"Club"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Club"> | string | null
   floorMapUrl?: Prisma.StringNullableFilter<"Club"> | string | null
+  contactEmail?: Prisma.StringFilter<"Club"> | string
+  contactPhone?: Prisma.StringNullableFilter<"Club"> | string | null
   pointValue?: Prisma.DecimalFilter<"Club"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFilter<"Club"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Club"> | Date | string
@@ -333,6 +359,9 @@ export type ClubWhereUniqueInput = Prisma.AtLeast<{
   reservations?: Prisma.ReservationListRelationFilter
   products?: Prisma.ProductListRelationFilter
   loyaltyTxns?: Prisma.LoyaltyTransactionListRelationFilter
+  members?: Prisma.ClubMemberListRelationFilter
+  joinInvites?: Prisma.ClubJoinInviteListRelationFilter
+  eventInvites?: Prisma.EventInviteListRelationFilter
 }, "id">
 
 export type ClubOrderByWithAggregationInput = {
@@ -344,6 +373,8 @@ export type ClubOrderByWithAggregationInput = {
   musicGenre?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   pointValue?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -368,6 +399,8 @@ export type ClubScalarWhereWithAggregatesInput = {
   musicGenre?: Prisma.StringNullableWithAggregatesFilter<"Club"> | string | null
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Club"> | string | null
   floorMapUrl?: Prisma.StringNullableWithAggregatesFilter<"Club"> | string | null
+  contactEmail?: Prisma.StringWithAggregatesFilter<"Club"> | string
+  contactPhone?: Prisma.StringNullableWithAggregatesFilter<"Club"> | string | null
   pointValue?: Prisma.DecimalWithAggregatesFilter<"Club"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolWithAggregatesFilter<"Club"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Club"> | Date | string
@@ -384,6 +417,8 @@ export type ClubCreateInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -394,6 +429,9 @@ export type ClubCreateInput = {
   reservations?: Prisma.ReservationCreateNestedManyWithoutClubInput
   products?: Prisma.ProductCreateNestedManyWithoutClubInput
   loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutClubInput
 }
 
 export type ClubUncheckedCreateInput = {
@@ -405,6 +443,8 @@ export type ClubUncheckedCreateInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -415,6 +455,9 @@ export type ClubUncheckedCreateInput = {
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutClubInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutClubInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutClubInput
 }
 
 export type ClubUpdateInput = {
@@ -426,6 +469,8 @@ export type ClubUpdateInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -436,6 +481,9 @@ export type ClubUpdateInput = {
   reservations?: Prisma.ReservationUpdateManyWithoutClubNestedInput
   products?: Prisma.ProductUpdateManyWithoutClubNestedInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutClubNestedInput
 }
 
 export type ClubUncheckedUpdateInput = {
@@ -447,6 +495,8 @@ export type ClubUncheckedUpdateInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -457,6 +507,9 @@ export type ClubUncheckedUpdateInput = {
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutClubNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutClubNestedInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUncheckedUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutClubNestedInput
 }
 
 export type ClubCreateManyInput = {
@@ -468,6 +521,8 @@ export type ClubCreateManyInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -484,6 +539,8 @@ export type ClubUpdateManyMutationInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -499,6 +556,8 @@ export type ClubUncheckedUpdateManyInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -516,6 +575,11 @@ export type ClubOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type ClubScalarRelationFilter = {
+  is?: Prisma.ClubWhereInput
+  isNot?: Prisma.ClubWhereInput
+}
+
 export type ClubCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -525,6 +589,8 @@ export type ClubCountOrderByAggregateInput = {
   musicGenre?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  contactPhone?: Prisma.SortOrder
   pointValue?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -545,6 +611,8 @@ export type ClubMaxOrderByAggregateInput = {
   musicGenre?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  contactPhone?: Prisma.SortOrder
   pointValue?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -561,6 +629,8 @@ export type ClubMinOrderByAggregateInput = {
   musicGenre?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  contactPhone?: Prisma.SortOrder
   pointValue?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -570,11 +640,6 @@ export type ClubMinOrderByAggregateInput = {
 
 export type ClubSumOrderByAggregateInput = {
   pointValue?: Prisma.SortOrder
-}
-
-export type ClubScalarRelationFilter = {
-  is?: Prisma.ClubWhereInput
-  isNot?: Prisma.ClubWhereInput
 }
 
 export type ClubCreateNestedManyWithoutOwnerInput = {
@@ -617,6 +682,48 @@ export type ClubUncheckedUpdateManyWithoutOwnerNestedInput = {
   update?: Prisma.ClubUpdateWithWhereUniqueWithoutOwnerInput | Prisma.ClubUpdateWithWhereUniqueWithoutOwnerInput[]
   updateMany?: Prisma.ClubUpdateManyWithWhereWithoutOwnerInput | Prisma.ClubUpdateManyWithWhereWithoutOwnerInput[]
   deleteMany?: Prisma.ClubScalarWhereInput | Prisma.ClubScalarWhereInput[]
+}
+
+export type ClubCreateNestedOneWithoutMembersInput = {
+  create?: Prisma.XOR<Prisma.ClubCreateWithoutMembersInput, Prisma.ClubUncheckedCreateWithoutMembersInput>
+  connectOrCreate?: Prisma.ClubCreateOrConnectWithoutMembersInput
+  connect?: Prisma.ClubWhereUniqueInput
+}
+
+export type ClubUpdateOneRequiredWithoutMembersNestedInput = {
+  create?: Prisma.XOR<Prisma.ClubCreateWithoutMembersInput, Prisma.ClubUncheckedCreateWithoutMembersInput>
+  connectOrCreate?: Prisma.ClubCreateOrConnectWithoutMembersInput
+  upsert?: Prisma.ClubUpsertWithoutMembersInput
+  connect?: Prisma.ClubWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClubUpdateToOneWithWhereWithoutMembersInput, Prisma.ClubUpdateWithoutMembersInput>, Prisma.ClubUncheckedUpdateWithoutMembersInput>
+}
+
+export type ClubCreateNestedOneWithoutJoinInvitesInput = {
+  create?: Prisma.XOR<Prisma.ClubCreateWithoutJoinInvitesInput, Prisma.ClubUncheckedCreateWithoutJoinInvitesInput>
+  connectOrCreate?: Prisma.ClubCreateOrConnectWithoutJoinInvitesInput
+  connect?: Prisma.ClubWhereUniqueInput
+}
+
+export type ClubUpdateOneRequiredWithoutJoinInvitesNestedInput = {
+  create?: Prisma.XOR<Prisma.ClubCreateWithoutJoinInvitesInput, Prisma.ClubUncheckedCreateWithoutJoinInvitesInput>
+  connectOrCreate?: Prisma.ClubCreateOrConnectWithoutJoinInvitesInput
+  upsert?: Prisma.ClubUpsertWithoutJoinInvitesInput
+  connect?: Prisma.ClubWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClubUpdateToOneWithWhereWithoutJoinInvitesInput, Prisma.ClubUpdateWithoutJoinInvitesInput>, Prisma.ClubUncheckedUpdateWithoutJoinInvitesInput>
+}
+
+export type ClubCreateNestedOneWithoutEventInvitesInput = {
+  create?: Prisma.XOR<Prisma.ClubCreateWithoutEventInvitesInput, Prisma.ClubUncheckedCreateWithoutEventInvitesInput>
+  connectOrCreate?: Prisma.ClubCreateOrConnectWithoutEventInvitesInput
+  connect?: Prisma.ClubWhereUniqueInput
+}
+
+export type ClubUpdateOneRequiredWithoutEventInvitesNestedInput = {
+  create?: Prisma.XOR<Prisma.ClubCreateWithoutEventInvitesInput, Prisma.ClubUncheckedCreateWithoutEventInvitesInput>
+  connectOrCreate?: Prisma.ClubCreateOrConnectWithoutEventInvitesInput
+  upsert?: Prisma.ClubUpsertWithoutEventInvitesInput
+  connect?: Prisma.ClubWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClubUpdateToOneWithWhereWithoutEventInvitesInput, Prisma.ClubUpdateWithoutEventInvitesInput>, Prisma.ClubUncheckedUpdateWithoutEventInvitesInput>
 }
 
 export type DecimalFieldUpdateOperationsInput = {
@@ -706,6 +813,8 @@ export type ClubCreateWithoutOwnerInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -715,6 +824,9 @@ export type ClubCreateWithoutOwnerInput = {
   reservations?: Prisma.ReservationCreateNestedManyWithoutClubInput
   products?: Prisma.ProductCreateNestedManyWithoutClubInput
   loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutClubInput
 }
 
 export type ClubUncheckedCreateWithoutOwnerInput = {
@@ -726,6 +838,8 @@ export type ClubUncheckedCreateWithoutOwnerInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -735,6 +849,9 @@ export type ClubUncheckedCreateWithoutOwnerInput = {
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutClubInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutClubInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutClubInput
 }
 
 export type ClubCreateOrConnectWithoutOwnerInput = {
@@ -775,11 +892,361 @@ export type ClubScalarWhereInput = {
   musicGenre?: Prisma.StringNullableFilter<"Club"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Club"> | string | null
   floorMapUrl?: Prisma.StringNullableFilter<"Club"> | string | null
+  contactEmail?: Prisma.StringFilter<"Club"> | string
+  contactPhone?: Prisma.StringNullableFilter<"Club"> | string | null
   pointValue?: Prisma.DecimalFilter<"Club"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFilter<"Club"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Club"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Club"> | Date | string
   ownerId?: Prisma.StringFilter<"Club"> | string
+}
+
+export type ClubCreateWithoutMembersInput = {
+  id?: string
+  name: string
+  description?: string | null
+  address: string
+  city: string
+  musicGenre?: string | null
+  imageUrl?: string | null
+  floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
+  pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  owner: Prisma.UserCreateNestedOneWithoutOwnedClubsInput
+  tables?: Prisma.ClubTableCreateNestedManyWithoutClubInput
+  events?: Prisma.EventNightCreateNestedManyWithoutClubInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutClubInput
+  products?: Prisma.ProductCreateNestedManyWithoutClubInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutClubInput
+}
+
+export type ClubUncheckedCreateWithoutMembersInput = {
+  id?: string
+  name: string
+  description?: string | null
+  address: string
+  city: string
+  musicGenre?: string | null
+  imageUrl?: string | null
+  floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
+  pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownerId: string
+  tables?: Prisma.ClubTableUncheckedCreateNestedManyWithoutClubInput
+  events?: Prisma.EventNightUncheckedCreateNestedManyWithoutClubInput
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutClubInput
+  products?: Prisma.ProductUncheckedCreateNestedManyWithoutClubInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutClubInput
+}
+
+export type ClubCreateOrConnectWithoutMembersInput = {
+  where: Prisma.ClubWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClubCreateWithoutMembersInput, Prisma.ClubUncheckedCreateWithoutMembersInput>
+}
+
+export type ClubUpsertWithoutMembersInput = {
+  update: Prisma.XOR<Prisma.ClubUpdateWithoutMembersInput, Prisma.ClubUncheckedUpdateWithoutMembersInput>
+  create: Prisma.XOR<Prisma.ClubCreateWithoutMembersInput, Prisma.ClubUncheckedCreateWithoutMembersInput>
+  where?: Prisma.ClubWhereInput
+}
+
+export type ClubUpdateToOneWithWhereWithoutMembersInput = {
+  where?: Prisma.ClubWhereInput
+  data: Prisma.XOR<Prisma.ClubUpdateWithoutMembersInput, Prisma.ClubUncheckedUpdateWithoutMembersInput>
+}
+
+export type ClubUpdateWithoutMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.UserUpdateOneRequiredWithoutOwnedClubsNestedInput
+  tables?: Prisma.ClubTableUpdateManyWithoutClubNestedInput
+  events?: Prisma.EventNightUpdateManyWithoutClubNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutClubNestedInput
+  products?: Prisma.ProductUpdateManyWithoutClubNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutClubNestedInput
+}
+
+export type ClubUncheckedUpdateWithoutMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  tables?: Prisma.ClubTableUncheckedUpdateManyWithoutClubNestedInput
+  events?: Prisma.EventNightUncheckedUpdateManyWithoutClubNestedInput
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutClubNestedInput
+  products?: Prisma.ProductUncheckedUpdateManyWithoutClubNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutClubNestedInput
+}
+
+export type ClubCreateWithoutJoinInvitesInput = {
+  id?: string
+  name: string
+  description?: string | null
+  address: string
+  city: string
+  musicGenre?: string | null
+  imageUrl?: string | null
+  floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
+  pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  owner: Prisma.UserCreateNestedOneWithoutOwnedClubsInput
+  tables?: Prisma.ClubTableCreateNestedManyWithoutClubInput
+  events?: Prisma.EventNightCreateNestedManyWithoutClubInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutClubInput
+  products?: Prisma.ProductCreateNestedManyWithoutClubInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutClubInput
+}
+
+export type ClubUncheckedCreateWithoutJoinInvitesInput = {
+  id?: string
+  name: string
+  description?: string | null
+  address: string
+  city: string
+  musicGenre?: string | null
+  imageUrl?: string | null
+  floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
+  pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownerId: string
+  tables?: Prisma.ClubTableUncheckedCreateNestedManyWithoutClubInput
+  events?: Prisma.EventNightUncheckedCreateNestedManyWithoutClubInput
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutClubInput
+  products?: Prisma.ProductUncheckedCreateNestedManyWithoutClubInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutClubInput
+}
+
+export type ClubCreateOrConnectWithoutJoinInvitesInput = {
+  where: Prisma.ClubWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClubCreateWithoutJoinInvitesInput, Prisma.ClubUncheckedCreateWithoutJoinInvitesInput>
+}
+
+export type ClubUpsertWithoutJoinInvitesInput = {
+  update: Prisma.XOR<Prisma.ClubUpdateWithoutJoinInvitesInput, Prisma.ClubUncheckedUpdateWithoutJoinInvitesInput>
+  create: Prisma.XOR<Prisma.ClubCreateWithoutJoinInvitesInput, Prisma.ClubUncheckedCreateWithoutJoinInvitesInput>
+  where?: Prisma.ClubWhereInput
+}
+
+export type ClubUpdateToOneWithWhereWithoutJoinInvitesInput = {
+  where?: Prisma.ClubWhereInput
+  data: Prisma.XOR<Prisma.ClubUpdateWithoutJoinInvitesInput, Prisma.ClubUncheckedUpdateWithoutJoinInvitesInput>
+}
+
+export type ClubUpdateWithoutJoinInvitesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.UserUpdateOneRequiredWithoutOwnedClubsNestedInput
+  tables?: Prisma.ClubTableUpdateManyWithoutClubNestedInput
+  events?: Prisma.EventNightUpdateManyWithoutClubNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutClubNestedInput
+  products?: Prisma.ProductUpdateManyWithoutClubNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutClubNestedInput
+}
+
+export type ClubUncheckedUpdateWithoutJoinInvitesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  tables?: Prisma.ClubTableUncheckedUpdateManyWithoutClubNestedInput
+  events?: Prisma.EventNightUncheckedUpdateManyWithoutClubNestedInput
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutClubNestedInput
+  products?: Prisma.ProductUncheckedUpdateManyWithoutClubNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUncheckedUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutClubNestedInput
+}
+
+export type ClubCreateWithoutEventInvitesInput = {
+  id?: string
+  name: string
+  description?: string | null
+  address: string
+  city: string
+  musicGenre?: string | null
+  imageUrl?: string | null
+  floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
+  pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  owner: Prisma.UserCreateNestedOneWithoutOwnedClubsInput
+  tables?: Prisma.ClubTableCreateNestedManyWithoutClubInput
+  events?: Prisma.EventNightCreateNestedManyWithoutClubInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutClubInput
+  products?: Prisma.ProductCreateNestedManyWithoutClubInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutClubInput
+}
+
+export type ClubUncheckedCreateWithoutEventInvitesInput = {
+  id?: string
+  name: string
+  description?: string | null
+  address: string
+  city: string
+  musicGenre?: string | null
+  imageUrl?: string | null
+  floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
+  pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  isActive?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ownerId: string
+  tables?: Prisma.ClubTableUncheckedCreateNestedManyWithoutClubInput
+  events?: Prisma.EventNightUncheckedCreateNestedManyWithoutClubInput
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutClubInput
+  products?: Prisma.ProductUncheckedCreateNestedManyWithoutClubInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutClubInput
+}
+
+export type ClubCreateOrConnectWithoutEventInvitesInput = {
+  where: Prisma.ClubWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClubCreateWithoutEventInvitesInput, Prisma.ClubUncheckedCreateWithoutEventInvitesInput>
+}
+
+export type ClubUpsertWithoutEventInvitesInput = {
+  update: Prisma.XOR<Prisma.ClubUpdateWithoutEventInvitesInput, Prisma.ClubUncheckedUpdateWithoutEventInvitesInput>
+  create: Prisma.XOR<Prisma.ClubCreateWithoutEventInvitesInput, Prisma.ClubUncheckedCreateWithoutEventInvitesInput>
+  where?: Prisma.ClubWhereInput
+}
+
+export type ClubUpdateToOneWithWhereWithoutEventInvitesInput = {
+  where?: Prisma.ClubWhereInput
+  data: Prisma.XOR<Prisma.ClubUpdateWithoutEventInvitesInput, Prisma.ClubUncheckedUpdateWithoutEventInvitesInput>
+}
+
+export type ClubUpdateWithoutEventInvitesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.UserUpdateOneRequiredWithoutOwnedClubsNestedInput
+  tables?: Prisma.ClubTableUpdateManyWithoutClubNestedInput
+  events?: Prisma.EventNightUpdateManyWithoutClubNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutClubNestedInput
+  products?: Prisma.ProductUpdateManyWithoutClubNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutClubNestedInput
+}
+
+export type ClubUncheckedUpdateWithoutEventInvitesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  tables?: Prisma.ClubTableUncheckedUpdateManyWithoutClubNestedInput
+  events?: Prisma.EventNightUncheckedUpdateManyWithoutClubNestedInput
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutClubNestedInput
+  products?: Prisma.ProductUncheckedUpdateManyWithoutClubNestedInput
+  loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUncheckedUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutClubNestedInput
 }
 
 export type ClubCreateWithoutTablesInput = {
@@ -791,6 +1258,8 @@ export type ClubCreateWithoutTablesInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -800,6 +1269,9 @@ export type ClubCreateWithoutTablesInput = {
   reservations?: Prisma.ReservationCreateNestedManyWithoutClubInput
   products?: Prisma.ProductCreateNestedManyWithoutClubInput
   loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutClubInput
 }
 
 export type ClubUncheckedCreateWithoutTablesInput = {
@@ -811,6 +1283,8 @@ export type ClubUncheckedCreateWithoutTablesInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -820,6 +1294,9 @@ export type ClubUncheckedCreateWithoutTablesInput = {
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutClubInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutClubInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutClubInput
 }
 
 export type ClubCreateOrConnectWithoutTablesInput = {
@@ -847,6 +1324,8 @@ export type ClubUpdateWithoutTablesInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -856,6 +1335,9 @@ export type ClubUpdateWithoutTablesInput = {
   reservations?: Prisma.ReservationUpdateManyWithoutClubNestedInput
   products?: Prisma.ProductUpdateManyWithoutClubNestedInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutClubNestedInput
 }
 
 export type ClubUncheckedUpdateWithoutTablesInput = {
@@ -867,6 +1349,8 @@ export type ClubUncheckedUpdateWithoutTablesInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -876,6 +1360,9 @@ export type ClubUncheckedUpdateWithoutTablesInput = {
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutClubNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutClubNestedInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUncheckedUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutClubNestedInput
 }
 
 export type ClubCreateWithoutEventsInput = {
@@ -887,6 +1374,8 @@ export type ClubCreateWithoutEventsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -896,6 +1385,9 @@ export type ClubCreateWithoutEventsInput = {
   reservations?: Prisma.ReservationCreateNestedManyWithoutClubInput
   products?: Prisma.ProductCreateNestedManyWithoutClubInput
   loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutClubInput
 }
 
 export type ClubUncheckedCreateWithoutEventsInput = {
@@ -907,6 +1399,8 @@ export type ClubUncheckedCreateWithoutEventsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -916,6 +1410,9 @@ export type ClubUncheckedCreateWithoutEventsInput = {
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutClubInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutClubInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutClubInput
 }
 
 export type ClubCreateOrConnectWithoutEventsInput = {
@@ -943,6 +1440,8 @@ export type ClubUpdateWithoutEventsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -952,6 +1451,9 @@ export type ClubUpdateWithoutEventsInput = {
   reservations?: Prisma.ReservationUpdateManyWithoutClubNestedInput
   products?: Prisma.ProductUpdateManyWithoutClubNestedInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutClubNestedInput
 }
 
 export type ClubUncheckedUpdateWithoutEventsInput = {
@@ -963,6 +1465,8 @@ export type ClubUncheckedUpdateWithoutEventsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -972,6 +1476,9 @@ export type ClubUncheckedUpdateWithoutEventsInput = {
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutClubNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutClubNestedInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUncheckedUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutClubNestedInput
 }
 
 export type ClubCreateWithoutReservationsInput = {
@@ -983,6 +1490,8 @@ export type ClubCreateWithoutReservationsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -992,6 +1501,9 @@ export type ClubCreateWithoutReservationsInput = {
   events?: Prisma.EventNightCreateNestedManyWithoutClubInput
   products?: Prisma.ProductCreateNestedManyWithoutClubInput
   loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutClubInput
 }
 
 export type ClubUncheckedCreateWithoutReservationsInput = {
@@ -1003,6 +1515,8 @@ export type ClubUncheckedCreateWithoutReservationsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -1012,6 +1526,9 @@ export type ClubUncheckedCreateWithoutReservationsInput = {
   events?: Prisma.EventNightUncheckedCreateNestedManyWithoutClubInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutClubInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutClubInput
 }
 
 export type ClubCreateOrConnectWithoutReservationsInput = {
@@ -1039,6 +1556,8 @@ export type ClubUpdateWithoutReservationsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1048,6 +1567,9 @@ export type ClubUpdateWithoutReservationsInput = {
   events?: Prisma.EventNightUpdateManyWithoutClubNestedInput
   products?: Prisma.ProductUpdateManyWithoutClubNestedInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutClubNestedInput
 }
 
 export type ClubUncheckedUpdateWithoutReservationsInput = {
@@ -1059,6 +1581,8 @@ export type ClubUncheckedUpdateWithoutReservationsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1068,6 +1592,9 @@ export type ClubUncheckedUpdateWithoutReservationsInput = {
   events?: Prisma.EventNightUncheckedUpdateManyWithoutClubNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutClubNestedInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUncheckedUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutClubNestedInput
 }
 
 export type ClubCreateWithoutProductsInput = {
@@ -1079,6 +1606,8 @@ export type ClubCreateWithoutProductsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -1088,6 +1617,9 @@ export type ClubCreateWithoutProductsInput = {
   events?: Prisma.EventNightCreateNestedManyWithoutClubInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutClubInput
   loyaltyTxns?: Prisma.LoyaltyTransactionCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutClubInput
 }
 
 export type ClubUncheckedCreateWithoutProductsInput = {
@@ -1099,6 +1631,8 @@ export type ClubUncheckedCreateWithoutProductsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -1108,6 +1642,9 @@ export type ClubUncheckedCreateWithoutProductsInput = {
   events?: Prisma.EventNightUncheckedCreateNestedManyWithoutClubInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutClubInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutClubInput
 }
 
 export type ClubCreateOrConnectWithoutProductsInput = {
@@ -1135,6 +1672,8 @@ export type ClubUpdateWithoutProductsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1144,6 +1683,9 @@ export type ClubUpdateWithoutProductsInput = {
   events?: Prisma.EventNightUpdateManyWithoutClubNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutClubNestedInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutClubNestedInput
 }
 
 export type ClubUncheckedUpdateWithoutProductsInput = {
@@ -1155,6 +1697,8 @@ export type ClubUncheckedUpdateWithoutProductsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1164,6 +1708,9 @@ export type ClubUncheckedUpdateWithoutProductsInput = {
   events?: Prisma.EventNightUncheckedUpdateManyWithoutClubNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutClubNestedInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUncheckedUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutClubNestedInput
 }
 
 export type ClubCreateWithoutLoyaltyTxnsInput = {
@@ -1175,6 +1722,8 @@ export type ClubCreateWithoutLoyaltyTxnsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -1184,6 +1733,9 @@ export type ClubCreateWithoutLoyaltyTxnsInput = {
   events?: Prisma.EventNightCreateNestedManyWithoutClubInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutClubInput
   products?: Prisma.ProductCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteCreateNestedManyWithoutClubInput
 }
 
 export type ClubUncheckedCreateWithoutLoyaltyTxnsInput = {
@@ -1195,6 +1747,8 @@ export type ClubUncheckedCreateWithoutLoyaltyTxnsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -1204,6 +1758,9 @@ export type ClubUncheckedCreateWithoutLoyaltyTxnsInput = {
   events?: Prisma.EventNightUncheckedCreateNestedManyWithoutClubInput
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutClubInput
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutClubInput
+  members?: Prisma.ClubMemberUncheckedCreateNestedManyWithoutClubInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedCreateNestedManyWithoutClubInput
+  eventInvites?: Prisma.EventInviteUncheckedCreateNestedManyWithoutClubInput
 }
 
 export type ClubCreateOrConnectWithoutLoyaltyTxnsInput = {
@@ -1231,6 +1788,8 @@ export type ClubUpdateWithoutLoyaltyTxnsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1240,6 +1799,9 @@ export type ClubUpdateWithoutLoyaltyTxnsInput = {
   events?: Prisma.EventNightUpdateManyWithoutClubNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutClubNestedInput
   products?: Prisma.ProductUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutClubNestedInput
 }
 
 export type ClubUncheckedUpdateWithoutLoyaltyTxnsInput = {
@@ -1251,6 +1813,8 @@ export type ClubUncheckedUpdateWithoutLoyaltyTxnsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1260,6 +1824,9 @@ export type ClubUncheckedUpdateWithoutLoyaltyTxnsInput = {
   events?: Prisma.EventNightUncheckedUpdateManyWithoutClubNestedInput
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutClubNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUncheckedUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutClubNestedInput
 }
 
 export type ClubCreateManyOwnerInput = {
@@ -1271,6 +1838,8 @@ export type ClubCreateManyOwnerInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  contactEmail: string
+  contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: boolean
   createdAt?: Date | string
@@ -1286,6 +1855,8 @@ export type ClubUpdateWithoutOwnerInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1295,6 +1866,9 @@ export type ClubUpdateWithoutOwnerInput = {
   reservations?: Prisma.ReservationUpdateManyWithoutClubNestedInput
   products?: Prisma.ProductUpdateManyWithoutClubNestedInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUpdateManyWithoutClubNestedInput
 }
 
 export type ClubUncheckedUpdateWithoutOwnerInput = {
@@ -1306,6 +1880,8 @@ export type ClubUncheckedUpdateWithoutOwnerInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1315,6 +1891,9 @@ export type ClubUncheckedUpdateWithoutOwnerInput = {
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutClubNestedInput
   products?: Prisma.ProductUncheckedUpdateManyWithoutClubNestedInput
   loyaltyTxns?: Prisma.LoyaltyTransactionUncheckedUpdateManyWithoutClubNestedInput
+  members?: Prisma.ClubMemberUncheckedUpdateManyWithoutClubNestedInput
+  joinInvites?: Prisma.ClubJoinInviteUncheckedUpdateManyWithoutClubNestedInput
+  eventInvites?: Prisma.EventInviteUncheckedUpdateManyWithoutClubNestedInput
 }
 
 export type ClubUncheckedUpdateManyWithoutOwnerInput = {
@@ -1326,6 +1905,8 @@ export type ClubUncheckedUpdateManyWithoutOwnerInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1343,6 +1924,9 @@ export type ClubCountOutputType = {
   reservations: number
   products: number
   loyaltyTxns: number
+  members: number
+  joinInvites: number
+  eventInvites: number
 }
 
 export type ClubCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1351,6 +1935,9 @@ export type ClubCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   reservations?: boolean | ClubCountOutputTypeCountReservationsArgs
   products?: boolean | ClubCountOutputTypeCountProductsArgs
   loyaltyTxns?: boolean | ClubCountOutputTypeCountLoyaltyTxnsArgs
+  members?: boolean | ClubCountOutputTypeCountMembersArgs
+  joinInvites?: boolean | ClubCountOutputTypeCountJoinInvitesArgs
+  eventInvites?: boolean | ClubCountOutputTypeCountEventInvitesArgs
 }
 
 /**
@@ -1398,6 +1985,27 @@ export type ClubCountOutputTypeCountLoyaltyTxnsArgs<ExtArgs extends runtime.Type
   where?: Prisma.LoyaltyTransactionWhereInput
 }
 
+/**
+ * ClubCountOutputType without action
+ */
+export type ClubCountOutputTypeCountMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClubMemberWhereInput
+}
+
+/**
+ * ClubCountOutputType without action
+ */
+export type ClubCountOutputTypeCountJoinInvitesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClubJoinInviteWhereInput
+}
+
+/**
+ * ClubCountOutputType without action
+ */
+export type ClubCountOutputTypeCountEventInvitesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EventInviteWhereInput
+}
+
 
 export type ClubSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1408,6 +2016,8 @@ export type ClubSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   musicGenre?: boolean
   imageUrl?: boolean
   floorMapUrl?: boolean
+  contactEmail?: boolean
+  contactPhone?: boolean
   pointValue?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -1419,6 +2029,9 @@ export type ClubSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   reservations?: boolean | Prisma.Club$reservationsArgs<ExtArgs>
   products?: boolean | Prisma.Club$productsArgs<ExtArgs>
   loyaltyTxns?: boolean | Prisma.Club$loyaltyTxnsArgs<ExtArgs>
+  members?: boolean | Prisma.Club$membersArgs<ExtArgs>
+  joinInvites?: boolean | Prisma.Club$joinInvitesArgs<ExtArgs>
+  eventInvites?: boolean | Prisma.Club$eventInvitesArgs<ExtArgs>
   _count?: boolean | Prisma.ClubCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["club"]>
 
@@ -1431,6 +2044,8 @@ export type ClubSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   musicGenre?: boolean
   imageUrl?: boolean
   floorMapUrl?: boolean
+  contactEmail?: boolean
+  contactPhone?: boolean
   pointValue?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -1448,6 +2063,8 @@ export type ClubSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   musicGenre?: boolean
   imageUrl?: boolean
   floorMapUrl?: boolean
+  contactEmail?: boolean
+  contactPhone?: boolean
   pointValue?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -1465,6 +2082,8 @@ export type ClubSelectScalar = {
   musicGenre?: boolean
   imageUrl?: boolean
   floorMapUrl?: boolean
+  contactEmail?: boolean
+  contactPhone?: boolean
   pointValue?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -1472,7 +2091,7 @@ export type ClubSelectScalar = {
   ownerId?: boolean
 }
 
-export type ClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "address" | "city" | "musicGenre" | "imageUrl" | "floorMapUrl" | "pointValue" | "isActive" | "createdAt" | "updatedAt" | "ownerId", ExtArgs["result"]["club"]>
+export type ClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "address" | "city" | "musicGenre" | "imageUrl" | "floorMapUrl" | "contactEmail" | "contactPhone" | "pointValue" | "isActive" | "createdAt" | "updatedAt" | "ownerId", ExtArgs["result"]["club"]>
 export type ClubInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   tables?: boolean | Prisma.Club$tablesArgs<ExtArgs>
@@ -1480,6 +2099,9 @@ export type ClubInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   reservations?: boolean | Prisma.Club$reservationsArgs<ExtArgs>
   products?: boolean | Prisma.Club$productsArgs<ExtArgs>
   loyaltyTxns?: boolean | Prisma.Club$loyaltyTxnsArgs<ExtArgs>
+  members?: boolean | Prisma.Club$membersArgs<ExtArgs>
+  joinInvites?: boolean | Prisma.Club$joinInvitesArgs<ExtArgs>
+  eventInvites?: boolean | Prisma.Club$eventInvitesArgs<ExtArgs>
   _count?: boolean | Prisma.ClubCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ClubIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1498,6 +2120,9 @@ export type $ClubPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     reservations: Prisma.$ReservationPayload<ExtArgs>[]
     products: Prisma.$ProductPayload<ExtArgs>[]
     loyaltyTxns: Prisma.$LoyaltyTransactionPayload<ExtArgs>[]
+    members: Prisma.$ClubMemberPayload<ExtArgs>[]
+    joinInvites: Prisma.$ClubJoinInvitePayload<ExtArgs>[]
+    eventInvites: Prisma.$EventInvitePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1508,6 +2133,8 @@ export type $ClubPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     musicGenre: string | null
     imageUrl: string | null
     floorMapUrl: string | null
+    contactEmail: string
+    contactPhone: string | null
     pointValue: runtime.Decimal
     isActive: boolean
     createdAt: Date
@@ -1913,6 +2540,9 @@ export interface Prisma__ClubClient<T, Null = never, ExtArgs extends runtime.Typ
   reservations<T extends Prisma.Club$reservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Club$reservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   products<T extends Prisma.Club$productsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Club$productsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   loyaltyTxns<T extends Prisma.Club$loyaltyTxnsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Club$loyaltyTxnsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LoyaltyTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  members<T extends Prisma.Club$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Club$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClubMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  joinInvites<T extends Prisma.Club$joinInvitesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Club$joinInvitesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClubJoinInvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  eventInvites<T extends Prisma.Club$eventInvitesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Club$eventInvitesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EventInvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1950,6 +2580,8 @@ export interface ClubFieldRefs {
   readonly musicGenre: Prisma.FieldRef<"Club", 'String'>
   readonly imageUrl: Prisma.FieldRef<"Club", 'String'>
   readonly floorMapUrl: Prisma.FieldRef<"Club", 'String'>
+  readonly contactEmail: Prisma.FieldRef<"Club", 'String'>
+  readonly contactPhone: Prisma.FieldRef<"Club", 'String'>
   readonly pointValue: Prisma.FieldRef<"Club", 'Decimal'>
   readonly isActive: Prisma.FieldRef<"Club", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Club", 'DateTime'>
@@ -2473,6 +3105,78 @@ export type Club$loyaltyTxnsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.LoyaltyTransactionScalarFieldEnum | Prisma.LoyaltyTransactionScalarFieldEnum[]
+}
+
+/**
+ * Club.members
+ */
+export type Club$membersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClubMember
+   */
+  select?: Prisma.ClubMemberSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClubMember
+   */
+  omit?: Prisma.ClubMemberOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClubMemberInclude<ExtArgs> | null
+  where?: Prisma.ClubMemberWhereInput
+  orderBy?: Prisma.ClubMemberOrderByWithRelationInput | Prisma.ClubMemberOrderByWithRelationInput[]
+  cursor?: Prisma.ClubMemberWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClubMemberScalarFieldEnum | Prisma.ClubMemberScalarFieldEnum[]
+}
+
+/**
+ * Club.joinInvites
+ */
+export type Club$joinInvitesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClubJoinInvite
+   */
+  select?: Prisma.ClubJoinInviteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClubJoinInvite
+   */
+  omit?: Prisma.ClubJoinInviteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClubJoinInviteInclude<ExtArgs> | null
+  where?: Prisma.ClubJoinInviteWhereInput
+  orderBy?: Prisma.ClubJoinInviteOrderByWithRelationInput | Prisma.ClubJoinInviteOrderByWithRelationInput[]
+  cursor?: Prisma.ClubJoinInviteWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClubJoinInviteScalarFieldEnum | Prisma.ClubJoinInviteScalarFieldEnum[]
+}
+
+/**
+ * Club.eventInvites
+ */
+export type Club$eventInvitesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EventInvite
+   */
+  select?: Prisma.EventInviteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EventInvite
+   */
+  omit?: Prisma.EventInviteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EventInviteInclude<ExtArgs> | null
+  where?: Prisma.EventInviteWhereInput
+  orderBy?: Prisma.EventInviteOrderByWithRelationInput | Prisma.EventInviteOrderByWithRelationInput[]
+  cursor?: Prisma.EventInviteWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EventInviteScalarFieldEnum | Prisma.EventInviteScalarFieldEnum[]
 }
 
 /**

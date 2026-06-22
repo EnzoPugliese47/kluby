@@ -25,7 +25,8 @@ datasource db {
 enum UserRole {
   CLIENT // Usuario final (B2C)
   CLUB_ADMIN // Administrador de boliche (B2B)
-  STAFF // Personal del local (puerta / barra)
+  STAFF // Publi / promotor del boliche (invitaciones a eventos)
+  PUERTA // Control de acceso: escaneo de QR en la entrada
   SUPER_ADMIN // Administrador de la plataforma Kluby
 }
 
@@ -96,6 +97,12 @@ enum LoyaltyTxType {
   REDEEMED // Canje por descuento
 }
 
+/// Rol al que apunta un codigo de ingreso al boliche.
+enum ClubPersonnelInviteRole {
+  STAFF // Publi / promotor
+  PUERTA // Personal de puerta
+}
+
 // ---------------------------------------------------------------------------
 // MODELOS
 // ---------------------------------------------------------------------------
@@ -104,9 +111,10 @@ model User {
   id           String    @id @default(uuid())
   email        String    @unique
   passwordHash String
-  fullName     String
-  phone        String?
-  dni          String?   @unique // RN02: unicidad de identidad
+  fullName         String
+  phone            String?
+  profileImageUrl  String? // Foto de perfil (/api/assets/:id)
+  dni              String?   @unique // RN02: unicidad de identidad
   birthDate    DateTime? // RN01: validacion de mayoria de edad
   role         UserRole  @default(CLIENT)
   isVerified   Boolean   @default(false) // Validacion de DNI (+18)
@@ -114,16 +122,99 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  ownedClubs    Club[]               @relation("ClubOwner")
-  reservations  Reservation[]        @relation("ReservationHost")
-  guestEntries  ReservationGuest[]
-  payments      Payment[]
-  orders        Order[]
-  loyaltyTxns   LoyaltyTransaction[]
-  chatMessages  ChatMessage[]
-  resetTokens   PasswordResetToken[]
+  ownedClubs       Club[]               @relation("ClubOwner")
+  clubMemberships  ClubMember[]
+  invitedMembers   ClubMember[]         @relation("ClubMemberInviter")
+  clubJoinInvites  ClubJoinInvite[]     @relation("ClubJoinInviteCreator")
+  eventInvites     EventInvite[]        @relation("EventInviteCreator")
+  eventGuestInvites EventInviteGuest[]
+  reservations     Reservation[]        @relation("ReservationHost")
+  guestEntries     ReservationGuest[]
+  payments         Payment[]
+  orders           Order[]
+  loyaltyTxns      LoyaltyTransaction[]
+  chatMessages     ChatMessage[]
+  resetTokens      PasswordResetToken[]
 
   @@index([role])
+}
+
+/// Vincula publis (STAFF) y personal de puerta (PUERTA) a un boliche concreto.
+model ClubMember {
+  id        String   @id @default(uuid())
+  userId    String
+  clubId    String
+  isActive  Boolean  @default(true)
+  invitedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  club    Club  @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  inviter User? @relation("ClubMemberInviter", fields: [invitedBy], references: [id])
+
+  @@unique([userId, clubId])
+  @@index([clubId])
+  @@index([userId])
+}
+
+/// Codigo de un dueño para sumar publis o personal de puerta a su boliche.
+model ClubJoinInvite {
+  id        String                  @id @default(uuid())
+  clubId    String
+  code      String                  @unique
+  role      ClubPersonnelInviteRole
+  createdBy String
+  expiresAt DateTime
+  maxUses   Int                     @default(1)
+  useCount  Int                     @default(0)
+  isActive  Boolean                 @default(true)
+  createdAt DateTime                @default(now())
+
+  club    Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  creator User @relation("ClubJoinInviteCreator", fields: [createdBy], references: [id])
+
+  @@index([clubId])
+  @@index([code])
+}
+
+/// Codigo de un publi para invitar clientes a un evento.
+model EventInvite {
+  id        String    @id @default(uuid())
+  eventId   String
+  clubId    String
+  code      String    @unique
+  createdBy String
+  expiresAt DateTime?
+  maxUses   Int       @default(50)
+  useCount  Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  event   EventNight         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  club    Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  creator User               @relation("EventInviteCreator", fields: [createdBy], references: [id])
+  guests  EventInviteGuest[]
+
+  @@index([eventId])
+  @@index([clubId])
+  @@index([code])
+}
+
+/// Cliente que canjeo una invitacion a evento de un publi.
+model EventInviteGuest {
+  id            String   @id @default(uuid())
+  eventInviteId String
+  eventId       String
+  userId        String
+  redeemedAt    DateTime @default(now())
+
+  invite EventInvite @relation(fields: [eventInviteId], references: [id], onDelete: Cascade)
+  event  EventNight  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([userId])
 }
 
 /// Token para recuperacion de contrasena. Se guarda el HASH del token
@@ -148,9 +239,11 @@ model Club {
   address     String
   city        String
   musicGenre  String? // Para filtrado por genero musical
-  imageUrl    String?
-  floorMapUrl String? // Plano/mapa de planta cargado por el admin
-  pointValue  Decimal  @default(1) @db.Decimal(12, 2) // Valor de canje de 1 punto (RN18, min $1)
+  imageUrl       String?
+  floorMapUrl    String? // Plano/mapa de planta cargado por el admin
+  contactEmail   String  // Email de contacto del boliche (tarjeta visible al cliente)
+  contactPhone   String? // Telefono de contacto (opcional)
+  pointValue     Decimal  @default(1) @db.Decimal(12, 2) // Valor de canje de 1 punto (RN18, min $1)
   isActive    Boolean  @default(true) // Baja logica
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -163,6 +256,9 @@ model Club {
   reservations Reservation[]
   products     Product[]
   loyaltyTxns  LoyaltyTransaction[]
+  members      ClubMember[]
+  joinInvites  ClubJoinInvite[]
+  eventInvites EventInvite[]
 
   @@index([name])
   @@index([musicGenre])
@@ -211,6 +307,8 @@ model EventNight {
   tables       ClubTable[]
   reservations Reservation[]
   products     Product[]
+  invites      EventInvite[]
+  eventGuests  EventInviteGuest[]
 
   @@index([clubId])
   @@index([date])
@@ -398,4 +496,15 @@ model ChatMessage {
   user        User        @relation(fields: [userId], references: [id])
 
   @@index([reservationId])
+}
+
+/// Imagen persistida en PostgreSQL (logos, planos). Sirve desde GET /api/assets/:id
+/// para que funcione en cualquier PC con la misma base de datos.
+model StoredAsset {
+  id        String   @id @default(uuid())
+  mime      String
+  filename  String?
+  size      Int
+  data      Bytes
+  createdAt DateTime @default(now())
 }

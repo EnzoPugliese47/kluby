@@ -1,3 +1,5 @@
+import { statSync } from "node:fs";
+import path from "node:path";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client";
 import { env, isProduction } from "../config/env";
@@ -24,9 +26,30 @@ const createPrismaClient = (): PrismaClient => {
   });
 };
 
+/** En dev, invalida el singleton si cambio schema.prisma o el client generado. */
+const getPrismaClientKey = (): string => {
+  try {
+    const schemaPath = path.join(process.cwd(), "prisma", "schema.prisma");
+    const clientPath = path.join(process.cwd(), "src", "generated", "prisma", "client.ts");
+    return `${statSync(schemaPath).mtimeMs}-${statSync(clientPath).mtimeMs}`;
+  } catch {
+    return "0";
+  }
+};
+
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
+  prismaClientKey?: string;
 };
+
+if (!isProduction) {
+  const clientKey = getPrismaClientKey();
+  if (globalForPrisma.prismaClientKey !== clientKey) {
+    void globalForPrisma.prisma?.$disconnect();
+    globalForPrisma.prisma = undefined;
+    globalForPrisma.prismaClientKey = clientKey;
+  }
+}
 
 export const prisma: PrismaClient = globalForPrisma.prisma ?? createPrismaClient();
 

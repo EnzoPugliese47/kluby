@@ -45,6 +45,26 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model ClubMember
+ * Vincula publis (STAFF) y personal de puerta (PUERTA) a un boliche concreto.
+ */
+export type ClubMember = Prisma.ClubMemberModel
+/**
+ * Model ClubJoinInvite
+ * Codigo de un dueño para sumar publis o personal de puerta a su boliche.
+ */
+export type ClubJoinInvite = Prisma.ClubJoinInviteModel
+/**
+ * Model EventInvite
+ * Codigo de un publi para invitar clientes a un evento.
+ */
+export type EventInvite = Prisma.EventInviteModel
+/**
+ * Model EventInviteGuest
+ * Cliente que canjeo una invitacion a evento de un publi.
+ */
+export type EventInviteGuest = Prisma.EventInviteGuestModel
+/**
  * Model PasswordResetToken
  * Token para recuperacion de contrasena. Se guarda el HASH del token
  * (no el token en texto plano) por seguridad. RF: reinicio por email.
@@ -107,3 +127,9 @@ export type LoyaltyTransaction = Prisma.LoyaltyTransactionModel
  * Mensaje del chat de coordinacion de una mesa (RN12).
  */
 export type ChatMessage = Prisma.ChatMessageModel
+/**
+ * Model StoredAsset
+ * Imagen persistida en PostgreSQL (logos, planos). Sirve desde GET /api/assets/:id
+ * para que funcione en cualquier PC con la misma base de datos.
+ */
+export type StoredAsset = Prisma.StoredAssetModel

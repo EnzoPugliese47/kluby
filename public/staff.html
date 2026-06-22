@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kluby · Staff / Puerta</title>
+    <title>Kluby · Puerta</title>
     <link rel="stylesheet" href="/kluby.css" />
   </head>
   <body>
@@ -13,6 +13,7 @@
       const API = "/api";
       let token = localStorage.getItem("kluby_staff_token") || "";
       let user = JSON.parse(localStorage.getItem("kluby_staff_user") || "null");
+      let memberships = JSON.parse(localStorage.getItem("kluby_staff_clubs") || "[]");
       const $ = (id) => document.getElementById(id);
       const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
       const money = (n) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(Number(n) || 0);
@@ -32,16 +33,30 @@
         const [c, l] = map[s] || ["muted", s]; return `<span class="badge ${c}">${l}</span>`;
       };
 
+      function activeClubIds() {
+        return memberships.map((m) => m.club?.id || m.clubId).filter(Boolean);
+      }
+
+      function clubLabel() {
+        if (!memberships.length) return "Sin boliche asignado";
+        return memberships.map((m) => m.club?.name || "Boliche").join(", ");
+      }
+
       function render() {
         if (!token || !user) return renderLogin();
+        const isOwnerOrAdmin = ["CLUB_ADMIN", "SUPER_ADMIN"].includes(user.role);
         $("root").innerHTML = `
           <div class="topbar">
-            <div class="brand"><div class="logo">K</div><div><h1>KLUBY</h1><span>Control de acceso · Staff</span></div></div>
-            <div class="right"><div class="who"><b>${esc(user.fullName)}</b><small>${user.role}</small></div><a class="ghost btn-sm" href="/panel.html" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);text-decoration:none">Gestión</a><button class="ghost btn-sm" onclick="logout()">Salir</button></div>
+            <div class="brand"><div class="logo">K</div><div><h1>KLUBY</h1><span>Control de acceso · Puerta</span></div></div>
+            <div class="right">
+              <div class="who"><b>${esc(user.fullName)}</b><small>${esc(clubLabel())}</small></div>
+              ${isOwnerOrAdmin ? `<a class="ghost btn-sm" href="/panel.html" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);text-decoration:none">Gestión</a>` : ""}
+              <button class="ghost btn-sm" onclick="logout()">Salir</button>
+            </div>
           </div>
           <div class="container" style="max-width:560px">
             <div class="section-title">Validar reserva</div>
-            <div class="section-sub">Ingresá el código del QR para validar el ingreso o cerrar la mesa.</div>
+            <div class="section-sub">Escaneá o pegá el código QR. Solo podés operar reservas de tu boliche.</div>
             <div class="card" style="padding:20px">
               <label>Código de reserva (QR)</label>
               <input id="code" placeholder="Pegá o escaneá el código" onkeydown="if(event.key==='Enter')lookup()" />
@@ -56,31 +71,65 @@
         $("root").innerHTML = `
           <div style="min-height:100vh;display:grid;place-items:center;padding:20px">
             <div class="card" style="width:100%;max-width:380px;padding:32px">
-              <div class="brand" style="justify-content:center;margin-bottom:20px"><div class="logo">K</div><div><h1>KLUBY</h1><span>Acceso Staff</span></div></div>
-              <label>Email</label><input id="email" value="staff@kluby.com" />
+              <div class="brand" style="justify-content:center;margin-bottom:20px"><div class="logo">K</div><div><h1>KLUBY</h1><span>Acceso Puerta</span></div></div>
+              <label>Email</label><input id="email" value="puerta@kluby.com" />
               <label>Contraseña</label><input id="pass" type="password" value="password123" />
               <button class="btn-full" onclick="login()">Ingresar</button>
               <div class="error" id="err"></div>
-              <p class="hint" style="text-align:center;margin-top:14px">Demo: staff@kluby.com / password123</p>
+              <p class="hint" style="text-align:center;margin-top:14px">Demo: puerta@kluby.com / password123</p>
             </div>
           </div>`;
       }
+
+      async function loadMemberships() {
+        if (user.role === "PUERTA" || user.role === "STAFF") {
+          memberships = await api("/users/me/memberships");
+          localStorage.setItem("kluby_staff_clubs", JSON.stringify(memberships));
+        } else {
+          memberships = [];
+          localStorage.removeItem("kluby_staff_clubs");
+        }
+      }
+
       async function login() {
         try {
           const d = await api("/users/login", { method: "POST", body: JSON.stringify({ email: $("email").value.trim(), password: $("pass").value }) });
-          if (!["STAFF", "CLUB_ADMIN", "SUPER_ADMIN"].includes(d.user.role)) { $("err").textContent = "Esta pantalla es para personal del boliche."; return; }
+          if (!["PUERTA", "CLUB_ADMIN", "SUPER_ADMIN"].includes(d.user.role)) {
+            $("err").textContent = "Esta pantalla es solo para personal de puerta o dueños.";
+            return;
+          }
           token = d.token; user = d.user;
-          localStorage.setItem("kluby_staff_token", token); localStorage.setItem("kluby_staff_user", JSON.stringify(user));
+          localStorage.setItem("kluby_staff_token", token);
+          localStorage.setItem("kluby_staff_user", JSON.stringify(user));
+          await loadMemberships();
+          if (user.role === "PUERTA" && !memberships.length) {
+            $("err").textContent = "Tu cuenta no tiene un boliche asignado. Pedile al dueño que te dé acceso.";
+            token = ""; user = null;
+            localStorage.removeItem("kluby_staff_token");
+            localStorage.removeItem("kluby_staff_user");
+            return;
+          }
           render();
         } catch (e) { $("err").textContent = e.message; }
       }
-      function logout() { token = ""; user = null; localStorage.removeItem("kluby_staff_token"); localStorage.removeItem("kluby_staff_user"); render(); }
+
+      function logout() {
+        token = ""; user = null; memberships = [];
+        localStorage.removeItem("kluby_staff_token");
+        localStorage.removeItem("kluby_staff_user");
+        localStorage.removeItem("kluby_staff_clubs");
+        render();
+      }
 
       async function lookup() {
         const code = $("code").value.trim(); if (!code) return;
         $("result").innerHTML = `<div class="empty">Buscando...</div>`;
         try {
           const r = await api("/reservations/by-code/" + encodeURIComponent(code));
+          const allowed = activeClubIds();
+          if (user.role === "PUERTA" && allowed.length && !allowed.includes(r.club.id)) {
+            throw new Error(`Esta reserva es de ${r.club.name}. Solo podés operar en: ${clubLabel()}.`);
+          }
           const guests = (r.guests || []).filter((g) => g.status === "CONFIRMED");
           $("result").innerHTML = `
             <div class="card" style="padding:20px">
@@ -99,12 +148,17 @@
             </div>`;
         } catch (e) { $("result").innerHTML = `<div class="card" style="padding:20px;border-color:var(--red)"><b style="color:var(--red)">${esc(e.message)}</b></div>`; }
       }
+
       async function act(id, action) {
         try { await api("/reservations/" + id + "/" + action, { method: "POST" }); toast(action === "check-in" ? "Ingreso registrado ✅" : "Mesa cerrada 🚪", "ok"); lookup(); }
         catch (e) { toast(e.message, "err"); }
       }
 
-      render();
+      if (token && user) {
+        loadMemberships().then(render).catch(() => renderLogin());
+      } else {
+        render();
+      }
     </script>
   </body>
 </html>

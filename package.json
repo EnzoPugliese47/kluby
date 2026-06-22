@@ -10,6 +10,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed": "ts-node-dev --transpile-only src/scripts/seed.ts",
+    "clear:events": "ts-node-dev --transpile-only src/scripts/clear-events.ts",
+    "repair:images": "ts-node-dev --transpile-only src/scripts/repair-images.ts",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [],

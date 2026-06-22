@@ -30,15 +30,14 @@ const router = Router();
 router.get("/open", listOpenTables);
 
 router.post("/", authenticate, createReservation);
-router.get("/by-code/:code", authenticate, getReservationByCode);
+// Operacion de puerta: escaneo QR, check-in y check-out.
+const doorOnly = [authenticate, authorize("PUERTA", "CLUB_ADMIN", "SUPER_ADMIN")];
+router.get("/by-code/:code", ...doorOnly, getReservationByCode);
 router.get("/:id", authenticate, getReservationById);
 router.post("/:id/pay", authenticate, payReservation);
 router.post("/:id/cancel", authenticate, cancelReservation);
-
-// Operacion del local: staff o administradores.
-const staffOnly = [authenticate, authorize("STAFF", "CLUB_ADMIN", "SUPER_ADMIN")];
-router.post("/:id/check-in", ...staffOnly, checkInReservation);
-router.post("/:id/checkout", ...staffOnly, checkoutReservation);
+router.post("/:id/check-in", ...doorOnly, checkInReservation);
+router.post("/:id/checkout", ...doorOnly, checkoutReservation);
 
 // Modulo Social / Mesa Abierta (Split Bill).
 router.post("/:id/open", authenticate, openTable);

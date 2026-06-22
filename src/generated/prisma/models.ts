@@ -9,6 +9,10 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User'
+export type * from './models/ClubMember'
+export type * from './models/ClubJoinInvite'
+export type * from './models/EventInvite'
+export type * from './models/EventInviteGuest'
 export type * from './models/PasswordResetToken'
 export type * from './models/Club'
 export type * from './models/ClubTable'
@@ -21,4 +25,5 @@ export type * from './models/Order'
 export type * from './models/OrderItem'
 export type * from './models/LoyaltyTransaction'
 export type * from './models/ChatMessage'
+export type * from './models/StoredAsset'
 export type * from './commonInputTypes'

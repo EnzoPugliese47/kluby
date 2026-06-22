@@ -13,6 +13,7 @@ export const UserRole = {
   CLIENT: 'CLIENT',
   CLUB_ADMIN: 'CLUB_ADMIN',
   STAFF: 'STAFF',
+  PUERTA: 'PUERTA',
   SUPER_ADMIN: 'SUPER_ADMIN'
 } as const
 
@@ -106,3 +107,11 @@ export const LoyaltyTxType = {
 } as const
 
 export type LoyaltyTxType = (typeof LoyaltyTxType)[keyof typeof LoyaltyTxType]
+
+
+export const ClubPersonnelInviteRole = {
+  STAFF: 'STAFF',
+  PUERTA: 'PUERTA'
+} as const
+
+export type ClubPersonnelInviteRole = (typeof ClubPersonnelInviteRole)[keyof typeof ClubPersonnelInviteRole]

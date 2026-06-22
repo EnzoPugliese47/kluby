@@ -25,6 +25,7 @@ import {
   requireParam,
   requireString,
 } from "../utils/validation";
+import { assertClubStaffCanAccessClub } from "../utils/clubAccess";
 
 const PAYMENT_OPTION_VALUES = Object.values(PaymentOption);
 const RESERVATION_MODE_VALUES = Object.values(ReservationMode);
@@ -298,6 +299,7 @@ export const checkInReservation = async (
     if (current === null) {
       throw new AppError("Reserva no encontrada", 404);
     }
+    await assertClubStaffCanAccessClub(req, current.clubId);
     if (current.status !== ReservationStatus.CONFIRMED) {
       throw new AppError(
         `Solo se puede hacer check-in de reservas confirmadas (estado: ${current.status})`,
@@ -330,6 +332,7 @@ export const checkoutReservation = async (
     if (current === null) {
       throw new AppError("Reserva no encontrada", 404);
     }
+    await assertClubStaffCanAccessClub(req, current.clubId);
     const closable: ReservationStatus[] = [
       ReservationStatus.CONFIRMED,
       ReservationStatus.CHECKED_IN,
@@ -413,6 +416,7 @@ export const getReservationByCode = async (
     if (reservation === null) {
       throw new AppError("Reserva no encontrada para ese codigo", 404);
     }
+    await assertClubStaffCanAccessClub(req, reservation.clubId);
     sendSuccess(res, reservation);
   } catch (error) {
     next(error);

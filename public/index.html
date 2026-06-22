@@ -95,6 +95,18 @@
       .list-card { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
       .list-card .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
       .list-card .title { font-size: 16px; font-weight: 700; }
+
+      .contact-card {
+        margin: 18px 0 24px; padding: 18px 20px;
+        background: linear-gradient(135deg, rgba(45,226,198,0.08), rgba(45,226,198,0.02));
+        border: 1px solid rgba(45,226,198,0.25);
+      }
+      .contact-card h4 { margin: 0 0 12px; font-size: 14px; font-weight: 700; color: var(--accent); letter-spacing: .3px; }
+      .contact-card .contact-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 14px; }
+      .contact-card .contact-row:last-child { margin-bottom: 0; }
+      .contact-card .contact-row a { color: var(--text); text-decoration: none; }
+      .contact-card .contact-row a:hover { color: var(--accent); text-decoration: underline; }
+      .contact-card .contact-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
       .meta { color: var(--muted); font-size: 13px; line-height: 1.6; }
       .amount-row { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; }
       .amount-row b { color: var(--text); }
@@ -107,6 +119,46 @@
       }
       .club-cover.has-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
       .club-body { padding: 16px; }
+
+      .user-avatar { border-radius: 50%; object-fit: cover; border: 2px solid var(--border); flex-shrink: 0; display: block; }
+      .user-avatar.placeholder {
+        display: inline-flex; align-items: center; justify-content: center;
+        background: linear-gradient(135deg, #2a1d5e, #3a1d52); font-weight: 800; color: #fff;
+      }
+      .profile-card { max-width: 480px; margin: 0 auto; padding: 28px; }
+      .profile-avatar-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 22px; }
+      .profile-avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border); }
+      .profile-avatar.placeholder { display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #2a1d5e, #3a1d52); color: #fff; }
+      input.readonly-field { opacity: 0.7; cursor: not-allowed; background: var(--surface-3); }
+      .topbar .right.profile-link { cursor: pointer; border-radius: 12px; padding: 4px 8px; transition: background .15s; }
+      .topbar .right.profile-link:hover { background: var(--surface-3); }
+
+      .profile-crop-modal { max-width: 420px !important; }
+      .profile-crop-layout { display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
+      .profile-crop-viewport {
+        width: 280px; height: 280px; position: relative; overflow: hidden;
+        background: #0a0a12; border-radius: 14px; border: 1px solid var(--border);
+        cursor: grab; touch-action: none; flex-shrink: 0;
+      }
+      .profile-crop-viewport.dragging { cursor: grabbing; }
+      .profile-crop-viewport img {
+        position: absolute; left: 50%; top: 50%; transform-origin: center center;
+        max-width: none; pointer-events: none; user-select: none; -webkit-user-drag: none;
+      }
+      .profile-crop-frame {
+        position: absolute; inset: 16px; border: 2px solid var(--accent);
+        box-shadow: 0 0 0 9999px rgba(0,0,0,0.58); border-radius: 12px;
+        pointer-events: none; z-index: 2;
+      }
+      .profile-crop-side { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+      .profile-crop-preview {
+        width: 88px; height: 88px; border-radius: 50%; overflow: hidden;
+        border: 3px solid var(--border); background: var(--surface-3);
+      }
+      .profile-crop-preview canvas { display: block; width: 100%; height: 100%; }
+      .profile-crop-zoom-row { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; }
+      .profile-crop-zoom-row input[type=range] { flex: 1; accent-color: var(--accent); }
+      .profile-crop-zoom-row span { font-size: 12px; color: var(--muted); min-width: 36px; text-align: right; }
     </style>
   </head>
   <body>
@@ -126,6 +178,15 @@
       // ---------- utils ----------
       const $ = (id) => document.getElementById(id);
       const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const attr = (s) => esc(s).replace(/[\r\n]+/g, " ");
+      function imgFallback(img) {
+        img.style.display = "none";
+        const fb = img.dataset.fallback;
+        if (fb && img.parentElement) {
+          img.parentElement.classList.remove("has-img");
+          if (!img.parentElement.textContent.trim()) img.parentElement.appendChild(document.createTextNode(fb));
+        }
+      }
       const money = (n) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(Number(n) || 0);
       const fdate = (d) => new Date(d).toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short" });
       const fdatetime = (d) => new Date(d).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -139,7 +200,12 @@
         toastTimer = setTimeout(() => (t.className = "toast " + kind), 3200);
       }
       function openModal(html) { $("modal-content").innerHTML = html; $("modal").classList.add("open"); }
-      function closeModal() { $("modal").classList.remove("open"); }
+      function closeModal() {
+        if (_pc?.blobUrl) URL.revokeObjectURL(_pc.blobUrl);
+        _pc = null;
+        $("modal-content").classList.remove("profile-crop-modal");
+        $("modal").classList.remove("open");
+      }
       $("modal").addEventListener("click", (e) => { if (e.target.id === "modal") closeModal(); });
 
       async function api(path, options = {}) {
@@ -169,11 +235,65 @@
         return `<span class="badge ${cls}">${label}</span>`;
       };
 
+      function avatarHtml(user, size = 36, cls = "user-avatar") {
+        const initial = esc((user?.fullName || "U").charAt(0).toUpperCase());
+        if (user?.profileImageUrl) {
+          return `<img class="${cls}" style="width:${size}px;height:${size}px" src="${esc(user.profileImageUrl)}" alt="${attr(user.fullName)}" onerror="this.outerHTML='<span class=\\'${cls} placeholder\\' style=\\'width:${size}px;height:${size}px\\'>${initial}</span>'" />`;
+        }
+        return `<span class="${cls} placeholder" style="width:${size}px;height:${size}px">${initial}</span>`;
+      }
+
       // ---------- auth ----------
       function saveSession(data) {
         state.token = data.token; state.user = data.user;
         localStorage.setItem("kluby_token", data.token);
         localStorage.setItem("kluby_user", JSON.stringify(data.user));
+      }
+      function captureInviteFromUrl() {
+        const p = new URLSearchParams(location.search);
+        const inv = p.get("invitacion");
+        const eq = p.get("equipo");
+        if (inv) localStorage.setItem("kluby_pending_event", inv.trim());
+        if (eq) localStorage.setItem("kluby_pending_equipo", eq.trim());
+        if (inv || eq) history.replaceState({}, "", location.pathname);
+      }
+      async function redeemPendingInvites() {
+        const eventCode = localStorage.getItem("kluby_pending_event");
+        const teamCode = localStorage.getItem("kluby_pending_equipo");
+        if (eventCode && state.user?.role === "CLIENT") {
+          try {
+            const r = await api("/invites/event/redeem", { method: "POST", body: JSON.stringify({ code: eventCode }) });
+            localStorage.removeItem("kluby_pending_event");
+            toast(r.message, "ok");
+            if (r.club?.id && r.event?.id) go("club", { clubId: r.club.id, eventId: r.event.id });
+            return;
+          } catch (e) { toast(e.message, "err"); }
+        }
+        if (teamCode && state.token) {
+          try {
+            const r = await api("/invites/club/redeem", { method: "POST", body: JSON.stringify({ code: teamCode }) });
+            localStorage.removeItem("kluby_pending_equipo");
+            if (r.token && r.user) {
+              saveSession({ token: r.token, user: r.user });
+            }
+            toast(r.message, "ok");
+            if (r.user?.role === "STAFF") { location.href = "/publi.html"; return; }
+            if (r.user?.role === "PUERTA") { location.href = "/staff.html"; return; }
+          } catch (e) { toast(e.message, "err"); }
+        }
+      }
+      async function redeemEventCode(code) {
+        const r = await api("/invites/event/redeem", { method: "POST", body: JSON.stringify({ code: code.trim() }) });
+        toast(r.message, "ok");
+        if (r.club?.id && r.event?.id) go("club", { clubId: r.club.id, eventId: r.event.id });
+      }
+      async function redeemTeamCode(code) {
+        const r = await api("/invites/club/redeem", { method: "POST", body: JSON.stringify({ code: code.trim() }) });
+        if (r.token && r.user) saveSession({ token: r.token, user: r.user });
+        toast(r.message, "ok");
+        if (r.user?.role === "STAFF") { location.href = "/publi.html"; return; }
+        if (r.user?.role === "PUERTA") { location.href = "/staff.html"; return; }
+        render();
       }
       function doLogout() {
         state.token = ""; state.user = null;
@@ -188,19 +308,28 @@
         if (!state.token || !state.user) return renderAuth();
         const nav = [
           ["home", "Explorar"],
+          ["invites", "Mis invitaciones"],
           ["open", "Mesas abiertas"],
           ["mine", "Mis reservas"],
           ["joins", "Mis postulaciones"],
-        ];
+          ["profile", "Mi perfil"],
+        ].filter(([v]) => state.user.role === "CLIENT" || v !== "invites");
+        const staffLinks = state.user.role === "STAFF"
+          ? `<a class="ghost btn-sm" href="/publi.html" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);text-decoration:none;margin-right:8px">Panel publi</a>`
+          : state.user.role === "PUERTA"
+            ? `<a class="ghost btn-sm" href="/staff.html" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);text-decoration:none;margin-right:8px">Puerta</a>`
+            : "";
         $("root").innerHTML = `
           <div class="topbar">
             <div class="brand"><div class="logo">K</div><div><h1>KLUBY</h1><span>Tu noche, tu mesa</span></div></div>
             <div class="nav">
               ${nav.map(([v, l]) => `<button class="navlink ${state.view === v ? "active" : ""}" onclick="go('${v}')">${l}</button>`).join("")}
             </div>
-            <div class="right">
-              <div class="who"><b>${esc(state.user.fullName)}</b><small>${state.user.role}</small></div>
-              <button class="ghost btn-sm" onclick="doLogout()">Salir</button>
+            <div class="right profile-link" onclick="go('profile')" title="Mi perfil">
+              ${staffLinks}
+              ${avatarHtml(state.user, 40)}
+              <div class="who"><b>${esc(state.user.fullName)}</b><small>${esc(state.user.email)}</small></div>
+              <button class="ghost btn-sm" onclick="event.stopPropagation();doLogout()">Salir</button>
             </div>
           </div>
           <div class="container" id="page"></div>`;
@@ -211,6 +340,8 @@
         else if (state.view === "mine") renderMine(page);
         else if (state.view === "open") renderOpen(page);
         else if (state.view === "joins") renderJoins(page);
+        else if (state.view === "profile") renderProfile(page);
+        else if (state.view === "invites") renderInvites(page);
         else if (state.view === "detail") renderDetail(page);
       }
 
@@ -225,9 +356,28 @@
                 <button class="navlink" id="tab-reg" onclick="switchTab('reg')">Crear cuenta</button>
               </div>
               <div id="auth-form"></div>
+              <div id="invite-banner" style="margin-top:16px"></div>
             </div>
           </div>`;
         switchTab("login");
+        renderInviteBanner();
+      }
+      async function renderInviteBanner() {
+        const el = document.getElementById("invite-banner");
+        if (!el) return;
+        const eventCode = localStorage.getItem("kluby_pending_event");
+        const teamCode = localStorage.getItem("kluby_pending_equipo");
+        if (!eventCode && !teamCode) { el.innerHTML = ""; return; }
+        if (eventCode) {
+          try {
+            const p = await fetch(API + "/invites/event/preview?code=" + encodeURIComponent(eventCode)).then((r) => r.json());
+            if (p.success) {
+              el.innerHTML = `<div class="card" style="padding:14px;background:var(--surface-3);border-color:var(--accent)"><b>Te invitaron a un evento</b><br/><small>${esc(p.data.club.name)} · ${esc(p.data.event.name)} · ${fdatetime(p.data.event.date)}</small><br/><span class="hint">Ingresá o creá cuenta para confirmar.</span></div>`;
+              return;
+            }
+          } catch { /* ignore */ }
+        }
+        el.innerHTML = `<div class="card" style="padding:14px;background:var(--surface-3)"><b>Tenés un código pendiente</b><br/><span class="hint">Ingresá o registrate para canjearlo.</span></div>`;
       }
       function switchTab(tab) {
         $("tab-login").classList.toggle("active", tab === "login");
@@ -269,7 +419,9 @@
       async function submitLogin() {
         try {
           const data = await api("/users/login", { method: "POST", body: JSON.stringify({ email: $("l-email").value.trim(), password: $("l-pass").value }) });
-          saveSession(data); go("home");
+          saveSession(data);
+          await redeemPendingInvites();
+          go("home");
         } catch (e) { $("auth-err").textContent = e.message; }
       }
       async function submitForgot() {
@@ -298,7 +450,10 @@
           if (phone.replace(/\D/g, "").length < 6) { $("auth-err").textContent = "Ingresá un teléfono válido (mínimo 6 dígitos)."; return; }
           const body = { fullName: $("r-name").value.trim(), email: $("r-email").value.trim(), phone, password: $("r-pass").value };
           const data = await api("/users/register", { method: "POST", body: JSON.stringify(body) });
-          saveSession(data); toast("¡Cuenta creada! Bienvenido/a", "ok"); go("home");
+          saveSession(data);
+          await redeemPendingInvites();
+          toast("¡Cuenta creada! Bienvenido/a", "ok");
+          go("home");
         } catch (e) { $("auth-err").textContent = e.message; }
       }
 
@@ -326,7 +481,7 @@
           el.className = "grid-cards";
           el.innerHTML = clubs.map((c) => `
             <div class="card club-card" onclick="go('club',{id:'${c.id}'})">
-              <div class="club-cover${c.imageUrl ? " has-img" : ""}">${c.imageUrl ? `<img src="${esc(c.imageUrl)}" alt="${esc(c.name)}" />` : esc(c.name)}</div>
+              <div class="club-cover${c.imageUrl ? " has-img" : ""}">${c.imageUrl ? `<img src="${esc(c.imageUrl)}" alt="${attr(c.name)}" data-fallback="${attr(c.name)}" onerror="imgFallback(this)" />` : esc(c.name)}</div>
               <div class="club-body">
                 <div class="meta">📍 ${esc(c.address)}, ${esc(c.city)}</div>
                 ${c.musicGenre ? `<div class="chips" style="margin-top:8px"><span class="badge violet">${esc(c.musicGenre)}</span></div>` : ""}
@@ -346,6 +501,19 @@
             <div class="section-title" style="margin-top:14px">${esc(club.name)}</div>
             <div class="section-sub">📍 ${esc(club.address)}, ${esc(club.city)} ${club.musicGenre ? "· 🎵 " + esc(club.musicGenre) : ""}</div>
             ${club.description ? `<p class="meta" style="margin-bottom:20px">${esc(club.description)}</p>` : ""}
+            ${club.contactEmail ? `
+            <div class="card contact-card">
+              <h4>Contacto</h4>
+              <div class="contact-row">
+                <span class="contact-icon">✉️</span>
+                <a href="mailto:${esc(club.contactEmail)}">${esc(club.contactEmail)}</a>
+              </div>
+              ${club.contactPhone ? `
+              <div class="contact-row">
+                <span class="contact-icon">📞</span>
+                <a href="tel:${esc(club.contactPhone.replace(/\s/g, ""))}">${esc(club.contactPhone)}</a>
+              </div>` : ""}
+            </div>` : ""}
             <h3 style="margin:10px 0 14px">Próximas fechas</h3>
             <div id="events" class="grid-cards"></div>`;
           const fut = events.filter((e) => new Date(e.date) >= new Date(Date.now() - 6 * 3600 * 1000)).sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -388,7 +556,7 @@
           const pins = data.tables.map(pinHtml).join("");
           const sectors = [...new Set(data.tables.map((t) => t.sector).filter(Boolean))];
           const mapBlock = data.event.backgroundImage
-            ? `<div class="floor-map"><img src="${esc(data.event.backgroundImage)}" alt="Plano del salón" />${pins}</div>`
+            ? `<div class="floor-map"><img src="${esc(data.event.backgroundImage)}" alt="Plano del salón" onerror="this.style.display='none'" />${pins}</div>`
             : `<div class="floor-map default-canvas"><span class="canvas-label">Espacio del salón · 1725 × 2490</span>${pins}</div>`;
           const emptyHint = data.tables.length === 0
             ? `<div class="empty" style="margin-top:14px">Todavía no hay mesas en este evento.</div>`
@@ -658,7 +826,293 @@
         catch (e) { toast(e.message, "err"); }
       }
 
+      // ---------- MI PERFIL ----------
+      let _profileImage = null;
+      const PROFILE_CROP = { size: 280, output: 400, frame: 248, zoomMin: 1, zoomMax: 3 };
+      let _pc = null;
+
+      function profileCropClamp() {
+        if (!_pc) return;
+        const s = _pc.baseScale * _pc.zoom;
+        const dw = _pc.nw * s;
+        const dh = _pc.nh * s;
+        const maxX = Math.max(0, (dw - _pc.frame) / 2);
+        const maxY = Math.max(0, (dh - _pc.frame) / 2);
+        _pc.panX = Math.min(maxX, Math.max(-maxX, _pc.panX));
+        _pc.panY = Math.min(maxY, Math.max(-maxY, _pc.panY));
+      }
+
+      function profileCropDraw(ctx, destSize) {
+        const s = _pc.baseScale * _pc.zoom;
+        const srcSize = _pc.frame / s;
+        const srcX = _pc.nw / 2 - srcSize / 2 - _pc.panX / s;
+        const srcY = _pc.nh / 2 - srcSize / 2 - _pc.panY / s;
+        ctx.drawImage(_pc.image, srcX, srcY, srcSize, srcSize, 0, 0, destSize, destSize);
+      }
+
+      function profileCropUpdate() {
+        if (!_pc?.imgEl) return;
+        const s = _pc.baseScale * _pc.zoom;
+        _pc.imgEl.style.transform = `translate(calc(-50% + ${_pc.panX}px), calc(-50% + ${_pc.panY}px)) scale(${s})`;
+        const prev = document.getElementById("profile-crop-preview-cv");
+        if (prev) {
+          const pctx = prev.getContext("2d");
+          pctx.clearRect(0, 0, prev.width, prev.height);
+          profileCropDraw(pctx, prev.width);
+        }
+        const zoomLbl = document.getElementById("profile-crop-zoom-val");
+        if (zoomLbl) zoomLbl.textContent = Math.round(_pc.zoom * 100) + "%";
+      }
+
+      function profileCropExportDataUrl() {
+        const canvas = document.createElement("canvas");
+        canvas.width = PROFILE_CROP.output;
+        canvas.height = PROFILE_CROP.output;
+        profileCropDraw(canvas.getContext("2d"), PROFILE_CROP.output);
+        return canvas.toDataURL("image/jpeg", 0.92);
+      }
+
+      function profileCropBindEvents() {
+        const vp = document.getElementById("profile-crop-vp");
+        const zoomEl = document.getElementById("profile-crop-zoom");
+        if (!vp || !zoomEl) return;
+        let startX = 0, startY = 0, startPanX = 0, startPanY = 0, dragging = false;
+
+        vp.onpointerdown = (e) => {
+          dragging = true;
+          vp.setPointerCapture(e.pointerId);
+          vp.classList.add("dragging");
+          startX = e.clientX;
+          startY = e.clientY;
+          startPanX = _pc.panX;
+          startPanY = _pc.panY;
+        };
+        vp.onpointermove = (e) => {
+          if (!dragging) return;
+          _pc.panX = startPanX + (e.clientX - startX);
+          _pc.panY = startPanY + (e.clientY - startY);
+          profileCropClamp();
+          profileCropUpdate();
+        };
+        const endDrag = () => { dragging = false; vp.classList.remove("dragging"); };
+        vp.onpointerup = endDrag;
+        vp.onpointercancel = endDrag;
+        vp.onwheel = (e) => {
+          e.preventDefault();
+          _pc.zoom = Math.min(PROFILE_CROP.zoomMax, Math.max(PROFILE_CROP.zoomMin, _pc.zoom - e.deltaY * 0.002));
+          zoomEl.value = String(_pc.zoom);
+          profileCropClamp();
+          profileCropUpdate();
+        };
+        zoomEl.oninput = () => {
+          _pc.zoom = Number(zoomEl.value);
+          profileCropClamp();
+          profileCropUpdate();
+        };
+      }
+
+      function openProfileCropper(file) {
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+          const frame = PROFILE_CROP.frame;
+          const baseScale = Math.max(frame / image.width, frame / image.height);
+          _pc = {
+            image,
+            imgEl: null,
+            nw: image.width,
+            nh: image.height,
+            baseScale,
+            zoom: 1,
+            panX: 0,
+            panY: 0,
+            frame,
+            blobUrl: url,
+          };
+          openModal(`
+            <div class="profile-crop-modal">
+              <h3>Ajustar foto de perfil</h3>
+              <p class="sub">Arrastrá la imagen para moverla · usá el zoom o la rueda del mouse</p>
+              <div class="profile-crop-layout">
+                <div class="profile-crop-viewport" id="profile-crop-vp">
+                  <img id="profile-crop-img" src="${esc(url)}" alt="" draggable="false" />
+                  <div class="profile-crop-frame" title="Área visible"></div>
+                </div>
+                <div class="profile-crop-side">
+                  <span class="hint" style="margin:0">Vista previa</span>
+                  <div class="profile-crop-preview">
+                    <canvas id="profile-crop-preview-cv" width="176" height="176"></canvas>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-crop-zoom-row">
+                <span class="hint" style="margin:0">Zoom</span>
+                <input type="range" id="profile-crop-zoom" min="${PROFILE_CROP.zoomMin}" max="${PROFILE_CROP.zoomMax}" step="0.01" value="1" />
+                <span id="profile-crop-zoom-val">100%</span>
+              </div>
+              <div class="btn-row" style="margin-top:18px">
+                <button type="button" class="ghost" onclick="cancelProfileCrop()">Cancelar</button>
+                <button type="button" style="flex:1" id="profile-crop-ok" onclick="confirmProfileCrop()">Usar esta foto</button>
+              </div>
+              <div class="error" id="profile-crop-err"></div>
+            </div>`);
+          $("modal-content").classList.add("profile-crop-modal");
+          _pc.imgEl = document.getElementById("profile-crop-img");
+          _pc.imgEl.style.width = image.width + "px";
+          _pc.imgEl.style.height = image.height + "px";
+          profileCropBindEvents();
+          profileCropUpdate();
+        };
+        image.onerror = () => {
+          URL.revokeObjectURL(url);
+          toast("No se pudo leer la imagen", "err");
+        };
+        image.src = url;
+      }
+
+      function cancelProfileCrop() {
+        closeModal();
+      }
+
+      async function confirmProfileCrop() {
+        const errEl = document.getElementById("profile-crop-err");
+        const btn = document.getElementById("profile-crop-ok");
+        if (!_pc) return;
+        btn.disabled = true;
+        btn.textContent = "Subiendo...";
+        errEl.textContent = "";
+        try {
+          const dataUrl = profileCropExportDataUrl();
+          const res = await api("/uploads/profile", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
+          _profileImage = res.url;
+          const av = document.getElementById("profile-av");
+          if (av) {
+            const img = document.createElement("img");
+            img.id = "profile-av";
+            img.className = "profile-avatar";
+            img.src = _profileImage;
+            img.alt = "Foto de perfil";
+            av.replaceWith(img);
+          }
+          const hint = document.getElementById("profile-photo-hint");
+          if (hint) {
+            hint.textContent = "Foto lista. Guardá para aplicar.";
+            hint.style.color = "var(--accent)";
+          }
+          cancelProfileCrop();
+          toast("Foto recortada y lista", "ok");
+        } catch (err) {
+          errEl.textContent = err.message;
+          btn.disabled = false;
+          btn.textContent = "Usar esta foto";
+        }
+      }
+
+      async function renderProfile(page) {
+        page.innerHTML = `<div class="section-title">Mi perfil</div><div class="section-sub">Actualizá tu foto, nombre y teléfono.</div><div id="profile-form"><div class="empty">Cargando...</div></div>`;
+        try {
+          const user = await api("/users/" + state.user.id);
+          state.user = user;
+          localStorage.setItem("kluby_user", JSON.stringify(user));
+          _profileImage = user.profileImageUrl || null;
+          const av = _profileImage
+            ? `<img id="profile-av" class="profile-avatar" src="${esc(_profileImage)}" alt="Foto de perfil" />`
+            : `<div id="profile-av" class="profile-avatar placeholder">${esc((user.fullName || "U").charAt(0).toUpperCase())}</div>`;
+          $("profile-form").innerHTML = `
+            <div class="card profile-card">
+              <div class="profile-avatar-wrap">
+                ${av}
+                <label class="btn-sm ghost" style="cursor:pointer;margin:0">
+                  Cambiar foto
+                  <input id="profile-file" type="file" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="onProfilePhoto(event)" />
+                </label>
+                <span class="hint" id="profile-photo-hint">PNG, JPG o WebP · cualquier tamaño</span>
+              </div>
+              <label>Nombre completo</label>
+              <input id="pf-name" value="${attr(user.fullName)}" placeholder="Tu nombre" />
+              <label>Teléfono</label>
+              <input id="pf-phone" value="${attr(user.phone || "")}" placeholder="11 1234 5678" />
+              <label>Email</label>
+              <input class="readonly-field" value="${attr(user.email)}" readonly title="El email no se puede modificar" />
+              <p class="hint" style="margin-top:-6px">El email no se puede cambiar.</p>
+              <button class="btn-full" style="margin-top:18px" id="pf-save" onclick="saveProfile()">Guardar cambios</button>
+              <div class="spacer"></div>
+              <label>Código de invitación a evento</label>
+              <div class="btn-row">
+                <input id="pf-event-code" placeholder="EVENTO-XXXX-XXXX" style="flex:1" />
+                <button type="button" class="btn-sm" onclick="redeemEventCode(document.getElementById('pf-event-code').value).catch(e=>toast(e.message,'err'))">Canjear</button>
+              </div>
+              <label style="margin-top:14px">Código de equipo (publi / puerta)</label>
+              <div class="btn-row">
+                <input id="pf-team-code" placeholder="EQUIPO-XXXX-XXXX" style="flex:1" />
+                <button type="button" class="btn-sm" onclick="redeemTeamCode(document.getElementById('pf-team-code').value).catch(e=>toast(e.message,'err'))">Canjear</button>
+              </div>
+              <div class="error" id="pf-err"></div>
+            </div>`;
+        } catch (e) {
+          $("profile-form").innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+      function onProfilePhoto(e) {
+        const file = e.target.files[0];
+        e.target.value = "";
+        if (!file) return;
+        const hint = document.getElementById("profile-photo-hint");
+        if (!/^image\/(png|jpeg|webp)$/i.test(file.type)) {
+          if (hint) { hint.textContent = "Formato no soportado. Usá PNG, JPG o WebP."; hint.style.color = "var(--pink)"; }
+          return;
+        }
+        if (file.size > 12 * 1024 * 1024) {
+          if (hint) { hint.textContent = "La imagen es demasiado grande (máx. 12 MB)."; hint.style.color = "var(--pink)"; }
+          return;
+        }
+        if (hint) { hint.style.color = ""; }
+        openProfileCropper(file);
+      }
+      async function saveProfile() {
+        const errEl = document.getElementById("pf-err");
+        const btn = document.getElementById("pf-save");
+        const name = document.getElementById("pf-name").value.trim();
+        const phone = document.getElementById("pf-phone").value.trim();
+        if (!name) { errEl.textContent = "El nombre es obligatorio."; return; }
+        const body = { fullName: name, phone };
+        if (_profileImage) body.profileImageUrl = _profileImage;
+        btn.disabled = true;
+        btn.textContent = "Guardando...";
+        try {
+          const user = await api("/users/" + state.user.id, { method: "PATCH", body: JSON.stringify(body) });
+          state.user = user;
+          localStorage.setItem("kluby_user", JSON.stringify(user));
+          toast("Perfil actualizado", "ok");
+          render();
+        } catch (e) {
+          errEl.textContent = e.message;
+          btn.disabled = false;
+          btn.textContent = "Guardar cambios";
+        }
+      }
+
+      async function renderInvites(page) {
+        page.innerHTML = `<div class="section-title">Mis invitaciones</div><div class="section-sub">Eventos a los que un publi te invitó.</div><div id="inv-list"><div class="empty">Cargando...</div></div>`;
+        try {
+          const rows = await api("/invites/my-events");
+          if (!rows.length) {
+            $("inv-list").innerHTML = '<div class="empty">Todavía no canjeaste invitaciones a eventos.</div>';
+            return;
+          }
+          $("inv-list").innerHTML = rows.map((r) => `
+            <div class="card" style="padding:18px;margin-bottom:12px;cursor:pointer" onclick="go('club',{clubId:'${r.club.id}',eventId:'${r.event.id}'})">
+              <b>${esc(r.event.name)}</b>
+              <div class="meta">${esc(r.club.name)} · ${fdatetime(r.event.date)}</div>
+              <span class="role-pill">Canjeada ${fdatetime(r.redeemedAt)}</span>
+            </div>`).join("");
+        } catch (e) {
+          $("inv-list").innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+
       // init
+      captureInviteFromUrl();
       render();
     </script>
   </body>

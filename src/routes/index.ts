@@ -9,6 +9,8 @@ import productsRoutes from "./products.routes";
 import ordersRoutes from "./orders.routes";
 import loyaltyRoutes from "./loyalty.routes";
 import uploadsRoutes from "./uploads.routes";
+import invitesRoutes from "./invites.routes";
+import assetsRoutes from "./assets.routes";
 
 const router = Router();
 
@@ -26,5 +28,7 @@ router.use("/products", productsRoutes);
 router.use("/orders", ordersRoutes);
 router.use("/loyalty", loyaltyRoutes);
 router.use("/uploads", uploadsRoutes);
+router.use("/invites", invitesRoutes);
+router.use("/assets", assetsRoutes);
 
 export default router;

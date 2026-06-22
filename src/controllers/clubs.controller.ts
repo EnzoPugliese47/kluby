@@ -1,15 +1,37 @@
 import type { Request, Response, NextFunction } from "express";
-import { Prisma } from "../generated/prisma/client";
+import { Prisma, UserRole } from "../generated/prisma/client";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
 import { occupyingReservationFilter } from "../utils/reservation";
+import { getAuthUser } from "../middlewares/auth";
+import { assertUserCanAccessClub } from "../utils/clubAccess";
 import {
   asRecord,
   optionalString,
   requireParam,
   requireString,
 } from "../utils/validation";
+
+const normalizeEmail = (raw: string): string => raw.trim().toLowerCase();
+
+const requireContactEmail = (body: Record<string, unknown>): string => {
+  const email = normalizeEmail(requireString(body, "contactEmail"));
+  if (!email.includes("@") || !email.includes(".")) {
+    throw new AppError("El email de contacto no es valido", 400);
+  }
+  return email;
+};
+
+const optionalContactPhone = (body: Record<string, unknown>): string | null => {
+  const phone = optionalString(body, "contactPhone");
+  if (phone === undefined || phone === "") return null;
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 6) {
+    throw new AppError("El telefono de contacto no es valido (minimo 6 digitos)", 400);
+  }
+  return phone;
+};
 
 /** POST /api/clubs - Alta de boliche. */
 export const createClub = async (
@@ -27,10 +49,17 @@ export const createClub = async (
     const musicGenre = optionalString(body, "musicGenre");
     const imageUrl = optionalString(body, "imageUrl");
     const floorMapUrl = optionalString(body, "floorMapUrl");
+    const contactEmail = requireContactEmail(body);
+    const contactPhone = optionalContactPhone(body);
 
     const owner = await prisma.user.findUnique({ where: { id: ownerId } });
     if (owner === null) {
       throw new AppError("El usuario propietario (ownerId) no existe", 404);
+    }
+
+    const authUser = getAuthUser(req);
+    if (authUser.role === UserRole.CLUB_ADMIN && ownerId !== authUser.sub) {
+      throw new AppError("Solo podes crear boliches a tu nombre", 403);
     }
 
     const club = await prisma.club.create({
@@ -43,6 +72,8 @@ export const createClub = async (
         musicGenre: musicGenre ?? null,
         imageUrl: imageUrl ?? null,
         floorMapUrl: floorMapUrl ?? null,
+        contactEmail,
+        contactPhone,
       },
     });
     sendSuccess(res, club, 201);
@@ -70,6 +101,10 @@ export const listClubs = async (
     }
     if (typeof genre === "string" && genre.trim() !== "") {
       where.musicGenre = { equals: genre.trim(), mode: "insensitive" };
+    }
+
+    if (req.user?.role === UserRole.CLUB_ADMIN) {
+      where.ownerId = req.user.sub;
     }
 
     const clubs = await prisma.club.findMany({
@@ -111,6 +146,9 @@ export const updateClub = async (
 ): Promise<void> => {
   try {
     const id = requireParam(req.params, "id");
+    if (req.user !== undefined) {
+      await assertUserCanAccessClub(req, id);
+    }
     const body = asRecord(req.body);
 
     const data: Prisma.ClubUpdateInput = {};
@@ -121,6 +159,8 @@ export const updateClub = async (
     const musicGenre = optionalString(body, "musicGenre");
     const imageUrl = optionalString(body, "imageUrl");
     const floorMapUrl = optionalString(body, "floorMapUrl");
+    const contactEmailRaw = optionalString(body, "contactEmail");
+    const contactPhoneRaw = body["contactPhone"];
 
     if (name !== undefined) data.name = name;
     if (description !== undefined) data.description = description;
@@ -129,6 +169,20 @@ export const updateClub = async (
     if (musicGenre !== undefined) data.musicGenre = musicGenre;
     if (imageUrl !== undefined) data.imageUrl = imageUrl;
     if (floorMapUrl !== undefined) data.floorMapUrl = floorMapUrl;
+    if (contactEmailRaw !== undefined) {
+      const email = normalizeEmail(contactEmailRaw);
+      if (!email.includes("@") || !email.includes(".")) {
+        throw new AppError("El email de contacto no es valido", 400);
+      }
+      data.contactEmail = email;
+    }
+    if (contactPhoneRaw !== undefined) {
+      if (contactPhoneRaw === null || contactPhoneRaw === "") {
+        data.contactPhone = null;
+      } else {
+        data.contactPhone = optionalContactPhone(body);
+      }
+    }
 
     if (Object.keys(data).length === 0) {
       throw new AppError("No se enviaron campos para actualizar", 400);
@@ -149,6 +203,7 @@ export const deleteClub = async (
 ): Promise<void> => {
   try {
     const id = requireParam(req.params, "id");
+    await assertUserCanAccessClub(req, id);
     const club = await prisma.club.findUnique({ where: { id } });
     if (club === null) {
       throw new AppError("Boliche no encontrado", 404);

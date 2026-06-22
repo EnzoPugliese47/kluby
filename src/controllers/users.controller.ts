@@ -8,6 +8,7 @@ import { signToken } from "../utils/jwt";
 import { createResetToken, hashResetToken } from "../utils/resetToken";
 import { isProduction } from "../config/env";
 import { getAuthUser } from "../middlewares/auth";
+import { assertUserCanAccessClub } from "../utils/clubAccess";
 import {
   asRecord,
   optionalString,
@@ -22,6 +23,7 @@ const publicUserSelect = {
   email: true,
   fullName: true,
   phone: true,
+  profileImageUrl: true,
   dni: true,
   birthDate: true,
   role: true,
@@ -31,8 +33,8 @@ const publicUserSelect = {
   updatedAt: true,
 } satisfies Prisma.UserSelect;
 
-// Roles que un administrador puede asignar al dar de alta personal interno.
-const STAFF_ROLE_VALUES = [UserRole.STAFF, UserRole.CLUB_ADMIN] as const;
+// Roles de personal del boliche (vinculados a un club via ClubMember).
+const CLUB_PERSONAL_ROLE_VALUES = [UserRole.STAFF, UserRole.PUERTA] as const;
 
 /** Telefono obligatorio (clientes y staff). Exige un minimo de digitos. */
 const requirePhone = (body: Record<string, unknown>): string => {
@@ -114,10 +116,9 @@ export const registerUser = async (
 };
 
 /**
- * POST /api/users/staff - Alta de personal interno (STAFF o CLUB_ADMIN).
- * Solo accesible por administradores (ver middleware en la ruta).
+ * POST /api/users/owners - Alta de dueño de boliche (solo super admin).
  */
-export const createStaffUser = async (
+export const createClubOwner = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -127,9 +128,7 @@ export const createStaffUser = async (
     const email = requireString(body, "email").toLowerCase();
     const password = requireString(body, "password");
     const fullName = requireString(body, "fullName");
-    const role = requireEnum(body, "role", STAFF_ROLE_VALUES);
-    // El telefono es obligatorio salvo para administradores.
-    const phone = role === UserRole.CLUB_ADMIN ? optionalString(body, "phone") : requirePhone(body);
+    const phone = optionalString(body, "phone");
 
     if (password.length < 8) {
       throw new AppError("La contrasena debe tener al menos 8 caracteres", 400);
@@ -142,12 +141,100 @@ export const createStaffUser = async (
         passwordHash,
         fullName,
         phone: phone ?? null,
-        role,
+        role: UserRole.CLUB_ADMIN,
         isVerified: true,
       },
       select: publicUserSelect,
     });
     sendSuccess(res, user, 201);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/users/staff - Alta de publis (STAFF) o puerta (PUERTA) en un boliche.
+ * Solo accesible por dueños del boliche o super admin.
+ */
+export const createStaffUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const body = asRecord(req.body);
+    const email = requireString(body, "email").toLowerCase();
+    const password = requireString(body, "password");
+    const fullName = requireString(body, "fullName");
+    const role = requireEnum(body, "role", CLUB_PERSONAL_ROLE_VALUES);
+    const clubId = requireString(body, "clubId");
+    const actor = getAuthUser(req);
+
+    await assertUserCanAccessClub(req, clubId);
+
+    const phone = requirePhone(body);
+
+    if (password.length < 8) {
+      throw new AppError("La contrasena debe tener al menos 8 caracteres", 400);
+    }
+
+    const club = await prisma.club.findUnique({ where: { id: clubId } });
+    if (club === null) {
+      throw new AppError("Boliche no encontrado", 404);
+    }
+
+    const passwordHash = await hashPassword(password);
+    const user = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: {
+          email,
+          passwordHash,
+          fullName,
+          phone,
+          role,
+          isVerified: true,
+        },
+        select: publicUserSelect,
+      });
+      await tx.clubMember.create({
+        data: {
+          userId: created.id,
+          clubId,
+          invitedBy: actor.sub,
+        },
+      });
+      return created;
+    });
+
+    sendSuccess(res, { user, clubId }, 201);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/** GET /api/users/me/memberships - Boliches donde el usuario es STAFF o PUERTA. */
+export const listMyClubMemberships = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const user = getAuthUser(req);
+    if (user.role !== UserRole.STAFF && user.role !== UserRole.PUERTA) {
+      throw new AppError("Solo aplica a personal del boliche", 403);
+    }
+
+    const memberships = await prisma.clubMember.findMany({
+      where: { userId: user.sub, isActive: true },
+      include: {
+        club: {
+          select: { id: true, name: true, address: true, city: true, isActive: true },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    sendSuccess(res, memberships);
   } catch (error) {
     next(error);
   }
@@ -307,7 +394,7 @@ export const getUserById = async (
   }
 };
 
-/** PATCH /api/users/:id - Edicion de perfil. */
+/** PATCH /api/users/:id - Edicion de perfil (solo el propio usuario). */
 export const updateUser = async (
   req: Request,
   res: Response,
@@ -315,13 +402,37 @@ export const updateUser = async (
 ): Promise<void> => {
   try {
     const id = requireParam(req.params, "id");
+    const auth = getAuthUser(req);
+    if (auth.sub !== id) {
+      throw new AppError("Solo podes editar tu propio perfil", 403);
+    }
+
     const body = asRecord(req.body);
+    if (body["email"] !== undefined) {
+      throw new AppError("El email no se puede modificar", 400);
+    }
 
     const data: Prisma.UserUpdateInput = {};
     const fullName = optionalString(body, "fullName");
-    const phone = optionalString(body, "phone");
-    if (fullName !== undefined) data.fullName = fullName;
-    if (phone !== undefined) data.phone = phone;
+    const phoneRaw = optionalString(body, "phone");
+    const profileImageUrl = optionalString(body, "profileImageUrl");
+
+    if (fullName !== undefined) {
+      if (fullName.trim() === "") {
+        throw new AppError("El nombre no puede estar vacio", 400);
+      }
+      data.fullName = fullName;
+    }
+    if (phoneRaw !== undefined) {
+      const digits = phoneRaw.replace(/\D/g, "");
+      if (digits.length < 6) {
+        throw new AppError("El telefono no es valido (minimo 6 digitos)", 400);
+      }
+      data.phone = phoneRaw;
+    }
+    if (profileImageUrl !== undefined) {
+      data.profileImageUrl = profileImageUrl === "" ? null : profileImageUrl;
+    }
 
     if (Object.keys(data).length === 0) {
       throw new AppError("No se enviaron campos para actualizar", 400);
@@ -367,17 +478,31 @@ export const listUsers = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const search = optionalString(asRecord(req.query), "search");
-    const where: Prisma.UserWhereInput =
-      search !== undefined && search.trim() !== ""
-        ? {
-            OR: [
-              { fullName: { contains: search, mode: "insensitive" } },
-              { email: { contains: search, mode: "insensitive" } },
-              { phone: { contains: search, mode: "insensitive" } },
-            ],
-          }
-        : {};
+    const query = asRecord(req.query);
+    const search = optionalString(query, "search");
+    const roleFilter = optionalString(query, "role");
+
+    const and: Prisma.UserWhereInput[] = [];
+
+    if (search !== undefined && search.trim() !== "") {
+      and.push({
+        OR: [
+          { fullName: { contains: search, mode: "insensitive" } },
+          { email: { contains: search, mode: "insensitive" } },
+          { phone: { contains: search, mode: "insensitive" } },
+        ],
+      });
+    }
+
+    if (roleFilter !== undefined && roleFilter.trim() !== "") {
+      const role = roleFilter.trim().toUpperCase();
+      if (!Object.values(UserRole).includes(role as UserRole)) {
+        throw new AppError("Rol invalido en el filtro", 400);
+      }
+      and.push({ role: role as UserRole });
+    }
+
+    const where: Prisma.UserWhereInput = and.length > 0 ? { AND: and } : {};
 
     const users = await prisma.user.findMany({
       where,
@@ -413,12 +538,15 @@ const setUserActive = async (
     if (target === null) {
       throw new AppError("Usuario no encontrado", 404);
     }
+    if (!isActive && target.role === UserRole.SUPER_ADMIN) {
+      throw new AppError("No se puede banear al super admin", 403);
+    }
     if (
       !isActive &&
-      (target.role === UserRole.SUPER_ADMIN ||
-        target.role === UserRole.CLUB_ADMIN)
+      target.role === UserRole.CLUB_ADMIN &&
+      actor.role !== UserRole.SUPER_ADMIN
     ) {
-      throw new AppError("No se puede banear a un administrador", 403);
+      throw new AppError("Solo el super admin puede banear a un dueño", 403);
     }
 
     const user = await prisma.user.update({
