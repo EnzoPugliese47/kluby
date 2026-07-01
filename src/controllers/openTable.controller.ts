@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import {
   Prisma,
   GuestStatus,
+  PaymentOption,
   PaymentStatus,
   PaymentType,
   ReservationMode,
@@ -23,6 +24,25 @@ const ACTIVE_GUEST_STATUSES: GuestStatus[] = [
   GuestStatus.ACCEPTED_PENDING_PAYMENT,
   GuestStatus.CONFIRMED,
 ];
+
+/** Si el anfitrion pago el total, los invitados no abonan su parte (split bill). */
+const isTablePrepaidByHost = (paymentOption: PaymentOption): boolean =>
+  paymentOption === PaymentOption.FULL_PAYMENT;
+
+const guestShareAmount = (
+  reservation: {
+    paymentOption: PaymentOption;
+    totalAmount: Prisma.Decimal;
+    maxGuests: number | null;
+  }
+): Prisma.Decimal => {
+  if (isTablePrepaidByHost(reservation.paymentOption)) {
+    return new Prisma.Decimal(0);
+  }
+  const maxGuests = reservation.maxGuests ?? 0;
+  if (maxGuests <= 0) return reservation.totalAmount;
+  return reservation.totalAmount.div(maxGuests);
+};
 
 /**
  * POST /api/reservations/:id/open
@@ -71,10 +91,9 @@ export const openTable = async (
       data: { mode: ReservationMode.OPEN_TABLE, maxGuests },
     });
 
-    const shareAmount = updated.totalAmount.div(maxGuests);
     sendSuccess(res, {
       reservation: updated,
-      sharePerPerson: shareAmount,
+      sharePerPerson: guestShareAmount(updated),
     });
   } catch (error) {
     next(error);
@@ -119,8 +138,8 @@ export const listOpenTables = async (
           host: r.host,
           maxGuests,
           availableSlots,
-          sharePerPerson:
-            maxGuests > 0 ? r.totalAmount.div(maxGuests) : r.totalAmount,
+          prepaid: isTablePrepaidByHost(r.paymentOption),
+          sharePerPerson: guestShareAmount(r),
         };
       })
       .filter((r) => r.availableSlots > 0);
@@ -182,7 +201,7 @@ export const requestToJoin = async (
         throw new AppError("La mesa no tiene cupos disponibles", 409);
       }
 
-      const shareAmount = reservation.totalAmount.div(maxGuests);
+      const shareAmount = guestShareAmount(reservation);
 
       if (existing !== null) {
         return tx.reservationGuest.update({
@@ -265,21 +284,37 @@ export const acceptGuest = async (
 ): Promise<void> => {
   try {
     const guestId = requireParam(req.params, "guestId");
-    const guest = await prisma.reservationGuest.findUnique({
-      where: { id: guestId },
-    });
-    if (guest === null) {
-      throw new AppError("Postulacion no encontrada", 404);
-    }
-    if (guest.status !== GuestStatus.REQUESTED) {
-      throw new AppError(
-        `Solo se pueden aceptar postulaciones pendientes (estado: ${guest.status})`,
-        400
-      );
-    }
-    const updated = await prisma.reservationGuest.update({
-      where: { id: guestId },
-      data: { status: GuestStatus.ACCEPTED_PENDING_PAYMENT },
+    const updated = await prisma.$transaction(async (tx) => {
+      const guest = await tx.reservationGuest.findUnique({
+        where: { id: guestId },
+      });
+      if (guest === null) {
+        throw new AppError("Postulacion no encontrada", 404);
+      }
+      if (guest.status !== GuestStatus.REQUESTED) {
+        throw new AppError(
+          `Solo se pueden aceptar postulaciones pendientes (estado: ${guest.status})`,
+          400
+        );
+      }
+
+      const reservation = await tx.reservation.findUnique({
+        where: { id: guest.reservationId },
+      });
+      if (reservation === null) {
+        throw new AppError("Reserva no encontrada", 404);
+      }
+
+      const prepaid = isTablePrepaidByHost(reservation.paymentOption);
+      return tx.reservationGuest.update({
+        where: { id: guestId },
+        data: {
+          status: prepaid
+            ? GuestStatus.CONFIRMED
+            : GuestStatus.ACCEPTED_PENDING_PAYMENT,
+          shareAmount: guestShareAmount(reservation),
+        },
+      });
     });
     sendSuccess(res, updated);
   } catch (error) {
@@ -349,6 +384,20 @@ export const payGuestShare = async (
         );
       }
 
+      const reservation = await tx.reservation.findUnique({
+        where: { id: guest.reservationId },
+      });
+      if (reservation === null) {
+        throw new AppError("Reserva no encontrada", 404);
+      }
+      if (isTablePrepaidByHost(reservation.paymentOption)) {
+        const confirmedGuest = await tx.reservationGuest.update({
+          where: { id: guestId },
+          data: { status: GuestStatus.CONFIRMED, shareAmount: new Prisma.Decimal(0) },
+        });
+        return { guest: confirmedGuest, reservation };
+      }
+
       const provider =
         typeof body["provider"] === "string" ? (body["provider"] as string) : null;
       const externalRef =
@@ -374,12 +423,12 @@ export const payGuestShare = async (
         data: { status: GuestStatus.CONFIRMED },
       });
 
-      const reservation = await tx.reservation.update({
+      const updatedReservation = await tx.reservation.update({
         where: { id: guest.reservationId },
         data: { amountPaid: { increment: guest.shareAmount } },
       });
 
-      return { guest: confirmedGuest, reservation };
+      return { guest: confirmedGuest, reservation: updatedReservation };
     });
 
     sendSuccess(res, result);

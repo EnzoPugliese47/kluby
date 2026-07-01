@@ -13,6 +13,7 @@ import {
 import {
   createEvent,
   listEventsByClub,
+  listEventReservationsAdmin,
 } from "../controllers/events.controller";
 import {
   createProduct,
@@ -33,6 +34,7 @@ import {
   listStaffClubEvents,
   deactivateClubMember,
 } from "../controllers/invites.controller";
+import { listClubCheckIns } from "../controllers/reservations.controller";
 import { authenticate, authorize, optionalAuthenticate } from "../middlewares/auth";
 
 const router = Router();
@@ -51,6 +53,10 @@ const staffOrAdmin = [
   authenticate,
   authorize("CLUB_ADMIN", "SUPER_ADMIN"),
 ];
+const doorOrAdmin = [
+  authenticate,
+  authorize("PUERTA", "CLUB_ADMIN", "SUPER_ADMIN"),
+];
 
 router.post("/", ...adminOnly, createClub);
 router.patch("/:id", ...adminOnly, updateClub);
@@ -65,6 +71,9 @@ router.post("/:clubId/join-invites", ...adminOnly, createClubJoinInvite);
 router.delete("/:clubId/join-invites/:inviteId", ...adminOnly, deactivateClubJoinInvite);
 router.get("/:clubId/members", ...adminOnly, listClubMembers);
 router.patch("/:clubId/members/:memberId/deactivate", ...adminOnly, deactivateClubMember);
+
+router.get("/:clubId/events/:eventId/reservations", ...adminOnly, listEventReservationsAdmin);
+router.get("/:clubId/check-ins", ...doorOrAdmin, listClubCheckIns);
 
 // Reportes BI (RN20): solo administradores.
 router.get("/:clubId/reports/dashboard", ...adminOnly, getDashboard);

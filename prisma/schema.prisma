@@ -274,7 +274,8 @@ model ClubTable {
   label          String // Identificador visible (ej. "Mesa VIP 1")
   sector         String? // Sector/zona dentro del plano
   capacity       Int      @default(10) // Cantidad maxima de personas
-  minConsumption Decimal? @db.Decimal(12, 2) // Consumicion minima
+  minConsumption Decimal? @db.Decimal(12, 2) // Consumicion minima (calculada desde consumptionPercent)
+  consumptionPercent Int @default(100) // % del precio de mesa que se acredita en consumicion
   price          Decimal  @db.Decimal(12, 2) // Precio total del alquiler
   depositPercent Int      @default(10) // % de sena (RN06, default 10%)
   posX           Float // Coordenada X en el mapa 2D (% si hay imagen, o % del lienzo)
@@ -299,6 +300,7 @@ model EventNight {
   date       DateTime
   musicGenre String?
   backgroundImage String? // URL del plano/mapa del salon para este evento
+  defaultConsumptionPercent Int @default(100) // Default para mesas nuevas del evento (% del precio)
   isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

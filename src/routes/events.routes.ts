@@ -14,6 +14,7 @@ import {
   createEventInvite,
   listEventInvites,
 } from "../controllers/invites.controller";
+import { bulkCreateTablesForEvent } from "../controllers/tables.controller";
 import { authenticate, authorize } from "../middlewares/auth";
 
 const router = Router();
@@ -35,6 +36,7 @@ router.get("/:eventId/products", listProductsByEvent);
 router.patch("/:eventId", ...adminOnly, updateEvent);
 router.delete("/:eventId", ...adminOnly, deleteEvent);
 router.post("/:eventId/assign", ...adminOnly, assignTableToUser);
+router.post("/:eventId/tables/bulk", ...adminOnly, bulkCreateTablesForEvent);
 router.post("/:eventId/release", ...adminOnly, releaseTable);
 router.post("/:eventId/products", ...adminOnly, createProductForEvent);
 router.post("/:eventId/invites", ...promoOrAdmin, createEventInvite);

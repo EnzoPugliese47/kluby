@@ -11,8 +11,10 @@ import { sendSuccess } from "../utils/apiResponse";
 import { computeDeposit, occupyingReservationFilter } from "../utils/reservation";
 import { DEFAULT_MAP_HEIGHT, DEFAULT_MAP_WIDTH } from "../utils/mapCanvas";
 import { sortTablesBySectorAndNumber } from "../utils/tables";
+import { assertUserCanAccessClub } from "../utils/clubAccess";
 import {
   asRecord,
+  optionalNumber,
   optionalString,
   requireParam,
   requireString,
@@ -33,10 +35,20 @@ export const createEvent = async (
     const dateRaw = requireString(body, "date");
     const musicGenre = optionalString(body, "musicGenre");
     const backgroundImage = optionalString(body, "backgroundImage");
+    const defaultConsumptionPercent = optionalNumber(body, "defaultConsumptionPercent");
 
     const date = new Date(dateRaw);
     if (Number.isNaN(date.getTime())) {
       throw new AppError("El campo 'date' no es una fecha valida", 400);
+    }
+    if (
+      defaultConsumptionPercent !== undefined &&
+      (defaultConsumptionPercent < 1 || defaultConsumptionPercent > 100)
+    ) {
+      throw new AppError(
+        "El porcentaje de consumicion default debe estar entre 1 y 100",
+        400
+      );
     }
 
     const club = await prisma.club.findUnique({ where: { id: clubId } });
@@ -51,6 +63,9 @@ export const createEvent = async (
         date,
         musicGenre: musicGenre ?? null,
         backgroundImage: backgroundImage ?? null,
+        ...(defaultConsumptionPercent !== undefined
+          ? { defaultConsumptionPercent: Math.round(defaultConsumptionPercent) }
+          : {}),
       },
     });
     sendSuccess(res, event, 201);
@@ -74,10 +89,20 @@ export const updateEvent = async (
     const dateRaw = optionalString(body, "date");
     const musicGenre = optionalString(body, "musicGenre");
     const backgroundImage = optionalString(body, "backgroundImage");
+    const defaultConsumptionPercent = optionalNumber(body, "defaultConsumptionPercent");
     if (name !== undefined) data.name = name;
     if (musicGenre !== undefined) data.musicGenre = musicGenre;
     if (backgroundImage !== undefined) data.backgroundImage = backgroundImage;
     if (typeof body["isActive"] === "boolean") data.isActive = body["isActive"];
+    if (defaultConsumptionPercent !== undefined) {
+      if (defaultConsumptionPercent < 1 || defaultConsumptionPercent > 100) {
+        throw new AppError(
+          "El porcentaje de consumicion default debe estar entre 1 y 100",
+          400
+        );
+      }
+      data.defaultConsumptionPercent = Math.round(defaultConsumptionPercent);
+    }
     if (dateRaw !== undefined) {
       const date = new Date(dateRaw);
       if (Number.isNaN(date.getTime())) {
@@ -344,6 +369,104 @@ export const getEventAvailability = async (
       tables: map,
       mapWidth: DEFAULT_MAP_WIDTH,
       mapHeight: DEFAULT_MAP_HEIGHT,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/** GET /api/clubs/:clubId/events/:eventId/reservations — listado operativo (dueño/admin). */
+export const listEventReservationsAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const clubId = requireParam(req.params, "clubId");
+    const eventId = requireParam(req.params, "eventId");
+    await assertUserCanAccessClub(req, clubId);
+
+    const event = await prisma.eventNight.findFirst({
+      where: { id: eventId, clubId },
+      select: { id: true, name: true, date: true, isActive: true },
+    });
+    if (event === null) {
+      throw new AppError("Evento no encontrado en este boliche", 404);
+    }
+
+    const statusParam =
+      typeof req.query.status === "string" ? req.query.status.trim() : "";
+    const now = new Date();
+
+    const where: Prisma.ReservationWhereInput = { eventId, clubId };
+    if (statusParam !== "" && statusParam !== "all") {
+      if (
+        !Object.values(ReservationStatus).includes(
+          statusParam as ReservationStatus
+        )
+      ) {
+        throw new AppError("Estado de reserva invalido", 400);
+      }
+      where.status = statusParam as ReservationStatus;
+    }
+
+    const [totalTables, reservations, statusGroups, occupying] =
+      await Promise.all([
+        prisma.clubTable.count({ where: { eventId, isActive: true } }),
+        prisma.reservation.findMany({
+          where,
+          include: {
+            table: {
+              select: { id: true, label: true, sector: true, capacity: true },
+            },
+            host: {
+              select: { id: true, fullName: true, email: true, phone: true },
+            },
+            guests: { select: { id: true, status: true } },
+          },
+          orderBy: [{ createdAt: "desc" }],
+        }),
+        prisma.reservation.groupBy({
+          by: ["status"],
+          where: { eventId, clubId },
+          _count: { _all: true },
+        }),
+        prisma.reservation.findMany({
+          where: { eventId, ...occupyingReservationFilter(now) },
+          select: { tableId: true },
+        }),
+      ]);
+
+    const occupiedTables = new Set(occupying.map((r) => r.tableId)).size;
+    const byStatus: Record<string, number> = {};
+    for (const row of statusGroups) {
+      byStatus[row.status] = row._count._all;
+    }
+
+    sendSuccess(res, {
+      event,
+      summary: {
+        totalTables,
+        occupiedTables,
+        freeTables: Math.max(0, totalTables - occupiedTables),
+        byStatus,
+      },
+      reservations: reservations.map((r) => ({
+        id: r.id,
+        code: r.code,
+        status: r.status,
+        mode: r.mode,
+        table: r.table,
+        host: r.host,
+        totalAmount: r.totalAmount,
+        amountPaid: r.amountPaid,
+        checkedInAt: r.checkedInAt,
+        expiresAt:
+          r.status === ReservationStatus.PENDING_PAYMENT ? r.expiresAt : null,
+        guestsCount: r.guests.length,
+        guestsPending: r.guests.filter((g) => g.status === "REQUESTED").length,
+        createdAt: r.createdAt,
+      })),
     });
   } catch (error) {
     next(error);

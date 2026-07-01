@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Explorá boliches y eventos en Kluby. Reservá mesas VIP sin crear cuenta hasta que estés listo." />
+    <title>Kluby · Explorar boliches</title>
+    <link rel="stylesheet" href="/kluby.css" />
+    <link rel="stylesheet" href="/kluby-public.css" />
+  </head>
+  <body>
+    <div id="k-bg"></div>
+    <div class="k-wrap">
+      <div id="k-nav"></div>
+      <main class="k-main">
+        <div class="k-page">
+          <div class="k-page-head">
+            <h1>Explorá la noche</h1>
+            <p>Boliches y próximos eventos en CABA. No necesitás cuenta para mirar — solo para reservar tu mesa.</p>
+          </div>
+          <div class="k-filters">
+            <input id="q" type="search" placeholder="Buscar boliche..." autocomplete="off" />
+            <input id="genre" type="search" placeholder="Género musical..." autocomplete="off" />
+          </div>
+          <div id="list"><div class="empty">Cargando boliches...</div></div>
+        </div>
+      </main>
+      <div id="k-footer"></div>
+    </div>
+    <script src="/kluby-ui.js"></script>
+    <script>
+      const UI = KlubyUI;
+      UI.mountPublicPage("explorar");
+      KlubyUI.captureInviteFromUrl();
+
+      let timer;
+      const $ = (id) => document.getElementById(id);
+
+      async function load() {
+        const el = $("list");
+        el.innerHTML = '<div class="empty">Cargando...</div>';
+        try {
+          const clubs = await UI.loadClubs({
+            search: $("q").value.trim(),
+            genre: $("genre").value.trim(),
+          });
+          if (!clubs.length) {
+            el.innerHTML = '<div class="empty">No encontramos boliches con esos filtros.</div>';
+            return;
+          }
+          const blocks = await Promise.all(
+            clubs.map(async (club) => {
+              let events = [];
+              try {
+                events = (await UI.loadClubEvents(club.id)).filter((e) => !e.isPast).slice(0, 3);
+              } catch { /* sin eventos */ }
+              return `
+                <section style="margin-bottom:48px">
+                  <div class="row-between" style="margin-bottom:16px;align-items:flex-end">
+                    <div>
+                      <h2 style="font-family:Syne,sans-serif;font-size:1.4rem;font-weight:800">${UI.esc(club.name)}</h2>
+                      <p class="muted" style="font-size:13px;margin-top:4px">📍 ${UI.esc(club.city)}${club.musicGenre ? " · 🎵 " + UI.esc(club.musicGenre) : ""}</p>
+                    </div>
+                    <a class="k-btn-ghost" href="/boliche.html?id=${encodeURIComponent(club.id)}">Ver ficha →</a>
+                  </div>
+                  <div class="k-explore-row">
+                    ${UI.clubCardHtml(club)}
+                    <div>
+                      <h3 style="font-family:Syne,sans-serif;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Próximos eventos</h3>
+                      ${
+                        events.length
+                          ? `<div class="k-events-list">${events.map((e) => UI.eventRowHtml(e, club.id)).join("")}</div>`
+                          : '<p class="hint">Todavía no hay fechas publicadas. Seguí el boliche para cuando anuncien la próxima noche.</p>'
+                      }
+                    </div>
+                  </div>
+                </section>`;
+            })
+          );
+          el.innerHTML = blocks.join("");
+        } catch (e) {
+          el.innerHTML = `<div class="empty">${UI.esc(e.message)}</div>`;
+        }
+      }
+
+      function debouncedLoad() {
+        clearTimeout(timer);
+        timer = setTimeout(load, 300);
+      }
+
+      $("q").addEventListener("input", debouncedLoad);
+      $("genre").addEventListener("input", debouncedLoad);
+      load();
+    </script>
+  </body>
+</html>

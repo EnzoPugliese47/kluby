@@ -116,6 +116,53 @@
       .compare-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: end; margin-bottom: 14px; }
       .compare-row .field { min-width: 260px; flex: 1; }
       .compare-row.hidden { display: none; }
+
+      /* Noche en vivo — operaciones sobrias */
+      .onboard-banner {
+        margin: 0 28px 0; padding: 16px 20px; border-radius: 12px;
+        background: rgba(124, 92, 255, 0.08); border: 1px solid rgba(124, 92, 255, 0.28);
+        display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      }
+      .onboard-banner p { font-size: 14px; line-height: 1.5; color: var(--text); }
+      .onboard-banner .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+      .ops-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+      .ops-kpi {
+        padding: 16px; border-radius: 12px; background: var(--surface);
+        border: 1px solid var(--border); border-left: 3px solid var(--border);
+      }
+      .ops-kpi.highlight { border-left-color: var(--accent); }
+      .ops-kpi.warn { border-left-color: var(--amber); }
+      .ops-kpi .ok-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+      .ops-kpi .ok-val { font-size: 26px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+      .ops-kpi .ok-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+      .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+      .filter-chips button {
+        background: transparent; border: 1px solid var(--border); color: var(--muted);
+        padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
+      }
+      .filter-chips button.active { background: var(--surface-2); color: var(--text); border-color: var(--accent); }
+      .data-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+      .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      .data-table th {
+        text-align: left; padding: 12px 14px; background: var(--surface-2);
+        color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px;
+        border-bottom: 1px solid var(--border); white-space: nowrap;
+      }
+      .data-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+      .data-table tr:last-child td { border-bottom: none; }
+      .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+      .status-pill {
+        display: inline-block; padding: 3px 10px; border-radius: 999px;
+        font-size: 11px; font-weight: 700; white-space: nowrap;
+      }
+      .status-pill.CONFIRMED { background: rgba(45,226,198,0.12); color: var(--accent); }
+      .status-pill.PENDING_PAYMENT { background: rgba(255,180,84,0.12); color: var(--amber); }
+      .status-pill.CHECKED_IN { background: rgba(124,92,255,0.15); color: #b6a4ff; }
+      .status-pill.CANCELLED, .status-pill.EXPIRED { background: rgba(255,77,141,0.12); color: var(--pink); }
+      .status-pill.COMPLETED { background: var(--surface-2); color: var(--muted); }
+      .live-meta { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+      .live-meta b { color: var(--text); font-weight: 600; }
+
       .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
       @media (max-width: 640px) { .mode-cards { grid-template-columns: 1fr; } }
       .mode-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; font-size: 13px; line-height: 1.55; }
@@ -170,6 +217,33 @@
       .modal { width: 100%; max-width: 460px; padding: 26px; max-height: 88vh; overflow: auto; }
       .modal h3 { margin-bottom: 6px; }
       .modal .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+
+      /* Recorte de logo (mismo patrón que foto de perfil en app.html) */
+      .modal.img-crop-modal { max-width: 420px; }
+      .img-crop-layout { display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
+      .img-crop-viewport {
+        position: relative; width: 280px; height: 280px; overflow: hidden;
+        border-radius: 12px; border: 1px solid var(--border); background: #0d0d14;
+        cursor: grab; touch-action: none; user-select: none;
+      }
+      .img-crop-viewport.dragging { cursor: grabbing; }
+      .img-crop-viewport img {
+        position: absolute; left: 50%; top: 50%; transform-origin: center center;
+        pointer-events: none; max-width: none;
+      }
+      .img-crop-frame {
+        position: absolute; inset: 16px; border: 2px solid rgba(45,226,198,0.85);
+        border-radius: 10px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.45); pointer-events: none;
+      }
+      .img-crop-side { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+      .img-crop-preview {
+        width: 88px; height: 88px; border-radius: 10px; overflow: hidden;
+        border: 1px solid var(--border); background: var(--surface-2);
+      }
+      .img-crop-preview canvas { display: block; width: 100%; height: 100%; }
+      .img-crop-zoom-row { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; }
+      .img-crop-zoom-row input[type=range] { flex: 1; accent-color: var(--accent); }
+      .img-crop-zoom-row span { font-size: 12px; color: var(--muted); min-width: 36px; text-align: right; }
 
       /* Grilla de mesas del evento */
       .tables-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
@@ -239,28 +313,8 @@
     </style>
   </head>
   <body>
-    <!-- LOGIN -->
-    <div id="login-view">
-      <div class="card login-card">
-        <div class="brand">
-          <div class="logo">K</div>
-          <div>
-            <h1>KLUBY</h1>
-            <span>Panel de Inteligencia de Negocios</span>
-          </div>
-        </div>
-        <label for="email">Email</label>
-        <input id="email" type="email" placeholder="admin@kluby.com" value="admin@kluby.com" />
-        <label for="password">Contraseña</label>
-        <input id="password" type="password" placeholder="••••••••" value="password123" />
-        <button class="btn-full" onclick="login()">Ingresar</button>
-        <div class="error" id="login-error"></div>
-        <p class="hint">Super admin: <b>admin@kluby.com</b> · Dueños: <b>duenokluby1@kluby.com</b> … <b>duenokluby3@kluby.com</b><br />Contraseña demo: <b>password123</b></p>
-      </div>
-    </div>
-
     <!-- DASHBOARD -->
-    <div id="app-view">
+    <div id="app-view" style="display:none">
       <div class="topbar">
         <div class="brand">
           <div class="logo">K</div>
@@ -270,10 +324,11 @@
           </div>
         </div>
         <div class="tabs" id="tabs">
+          <button class="tab active" id="tab-live" onclick="showView('live')">Noche en vivo</button>
           <button class="tab" id="tab-stats" onclick="showView('stats')">Estadísticas</button>
           <button class="tab" id="tab-clubs" onclick="showView('clubs')">Boliches</button>
           <button class="tab" id="tab-team" onclick="showView('team')">Personal</button>
-          <button class="tab active" id="tab-users" onclick="showView('users')">Usuarios</button>
+          <button class="tab" id="tab-users" onclick="showView('users')">Usuarios</button>
           <button class="tab" id="tab-events" onclick="showView('events')">Eventos</button>
         </div>
         <div class="right">
@@ -281,9 +336,47 @@
             <b id="who-name">—</b>
             <small id="who-role">—</small>
           </div>
-          <a class="ghost" href="/" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">Sitio cliente</a>
+          <a class="ghost" href="/app.html" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">App cliente</a>
           <a class="ghost" href="/staff.html" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">Puerta</a>
           <button class="ghost" onclick="logout()">Salir</button>
+        </div>
+      </div>
+
+      <div id="owner-onboard" class="onboard-banner" style="display:none;margin-top:16px">
+        <p><b>Primeros pasos</b> — Todavía no tenés eventos publicados. Creá tu primera noche, diseñá las mesas en el mapa y cargá la carta de botellas.</p>
+        <div class="actions">
+          <button type="button" class="btn-sm btn-accent" onclick="dismissOnboard(false);showView('events');openEventForm()">Crear primera noche</button>
+          <button type="button" class="ghost btn-sm" onclick="dismissOnboard(true)">Después</button>
+        </div>
+      </div>
+
+      <!-- VISTA: NOCHE EN VIVO -->
+      <div class="container view active" id="view-live">
+        <div class="controls">
+          <div class="field">
+            <label for="live-club-select">Boliche</label>
+            <select id="live-club-select" onchange="onLiveClubChange()"></select>
+          </div>
+          <div class="field" style="min-width:300px">
+            <label for="live-event-select">Evento / noche</label>
+            <select id="live-event-select" onchange="onLiveEventChange()">
+              <option value="">Seleccioná un evento</option>
+            </select>
+          </div>
+          <button type="button" class="ghost" onclick="loadLiveNight()">↻ Actualizar</button>
+          <button type="button" class="ghost btn-export" onclick="exportReservationsCsv()">⬇ CSV reservas</button>
+        </div>
+        <p class="live-meta" id="live-meta">Operaciones en tiempo real · mesas, reservas y check-in.</p>
+        <div class="ops-kpis" id="live-kpis"></div>
+        <div class="filter-chips" id="live-filters">
+          <button type="button" class="active" data-status="all" onclick="setLiveFilter('all',this)">Todas</button>
+          <button type="button" data-status="CONFIRMED" onclick="setLiveFilter('CONFIRMED',this)">Confirmadas</button>
+          <button type="button" data-status="PENDING_PAYMENT" onclick="setLiveFilter('PENDING_PAYMENT',this)">Pago pendiente</button>
+          <button type="button" data-status="CHECKED_IN" onclick="setLiveFilter('CHECKED_IN',this)">Ingresadas</button>
+          <button type="button" data-status="CANCELLED" onclick="setLiveFilter('CANCELLED',this)">Canceladas</button>
+        </div>
+        <div class="card panel" style="padding:0;overflow:hidden">
+          <div class="data-table-wrap" id="live-table"><div class="empty" style="padding:40px">Elegí un evento para ver las reservas.</div></div>
         </div>
       </div>
 
@@ -306,12 +399,13 @@
         <div class="stats-range" style="margin-bottom:10px">
           <span class="role-pill">Período:</span>
           <button type="button" id="range-week" onclick="setStatsRange('week')">Semana</button>
-          <button type="button" id="range-month" class="active" onclick="setStatsRange('month')">Mes</button>
-          <button type="button" id="range-last_event" onclick="setStatsRange('last_event')">Última noche</button>
+          <button type="button" id="range-month" onclick="setStatsRange('month')">Mes</button>
+          <button type="button" id="range-last_event" class="active" onclick="setStatsRange('last_event')">Última noche</button>
         </div>
         <div class="export-row">
           <span class="role-pill">Exportar reporte:</span>
           <button type="button" class="btn-export" onclick="exportReport()">⬇ PDF (imprimir)</button>
+          <button type="button" class="btn-export" onclick="exportStatsCsv()">⬇ CSV KPIs</button>
         </div>
         <p class="stats-period-label" id="stats-period-label">Las estadísticas corresponden al boliche seleccionado.</p>
 
@@ -388,7 +482,7 @@
       <!-- VISTA: BOLICHES (admin) -->
       <div class="container view" id="view-clubs">
         <div class="controls">
-          <div class="field" style="flex:1"><label>Boliches registrados</label><p class="role-pill" style="margin-top:4px">Agregá locales con su logo (máx. 500×500 px).</p></div>
+          <div class="field" style="flex:1"><label>Boliches registrados</label><p class="role-pill" style="margin-top:4px">Agregá locales con su logo (podés recortarlo al crear).</p></div>
           <button class="btn-sm btn-accent" id="btn-add-club" onclick="openClubForm()">+ Agregar boliche</button>
           <button class="ghost" onclick="loadClubsAdmin()">↻ Actualizar</button>
         </div>
@@ -411,7 +505,7 @@
       </div>
 
       <!-- VISTA: USUARIOS -->
-      <div class="container view active" id="view-users">
+      <div class="container view" id="view-users">
         <div class="controls">
           <div class="field" style="flex:1;min-width:280px">
             <label for="user-search">Buscar usuario</label>
@@ -482,34 +576,12 @@
         return json.data;
       }
 
-      async function login() {
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value;
-        const errEl = document.getElementById("login-error");
-        errEl.textContent = "";
-        try {
-          const data = await api("/users/login", { method: "POST", body: JSON.stringify({ email, password }) });
-          if (!["CLUB_ADMIN", "SUPER_ADMIN"].includes(data.user.role)) {
-            errEl.textContent = "Este panel es solo para personal del boliche.";
-            return;
-          }
-          token = data.token;
-          currentUser = data.user;
-          localStorage.setItem("kluby_token", token);
-          localStorage.setItem("kluby_user", JSON.stringify(currentUser));
-          enterApp();
-        } catch (e) {
-          errEl.textContent = e.message;
-        }
-      }
-
       function logout() {
         token = "";
         currentUser = null;
         localStorage.removeItem("kluby_token");
         localStorage.removeItem("kluby_user");
-        document.getElementById("app-view").style.display = "none";
-        document.getElementById("login-view").style.display = "grid";
+        location.href = "/login.html?next=" + encodeURIComponent("/panel.html");
       }
 
       const isSuperAdmin = () => currentUser?.role === "SUPER_ADMIN";
@@ -520,11 +592,11 @@
       let _clubsCache = [];
 
       async function enterApp() {
-        document.getElementById("login-view").style.display = "none";
         document.getElementById("app-view").style.display = "block";
         document.getElementById("who-name").textContent = currentUser?.fullName || "—";
         document.getElementById("who-role").textContent = ROLE_LABEL[currentUser?.role] || currentUser?.role || "—";
         document.getElementById("tab-stats").style.display = isPanelManager() ? "" : "none";
+        document.getElementById("tab-live").style.display = isPanelManager() ? "" : "none";
         document.getElementById("tab-clubs").style.display = isPanelManager() ? "" : "none";
         document.getElementById("tab-users").style.display = canManageUsers() ? "" : "none";
         document.getElementById("tab-events").style.display = isPanelManager() ? "" : "none";
@@ -536,19 +608,27 @@
         const roleFilterWrap = document.getElementById("user-role-filter-wrap");
         if (roleFilterWrap) roleFilterWrap.style.display = isSuperAdmin() ? "" : "none";
         await loadClubs();
-        showView(isPanelManager() ? "stats" : "users");
+        showView(isPanelManager() ? "live" : "users");
+        void checkOwnerOnboard();
       }
 
       function showView(name) {
+        if (name === "live" && !isPanelManager()) name = "users";
         if (name === "stats" && !isPanelManager()) name = "users";
         if (name === "clubs" && !isPanelManager()) name = "users";
         if (name === "events" && !isPanelManager()) name = "users";
         if (name === "team" && !isClubOwner()) name = isPanelManager() ? "stats" : "users";
         if (name === "users" && !canManageUsers()) name = isPanelManager() ? "stats" : "users";
-        ["stats", "clubs", "users", "events", "team"].forEach((v) => {
+        ["live", "stats", "clubs", "users", "events", "team"].forEach((v) => {
           document.getElementById("view-" + v).classList.toggle("active", v === name);
           document.getElementById("tab-" + v).classList.toggle("active", v === name);
         });
+        stopLivePolling();
+        if (name === "live") {
+          syncLiveSelects();
+          loadLiveEvents().then(() => loadLiveNight());
+          startLivePolling();
+        }
         if (name === "stats") {
           const cid = document.getElementById("club-select")?.value;
           if (cid) loadStatsEvents(cid).then(() => loadDashboard());
@@ -574,6 +654,7 @@
         const savedStats = localStorage.getItem("kluby_stats_club");
         const savedEvents = localStorage.getItem("kluby_events_club");
         const savedTeam = localStorage.getItem("kluby_team_club");
+        const savedLive = localStorage.getItem("kluby_live_club") || savedStats;
         const fillSelect = (selId, saved) => {
           const sel = document.getElementById(selId);
           if (!sel) return;
@@ -588,6 +669,7 @@
           if (saved && clubs.some((c) => c.id === saved)) sel.value = saved;
         };
         fillSelect("club-select", savedStats);
+        fillSelect("live-club-select", savedLive);
         fillSelect("event-club-select", savedEvents);
         fillSelect("team-club-select", savedTeam);
         updateStatsClubLogo();
@@ -747,10 +829,45 @@
 
       let _clubLogo = null;
       let _editingClubId = null;
-      async function openClubForm(club) {
-        const editing = club && club.id;
-        _editingClubId = editing ? club.id : null;
-        _clubLogo = editing && club.imageUrl ? club.imageUrl : null;
+      let _clubFormDraft = null;
+      const LOGO_CROP = { output: 500, frame: 248, zoomMin: 1, zoomMax: 3 };
+      let _logoCrop = null;
+
+      function clubLogoPreviewHtml(extra) {
+        if (!_clubLogo) return '<span class="role-pill">PNG, JPG o WebP · elegí y recortá</span>';
+        return `<img src="${esc(_clubLogo)}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--border)"/>${extra ? ` <span class="role-pill">${esc(extra)}</span>` : ""}`;
+      }
+
+      function captureClubFormDraft() {
+        return {
+          clubId: _editingClubId,
+          name: document.getElementById("c-name")?.value ?? "",
+          address: document.getElementById("c-address")?.value ?? "",
+          city: document.getElementById("c-city")?.value ?? "",
+          musicGenre: document.getElementById("c-genre")?.value ?? "",
+          description: document.getElementById("c-desc")?.value ?? "",
+          contactEmail: document.getElementById("c-email")?.value ?? "",
+          contactPhone: document.getElementById("c-phone")?.value ?? "",
+          ownerId: document.getElementById("c-owner")?.value ?? "",
+          logo: _clubLogo,
+        };
+      }
+
+      async function openClubForm(club, draft) {
+        const editingId = draft?.clubId ?? (club?.id ?? null);
+        const editing = !!editingId;
+        _editingClubId = editingId;
+        _clubLogo = draft?.logo ?? (club?.imageUrl ?? null);
+
+        const name = draft?.name ?? club?.name ?? "";
+        const address = draft?.address ?? club?.address ?? "";
+        const city = draft?.city ?? club?.city ?? "";
+        const musicGenre = draft?.musicGenre ?? club?.musicGenre ?? "";
+        const description = draft?.description ?? club?.description ?? "";
+        const contactEmail = draft?.contactEmail ?? club?.contactEmail ?? "";
+        const contactPhone = draft?.contactPhone ?? club?.contactPhone ?? "";
+        const ownerSel = draft?.ownerId ?? "";
+
         let ownerField = "";
         if (!editing && isSuperAdmin()) {
           try {
@@ -760,7 +877,7 @@
               toast("No hay dueños registrados para asignar", "err");
               return;
             }
-            ownerField = `<label>Dueño del boliche</label><select id="c-owner">${owners.map((o) => `<option value="${esc(o.id)}">${esc(o.fullName)} (${esc(o.email)})</option>`).join("")}</select>`;
+            ownerField = `<label>Dueño del boliche</label><select id="c-owner">${owners.map((o) => `<option value="${esc(o.id)}"${o.id === ownerSel ? " selected" : ""}>${esc(o.fullName)} (${esc(o.email)})</option>`).join("")}</select>`;
           } catch (e) {
             toast(e.message, "err");
             return;
@@ -768,25 +885,25 @@
         }
         openModal(`
           <h3>${editing ? "Editar boliche" : "Nuevo boliche"}</h3>
-          <p class="sub">${editing ? "Modificá los datos del boliche." : "El logo debe ser como máximo 500×500 píxeles."}</p>
+          <p class="sub">${editing ? "Modificá los datos del boliche." : "Completá los datos y subí un logo (podés recortarlo)."}</p>
           ${ownerField}
           <label style="margin-top:0">Nombre</label>
-          <input id="c-name" value="${editing ? attr(club.name) : ""}" placeholder="Ej. Club VISA" />
+          <input id="c-name" value="${attr(name)}" placeholder="Ej. Club VISA" />
           <label>Dirección</label>
-          <input id="c-address" value="${editing ? attr(club.address) : ""}" placeholder="Calle y número" />
+          <input id="c-address" value="${attr(address)}" placeholder="Calle y número" />
           <label>Ciudad</label>
-          <input id="c-city" value="${editing ? attr(club.city) : ""}" placeholder="Ej. Buenos Aires" />
+          <input id="c-city" value="${attr(city)}" placeholder="Ej. Buenos Aires" />
           <label>Género musical (opcional)</label>
-          <input id="c-genre" value="${editing && club.musicGenre ? attr(club.musicGenre) : ""}" placeholder="Ej. Electrónica" />
+          <input id="c-genre" value="${attr(musicGenre)}" placeholder="Ej. Electrónica" />
           <label>Descripción (opcional)</label>
-          <input id="c-desc" value="${editing && club.description ? attr(club.description) : ""}" placeholder="Breve descripción" />
+          <input id="c-desc" value="${attr(description)}" placeholder="Breve descripción" />
           <label>Email de contacto</label>
-          <input id="c-email" type="email" value="${editing && club.contactEmail ? attr(club.contactEmail) : ""}" placeholder="contacto@boliche.com" />
+          <input id="c-email" type="email" value="${attr(contactEmail)}" placeholder="contacto@boliche.com" />
           <label>Teléfono de contacto (opcional)</label>
-          <input id="c-phone" type="tel" value="${editing && club.contactPhone ? attr(club.contactPhone) : ""}" placeholder="Ej. +54 11 1234-5678" />
-          <label>Logo (máx. 500×500 px)</label>
+          <input id="c-phone" type="tel" value="${attr(contactPhone)}" placeholder="Ej. +54 11 1234-5678" />
+          <label>Logo</label>
           <input id="c-logo" type="file" accept="image/png,image/jpeg,image/webp" onchange="onClubLogo(event)" />
-          <div id="c-logo-preview" style="margin-top:10px">${_clubLogo ? `<img src="${esc(_clubLogo)}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--border)"/>` : '<span class="role-pill">PNG, JPG o WebP · máx. 500×500</span>'}</div>
+          <div id="c-logo-preview" style="margin-top:10px">${clubLogoPreviewHtml()}</div>
           <div class="btn-row" style="margin-top:20px">
             <button type="button" class="ghost" onclick="closeModal()">Cancelar</button>
             <button type="button" style="flex:1" onclick="saveClub()">${editing ? "Guardar cambios" : "Crear boliche"}</button>
@@ -794,35 +911,189 @@
           <div class="error" id="c-err"></div>`);
       }
 
-      async function onClubLogo(e) {
+      function logoCropClamp() {
+        if (!_logoCrop) return;
+        const s = _logoCrop.baseScale * _logoCrop.zoom;
+        const dw = _logoCrop.nw * s;
+        const dh = _logoCrop.nh * s;
+        const maxX = Math.max(0, (dw - _logoCrop.frame) / 2);
+        const maxY = Math.max(0, (dh - _logoCrop.frame) / 2);
+        _logoCrop.panX = Math.min(maxX, Math.max(-maxX, _logoCrop.panX));
+        _logoCrop.panY = Math.min(maxY, Math.max(-maxY, _logoCrop.panY));
+      }
+
+      function logoCropDraw(ctx, destSize) {
+        const s = _logoCrop.baseScale * _logoCrop.zoom;
+        const srcSize = _logoCrop.frame / s;
+        const srcX = _logoCrop.nw / 2 - srcSize / 2 - _logoCrop.panX / s;
+        const srcY = _logoCrop.nh / 2 - srcSize / 2 - _logoCrop.panY / s;
+        ctx.drawImage(_logoCrop.image, srcX, srcY, srcSize, srcSize, 0, 0, destSize, destSize);
+      }
+
+      function logoCropUpdate() {
+        if (!_logoCrop?.imgEl) return;
+        const s = _logoCrop.baseScale * _logoCrop.zoom;
+        _logoCrop.imgEl.style.transform = `translate(calc(-50% + ${_logoCrop.panX}px), calc(-50% + ${_logoCrop.panY}px)) scale(${s})`;
+        const prev = document.getElementById("logo-crop-preview-cv");
+        if (prev) {
+          const pctx = prev.getContext("2d");
+          pctx.clearRect(0, 0, prev.width, prev.height);
+          logoCropDraw(pctx, prev.width);
+        }
+        const zoomLbl = document.getElementById("logo-crop-zoom-val");
+        if (zoomLbl) zoomLbl.textContent = Math.round(_logoCrop.zoom * 100) + "%";
+      }
+
+      function logoCropExportDataUrl() {
+        const canvas = document.createElement("canvas");
+        canvas.width = LOGO_CROP.output;
+        canvas.height = LOGO_CROP.output;
+        logoCropDraw(canvas.getContext("2d"), LOGO_CROP.output);
+        return canvas.toDataURL("image/jpeg", 0.92);
+      }
+
+      function logoCropBindEvents() {
+        const vp = document.getElementById("logo-crop-vp");
+        const zoomEl = document.getElementById("logo-crop-zoom");
+        if (!vp || !zoomEl) return;
+        let startX = 0, startY = 0, startPanX = 0, startPanY = 0, dragging = false;
+
+        vp.onpointerdown = (ev) => {
+          dragging = true;
+          vp.setPointerCapture(ev.pointerId);
+          vp.classList.add("dragging");
+          startX = ev.clientX;
+          startY = ev.clientY;
+          startPanX = _logoCrop.panX;
+          startPanY = _logoCrop.panY;
+        };
+        vp.onpointermove = (ev) => {
+          if (!dragging) return;
+          _logoCrop.panX = startPanX + (ev.clientX - startX);
+          _logoCrop.panY = startPanY + (ev.clientY - startY);
+          logoCropClamp();
+          logoCropUpdate();
+        };
+        const endDrag = () => { dragging = false; vp.classList.remove("dragging"); };
+        vp.onpointerup = endDrag;
+        vp.onpointercancel = endDrag;
+        vp.onwheel = (ev) => {
+          ev.preventDefault();
+          _logoCrop.zoom = Math.min(LOGO_CROP.zoomMax, Math.max(LOGO_CROP.zoomMin, _logoCrop.zoom - ev.deltaY * 0.002));
+          zoomEl.value = String(_logoCrop.zoom);
+          logoCropClamp();
+          logoCropUpdate();
+        };
+        zoomEl.oninput = () => {
+          _logoCrop.zoom = Number(zoomEl.value);
+          logoCropClamp();
+          logoCropUpdate();
+        };
+      }
+
+      function openClubLogoCropper(file, draft) {
+        _clubFormDraft = draft;
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+          const frame = LOGO_CROP.frame;
+          const baseScale = Math.max(frame / image.width, frame / image.height);
+          if (_logoCrop?.blobUrl) URL.revokeObjectURL(_logoCrop.blobUrl);
+          _logoCrop = {
+            image,
+            imgEl: null,
+            nw: image.width,
+            nh: image.height,
+            baseScale,
+            zoom: 1,
+            panX: 0,
+            panY: 0,
+            frame,
+            blobUrl: url,
+          };
+          openModal(`
+            <h3>Ajustar logo del boliche</h3>
+            <p class="sub">Arrastrá la imagen para moverla · usá el zoom o la rueda del mouse</p>
+            <div class="img-crop-layout">
+              <div class="img-crop-viewport" id="logo-crop-vp">
+                <img id="logo-crop-img" src="${esc(url)}" alt="" draggable="false" />
+                <div class="img-crop-frame" title="Área visible"></div>
+              </div>
+              <div class="img-crop-side">
+                <span class="role-pill" style="margin:0">Vista previa</span>
+                <div class="img-crop-preview">
+                  <canvas id="logo-crop-preview-cv" width="88" height="88"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="img-crop-zoom-row">
+              <span class="role-pill" style="margin:0">Zoom</span>
+              <input type="range" id="logo-crop-zoom" min="${LOGO_CROP.zoomMin}" max="${LOGO_CROP.zoomMax}" step="0.01" value="1" />
+              <span id="logo-crop-zoom-val">100%</span>
+            </div>
+            <div class="btn-row" style="margin-top:18px">
+              <button type="button" class="ghost" onclick="cancelClubLogoCrop()">Volver al formulario</button>
+              <button type="button" style="flex:1" id="logo-crop-ok" onclick="confirmClubLogoCrop()">Usar este logo</button>
+            </div>
+            <div class="error" id="logo-crop-err"></div>`);
+          document.getElementById("modal-content").classList.add("img-crop-modal");
+          _logoCrop.imgEl = document.getElementById("logo-crop-img");
+          _logoCrop.imgEl.style.width = image.width + "px";
+          _logoCrop.imgEl.style.height = image.height + "px";
+          logoCropBindEvents();
+          logoCropUpdate();
+        };
+        image.onerror = () => {
+          URL.revokeObjectURL(url);
+          toast("No se pudo leer la imagen", "err");
+          if (_clubFormDraft) openClubForm(null, _clubFormDraft);
+        };
+        image.src = url;
+      }
+
+      function cancelClubLogoCrop() {
+        const draft = _clubFormDraft;
+        if (_logoCrop?.blobUrl) URL.revokeObjectURL(_logoCrop.blobUrl);
+        _logoCrop = null;
+        document.getElementById("modal-content").classList.remove("img-crop-modal");
+        if (draft) openClubForm(null, draft);
+        else closeModal();
+      }
+
+      async function confirmClubLogoCrop() {
+        const errEl = document.getElementById("logo-crop-err");
+        const btn = document.getElementById("logo-crop-ok");
+        const draft = _clubFormDraft;
+        if (!_logoCrop || !draft) return;
+        btn.disabled = true;
+        btn.textContent = "Subiendo...";
+        errEl.textContent = "";
+        try {
+          const dataUrl = logoCropExportDataUrl();
+          const res = await api("/uploads/logo", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
+          if (_logoCrop?.blobUrl) URL.revokeObjectURL(_logoCrop.blobUrl);
+          _logoCrop = null;
+          document.getElementById("modal-content").classList.remove("img-crop-modal");
+          _clubLogo = res.url;
+          await openClubForm(null, { ...draft, logo: res.url });
+          toast("Logo recortado y listo", "ok");
+        } catch (err) {
+          errEl.textContent = err.message;
+          btn.disabled = false;
+          btn.textContent = "Usar este logo";
+        }
+      }
+
+      function onClubLogo(e) {
         const file = e.target.files[0];
         if (!file) return;
-        const prev = document.getElementById("c-logo-preview");
-        const dims = await new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve({ w: img.width, h: img.height });
-          img.onerror = reject;
-          img.src = URL.createObjectURL(file);
-        }).catch(() => null);
-        if (!dims || dims.w > 500 || dims.h > 500) {
-          prev.innerHTML = `<span style="color:var(--pink)">El logo debe ser máximo 500×500 px${dims ? ` (recibido: ${dims.w}×${dims.h})` : ""}.</span>`;
-          e.target.value = "";
-          _clubLogo = null;
+        e.target.value = "";
+        if (!/^image\/(png|jpeg|jpg|webp)$/i.test(file.type || "")) {
+          toast("Formato no soportado. Usá PNG, JPG o WebP.", "err");
           return;
         }
-        prev.innerHTML = '<span class="role-pill">Subiendo logo...</span>';
-        try {
-          const dataUrl = await new Promise((resolve, reject) => {
-            const r = new FileReader();
-            r.onload = () => resolve(r.result);
-            r.onerror = reject;
-            r.readAsDataURL(file);
-          });
-          const res = await api("/uploads/logo", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
-          _clubLogo = res.url;
-          prev.innerHTML = `<img src="${esc(_clubLogo)}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--border)"/> <span class="role-pill">${res.width}×${res.height} px</span>`;
-          toast("Logo cargado", "ok");
-        } catch (err) { prev.innerHTML = `<span style="color:var(--pink)">${esc(err.message)}</span>`; _clubLogo = null; }
+        const draft = captureClubFormDraft();
+        openClubLogoCropper(file, draft);
       }
 
       async function deleteClub(id, name) {
@@ -892,7 +1163,14 @@
         document.getElementById("modal-content").innerHTML = html;
         document.getElementById("overlay").classList.add("show");
       }
-      function closeModal() { document.getElementById("overlay").classList.remove("show"); document.getElementById("modal-content").classList.remove("wide"); }
+      function closeModal() {
+        if (_logoCrop?.blobUrl) URL.revokeObjectURL(_logoCrop.blobUrl);
+        _logoCrop = null;
+        _clubFormDraft = null;
+        document.getElementById("overlay").classList.remove("show");
+        document.getElementById("modal-content").classList.remove("wide");
+        document.getElementById("modal-content").classList.remove("img-crop-modal");
+      }
       const fdt = (d) => new Date(d).toLocaleString("es-AR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
       // ---------- PERSONAL (trabajadores) ----------
@@ -1204,6 +1482,9 @@
           <input id="ev-date" type="datetime-local" value="${toLocalInput(editing ? ev.date : null)}" />
           <label>Género musical</label>
           <input id="ev-genre" value="${editing && ev.musicGenre ? attr(ev.musicGenre) : ""}" placeholder="Ej. Electrónica" />
+          <label>% consumición default (mesas nuevas)</label>
+          <input id="ev-cons-pct" type="number" min="1" max="100" value="${editing && ev.defaultConsumptionPercent != null ? ev.defaultConsumptionPercent : 100}" />
+          <p class="hint" style="margin-top:-6px">Porcentaje del precio de mesa que se acredita en botellas. Ej. 100 = el total de la mesa en consumición.</p>
           <label>Plano del salón (imagen de fondo)</label>
           <input id="ev-img" type="file" accept="image/*" onchange="onEventImage(event)" />
           <div id="ev-img-preview" style="margin-top:10px">${_eventBg ? `<img src="${esc(_eventBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>` : '<span class="role-pill">Sin imagen. El mapa usará la grilla por defecto.</span>'}</div>
@@ -1239,8 +1520,10 @@
         const name = nameEl.value.trim();
         const dateVal = document.getElementById("ev-date").value;
         const musicGenre = document.getElementById("ev-genre").value.trim();
+        const consPct = parseInt(document.getElementById("ev-cons-pct").value, 10);
         if (!name || !dateVal) { errEl.textContent = "Nombre y fecha son obligatorios."; return; }
-        const body = { name, date: new Date(dateVal).toISOString(), musicGenre };
+        if (!(consPct >= 1 && consPct <= 100)) { errEl.textContent = "El % de consumición debe ser entre 1 y 100."; return; }
+        const body = { name, date: new Date(dateVal).toISOString(), musicGenre, defaultConsumptionPercent: consPct };
         if (_eventBg) body.backgroundImage = _eventBg;
         const btn = document.getElementById("ev-save");
         if (btn) { btn.disabled = true; btn.textContent = "Guardando..."; }
@@ -1256,6 +1539,7 @@
           _editingEventId = null;
           closeModal();
           loadEvents();
+          void checkOwnerOnboard();
         } catch (e) {
           errEl.textContent = e.message;
           toast(e.message, "err");
@@ -1396,6 +1680,9 @@
           <div class="t-name">${esc(t.label)}</div>
           <div class="t-meta">
             ${esc(t.sector || "")}${t.sector ? "<br/>" : ""}
+            ${t.capacity ? `${t.capacity} p · ${fmtMoney(t.price)}<br/>` : ""}
+            ${t.consumptionPercent != null ? `🍾 ${t.consumptionPercent}% consumición` : ""}
+            ${taken ? "<br/>" : ""}
             ${taken
               ? `👤 ${esc(host?.fullName || "Reservada")}${host?.phone ? "<br/>📱 " + esc(host.phone) : ""}${host?.email ? "<br/>📧 " + esc(host.email) : ""}`
               : "🟢 Disponible"}
@@ -1474,8 +1761,9 @@
         openModal(`
           <h3>Diseñar mesas · ${esc(d.name)}</h3>
           <p class="sub">${d.bg ? "Arrastrá las mesas sobre el plano." : "Sin imagen de fondo: usá el lienzo predeterminado. Arrastrá o agregá mesas."}</p>
-          <div class="btn-row" style="margin-bottom:12px">
-            <button class="btn-sm btn-accent" onclick="addDesignerTable()">+ Agregar mesa</button>
+          <div class="btn-row" style="margin-bottom:12px;flex-wrap:wrap">
+            <button class="btn-sm btn-accent" onclick="openBulkSectorForm()">+ Agregar sector</button>
+            <button class="btn-sm" onclick="openSingleTableForm()">+ Agregar mesa</button>
             <span class="role-pill" style="align-self:center">${d.tables.length} mesas</span>
           </div>
           <div class="${mapClass}" id="dmap">${mapInner}</div>
@@ -1533,18 +1821,126 @@
           pin.addEventListener("touchstart", onDown, { passive: false });
         });
       }
-      async function addDesignerTable() {
-        const n = _designer.tables.length + 1;
+      function designerSectors() {
+        const set = new Set(_designer.tables.map((t) => (t.sector || "General").trim()).filter(Boolean));
+        return [...set].sort((a, b) => a.localeCompare(b, "es"));
+      }
+      function sectorOptionsHtml(selected) {
+        const sectors = designerSectors();
+        const opts = sectors.map((s) => `<option value="${attr(s)}"${s === selected ? " selected" : ""}>${esc(s)}</option>`).join("");
+        return `<option value="">— Nuevo sector —</option>${opts}`;
+      }
+      function consumptionPreview(price, pct) {
+        const p = Number(price) || 0;
+        const c = Number(pct) || 100;
+        return fmtMoney(Math.round(p * c / 100));
+      }
+      function openBulkSectorForm() {
+        openModal(`
+          <h3>Agregar sector completo</h3>
+          <p class="sub">Creá varias mesas numeradas de una (ej. 10 mesas en VIP Pista).</p>
+          <label style="margin-top:0">Nombre del sector</label>
+          <input id="bk-sector" placeholder="Ej. Zona VIP Norte" />
+          <label>Cantidad de mesas</label>
+          <input id="bk-count" type="number" min="1" max="50" value="10" />
+          <label>Precio por mesa</label>
+          <input id="bk-price" type="number" min="0" step="1000" value="150000" />
+          <label>Capacidad por mesa</label>
+          <input id="bk-cap" type="number" min="1" value="10" />
+          <label>% consumición (del precio de mesa)</label>
+          <input id="bk-cons" type="number" min="1" max="100" value="100" oninput="document.getElementById('bk-cons-prev').textContent=consumptionPreview(document.getElementById('bk-price').value,this.value)" />
+          <p class="hint" id="bk-cons-prev">Crédito en botellas: ${consumptionPreview(150000, 100)}</p>
+          <label>Seña (%)</label>
+          <input id="bk-dep" type="number" min="1" max="100" value="10" />
+          <div class="btn-row" style="margin-top:20px">
+            <button type="button" class="ghost" onclick="renderDesigner()">Cancelar</button>
+            <button type="button" style="flex:1" onclick="confirmBulkSector()">Crear mesas</button>
+          </div>
+          <div class="error" id="bk-err"></div>`);
+        document.getElementById("modal-content").classList.add("wide");
+      }
+      async function confirmBulkSector() {
+        const sector = document.getElementById("bk-sector").value.trim();
+        const count = parseInt(document.getElementById("bk-count").value, 10);
+        const price = parseFloat(document.getElementById("bk-price").value);
+        const capacity = parseInt(document.getElementById("bk-cap").value, 10);
+        const consumptionPercent = parseInt(document.getElementById("bk-cons").value, 10);
+        const depositPercent = parseInt(document.getElementById("bk-dep").value, 10);
+        const err = document.getElementById("bk-err");
+        if (!sector || !(count >= 1 && count <= 50) || !(price >= 0) || !(capacity > 0) || !(consumptionPercent >= 1 && consumptionPercent <= 100)) {
+          err.textContent = "Completá sector, cantidad (1–50), precio, capacidad y % consumición.";
+          return;
+        }
         try {
-          const t = await api("/clubs/" + _designer.clubId + "/tables", { method: "POST", body: JSON.stringify({
-            label: "Mesa " + n, sector: "General", capacity: 10, price: 150000, depositPercent: 10, posX: 50, posY: 50,
-            eventId: _designer.eventId,
-          }) });
+          const res = await api("/events/" + _designer.eventId + "/tables/bulk", {
+            method: "POST",
+            body: JSON.stringify({ sector, count, price, capacity, consumptionPercent, depositPercent }),
+          });
+          for (const t of res.tables) {
+            t.status = "AVAILABLE";
+            _designer.tables.push(t);
+          }
+          renderDesigner();
+          toast(res.count + " mesas creadas en " + sector, "ok");
+        } catch (e) { err.textContent = e.message; }
+      }
+      function openSingleTableForm() {
+        const sectors = designerSectors();
+        const defaultSector = sectors[0] || "General";
+        openModal(`
+          <h3>Agregar una mesa</h3>
+          <p class="sub">Por si te olvidaste una mesa o querés sumar una extra.</p>
+          <label style="margin-top:0">Nombre / etiqueta</label>
+          <input id="sg-label" value="Mesa ${_designer.tables.length + 1}" />
+          <label>Sector</label>
+          <select id="sg-sector-pick" onchange="document.getElementById('sg-sector-new').style.display=this.value?'none':'block'">
+            ${sectorOptionsHtml(defaultSector)}
+          </select>
+          <input id="sg-sector-new" placeholder="Nombre del sector nuevo" value="${esc(defaultSector)}" style="margin-top:8px;display:${sectors.length ? "none" : "block"}" />
+          <label>Precio</label>
+          <input id="sg-price" type="number" min="0" step="1000" value="150000" />
+          <label>Capacidad</label>
+          <input id="sg-cap" type="number" min="1" value="10" />
+          <label>% consumición</label>
+          <input id="sg-cons" type="number" min="1" max="100" value="100" />
+          <label>Seña (%)</label>
+          <input id="sg-dep" type="number" min="1" max="100" value="10" />
+          <div class="btn-row" style="margin-top:20px">
+            <button type="button" class="ghost" onclick="renderDesigner()">Cancelar</button>
+            <button type="button" style="flex:1" onclick="confirmSingleTable()">Agregar mesa</button>
+          </div>
+          <div class="error" id="sg-err"></div>`);
+        document.getElementById("modal-content").classList.add("wide");
+      }
+      async function confirmSingleTable() {
+        const label = document.getElementById("sg-label").value.trim();
+        const pick = document.getElementById("sg-sector-pick").value;
+        const sector = pick || document.getElementById("sg-sector-new").value.trim() || "General";
+        const price = parseFloat(document.getElementById("sg-price").value);
+        const capacity = parseInt(document.getElementById("sg-cap").value, 10);
+        const consumptionPercent = parseInt(document.getElementById("sg-cons").value, 10);
+        const depositPercent = parseInt(document.getElementById("sg-dep").value, 10);
+        const err = document.getElementById("sg-err");
+        if (!label || !(price >= 0) || !(capacity > 0)) {
+          err.textContent = "Completá nombre, precio y capacidad.";
+          return;
+        }
+        try {
+          const t = await api("/clubs/" + _designer.clubId + "/tables", {
+            method: "POST",
+            body: JSON.stringify({
+              label, sector, capacity, price, consumptionPercent, depositPercent,
+              posX: 50, posY: 50, eventId: _designer.eventId,
+            }),
+          });
           t.status = "AVAILABLE";
           _designer.tables.push(t);
           renderDesigner();
           toast("Mesa agregada (arrastrala a su lugar)", "ok");
-        } catch (e) { toast(e.message, "err"); }
+        } catch (e) { err.textContent = e.message; }
+      }
+      async function addDesignerTable() {
+        openSingleTableForm();
       }
       function editDesignerTable(id) {
         const t = _designer.tables.find((x) => x.id === id);
@@ -1557,7 +1953,12 @@
           <label>Sector</label>
           <input id="dt-sector" value="${esc(t.sector || "")}" placeholder="Ej. Ultra VIP" />
           <label>Precio</label>
-          <input id="dt-price" type="number" value="${Number(t.price)}" />
+          <input id="dt-price" type="number" value="${Number(t.price)}" oninput="document.getElementById('dt-cons-amt').textContent=consumptionPreview(this.value,document.getElementById('dt-cons').value)" />
+          <label>% consumición (crédito en botellas)</label>
+          <input id="dt-cons" type="number" min="1" max="100" value="${t.consumptionPercent != null ? t.consumptionPercent : 100}" oninput="document.getElementById('dt-cons-amt').textContent=consumptionPreview(document.getElementById('dt-price').value,this.value)" />
+          <p class="hint" id="dt-cons-amt">Crédito: ${consumptionPreview(t.price, t.consumptionPercent != null ? t.consumptionPercent : 100)}</p>
+          <label>Seña (%)</label>
+          <input id="dt-dep" type="number" min="1" max="100" value="${t.depositPercent != null ? t.depositPercent : 10}" />
           <label>Capacidad</label>
           <input id="dt-cap" type="number" value="${t.capacity}" />
           <div class="btn-row" style="margin-top:20px">
@@ -1573,11 +1974,27 @@
         const sector = document.getElementById("dt-sector").value.trim();
         const price = parseFloat(document.getElementById("dt-price").value);
         const capacity = parseInt(document.getElementById("dt-cap").value, 10);
-        if (!label || !(price >= 0) || !(capacity > 0)) { document.getElementById("dt-err").textContent = "Completá nombre, precio y capacidad válidos."; return; }
+        const consumptionPercent = parseInt(document.getElementById("dt-cons").value, 10);
+        const depositPercent = parseInt(document.getElementById("dt-dep").value, 10);
+        if (!label || !(price >= 0) || !(capacity > 0) || !(consumptionPercent >= 1 && consumptionPercent <= 100)) {
+          document.getElementById("dt-err").textContent = "Completá nombre, precio, capacidad y % consumición válidos.";
+          return;
+        }
         try {
-          const upd = await api("/tables/" + id, { method: "PATCH", body: JSON.stringify({ label, sector, price, capacity }) });
+          const upd = await api("/tables/" + id, {
+            method: "PATCH",
+            body: JSON.stringify({ label, sector, price, capacity, consumptionPercent, depositPercent }),
+          });
           const t = _designer.tables.find((x) => x.id === id);
-          if (t) { t.label = upd.label; t.sector = upd.sector; t.price = upd.price; t.capacity = upd.capacity; }
+          if (t) {
+            t.label = upd.label;
+            t.sector = upd.sector;
+            t.price = upd.price;
+            t.capacity = upd.capacity;
+            t.consumptionPercent = upd.consumptionPercent;
+            t.minConsumption = upd.minConsumption;
+            t.depositPercent = upd.depositPercent;
+          }
           renderDesigner();
           toast("Mesa actualizada", "ok");
         } catch (e) { document.getElementById("dt-err").textContent = e.message; }
@@ -1640,9 +2057,222 @@
           .join("");
       }
 
-      let _statsRange = localStorage.getItem("kluby_stats_range") || "month";
+      let _statsRange = localStorage.getItem("kluby_stats_range") || "last_event";
       let _statsEventsCache = [];
       let _lastDashboardData = null;
+      let _liveFilter = "all";
+      let _liveData = null;
+      let _livePollTimer = null;
+
+      const RES_STATUS_LABEL = {
+        PENDING_PAYMENT: "Pago pendiente",
+        CONFIRMED: "Confirmada",
+        CHECKED_IN: "Ingresada",
+        COMPLETED: "Finalizada",
+        CANCELLED: "Cancelada",
+        EXPIRED: "Expirada",
+      };
+
+      function dismissOnboard(persist) {
+        document.getElementById("owner-onboard").style.display = "none";
+        if (persist) localStorage.setItem("kluby_owner_onboard_dismiss", "1");
+      }
+
+      async function checkOwnerOnboard() {
+        const banner = document.getElementById("owner-onboard");
+        if (!banner || !isPanelManager()) return;
+        if (localStorage.getItem("kluby_owner_onboard_dismiss")) return;
+        const clubId = document.getElementById("live-club-select")?.value || document.getElementById("club-select")?.value;
+        if (!clubId) return;
+        try {
+          const events = await api("/clubs/" + clubId + "/events");
+          banner.style.display = events.length ? "none" : "flex";
+        } catch { banner.style.display = "none"; }
+      }
+
+      function syncLiveSelects() {
+        const statsClub = document.getElementById("club-select")?.value;
+        const liveSel = document.getElementById("live-club-select");
+        if (liveSel && statsClub && liveSel.value !== statsClub) liveSel.value = statsClub;
+      }
+
+      function onLiveClubChange() {
+        const id = document.getElementById("live-club-select")?.value || "";
+        if (id) localStorage.setItem("kluby_live_club", id);
+        const statsSel = document.getElementById("club-select");
+        if (statsSel && id) statsSel.value = id;
+        loadLiveEvents().then(() => loadLiveNight());
+      }
+
+      function onLiveEventChange() {
+        const id = document.getElementById("live-event-select")?.value || "";
+        if (id) localStorage.setItem("kluby_live_event", id);
+        else localStorage.removeItem("kluby_live_event");
+        loadLiveNight();
+      }
+
+      async function loadLiveEvents() {
+        const sel = document.getElementById("live-event-select");
+        const clubId = document.getElementById("live-club-select")?.value;
+        if (!sel) return;
+        sel.innerHTML = '<option value="">Seleccioná un evento</option>';
+        if (!clubId) return;
+        try {
+          const events = await api("/clubs/" + clubId + "/events");
+          const sorted = events.sort((a, b) => new Date(b.date) - new Date(a.date));
+          sorted.forEach((e) => {
+            const opt = document.createElement("option");
+            opt.value = e.id;
+            opt.textContent = e.name + " · " + formatStatsEventDate(e.date);
+            sel.appendChild(opt);
+          });
+          const saved = localStorage.getItem("kluby_live_event") || "";
+          if (saved && sorted.some((e) => e.id === saved)) sel.value = saved;
+          else if (sorted.length) sel.value = sorted[0].id;
+        } catch (e) {
+          toast("No se pudieron cargar eventos", "err");
+        }
+      }
+
+      function setLiveFilter(status, btn) {
+        _liveFilter = status;
+        document.querySelectorAll("#live-filters button").forEach((b) => b.classList.toggle("active", b === btn));
+        loadLiveNight();
+      }
+
+      function startLivePolling() {
+        stopLivePolling();
+        _livePollTimer = setInterval(() => {
+          if (document.getElementById("view-live")?.classList.contains("active")) loadLiveNight(true);
+        }, 30000);
+      }
+
+      function stopLivePolling() {
+        if (_livePollTimer) { clearInterval(_livePollTimer); _livePollTimer = null; }
+      }
+
+      async function loadLiveNight(silent) {
+        const clubId = document.getElementById("live-club-select")?.value;
+        const eventId = document.getElementById("live-event-select")?.value;
+        const meta = document.getElementById("live-meta");
+        const kpis = document.getElementById("live-kpis");
+        const table = document.getElementById("live-table");
+        if (!clubId || !eventId) {
+          if (kpis) kpis.innerHTML = "";
+          if (table) table.innerHTML = '<div class="empty" style="padding:40px">Elegí un evento para ver las reservas.</div>';
+          return;
+        }
+        if (!silent && table) table.innerHTML = '<div class="empty" style="padding:40px">Cargando...</div>';
+        try {
+          const q = _liveFilter !== "all" ? "?status=" + encodeURIComponent(_liveFilter) : "";
+          const d = await api(`/clubs/${clubId}/events/${eventId}/reservations${q}`);
+          _liveData = d;
+          const s = d.summary;
+          const evDate = formatStatsEventDate(d.event.date);
+          if (meta) meta.innerHTML = `<b>${esc(d.event.name)}</b> · ${esc(evDate)} · Actualizado ${new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}`;
+          if (kpis) {
+            const confirmed = s.byStatus?.CONFIRMED || 0;
+            const pending = s.byStatus?.PENDING_PAYMENT || 0;
+            const checked = s.byStatus?.CHECKED_IN || 0;
+            kpis.innerHTML = `
+              <div class="ops-kpi highlight"><div class="ok-label">Mesas libres</div><div class="ok-val">${s.freeTables}</div><div class="ok-sub">de ${s.totalTables} totales</div></div>
+              <div class="ops-kpi"><div class="ok-label">Ocupadas</div><div class="ok-val">${s.occupiedTables}</div><div class="ok-sub">bloqueo activo</div></div>
+              <div class="ops-kpi"><div class="ok-label">Confirmadas</div><div class="ok-val">${confirmed}</div></div>
+              <div class="ops-kpi warn"><div class="ok-label">Pago pendiente</div><div class="ok-val">${pending}</div></div>
+              <div class="ops-kpi"><div class="ok-label">Ingresadas</div><div class="ok-val">${checked}</div></div>`;
+          }
+          renderLiveTable(d.reservations);
+        } catch (e) {
+          if (String(e.message).includes("401")) return logout();
+          if (table) table.innerHTML = `<div class="empty" style="padding:40px">${esc(e.message)}</div>`;
+        }
+      }
+
+      function renderLiveTable(rows) {
+        const wrap = document.getElementById("live-table");
+        if (!wrap) return;
+        if (!rows.length) {
+          wrap.innerHTML = '<div class="empty" style="padding:40px">No hay reservas con este filtro.</div>';
+          return;
+        }
+        wrap.innerHTML = `<table class="data-table"><thead><tr>
+          <th>Código</th><th>Mesa</th><th>Anfitrión</th><th>Estado</th><th>Modalidad</th><th>Pagado</th><th>Total</th><th>Invitados</th><th>Check-in</th>
+        </tr></thead><tbody>${rows.map((r) => {
+          const mode = r.mode === "OPEN_TABLE" ? "Mesa abierta" : "Estándar";
+          const guests = r.mode === "OPEN_TABLE" && r.guestsPending
+            ? `${r.guestsCount} (${r.guestsPending} pend.)` : String(r.guestsCount || "—");
+          const checkin = r.checkedInAt
+            ? new Date(r.checkedInAt).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })
+            : "—";
+          return `<tr>
+            <td><code style="font-size:11px">${esc(r.code)}</code></td>
+            <td><b>${esc(r.table?.label)}</b><br/><span style="color:var(--muted);font-size:11px">${esc(r.table?.sector || "")}</span></td>
+            <td>${esc(r.host?.fullName)}<br/><span style="color:var(--muted);font-size:11px">${esc(r.host?.email || "")}</span></td>
+            <td><span class="status-pill ${esc(r.status)}">${esc(RES_STATUS_LABEL[r.status] || r.status)}</span></td>
+            <td>${mode}</td>
+            <td>${fmtMoney(r.amountPaid)}</td>
+            <td>${fmtMoney(r.totalAmount)}</td>
+            <td>${guests}</td>
+            <td>${checkin}</td>
+          </tr>`;
+        }).join("")}</tbody></table>`;
+      }
+
+      function downloadCsv(filename, rows) {
+        const blob = new Blob(["\uFEFF" + rows.join("\n")], { type: "text/csv;charset=utf-8" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      function csvEscape(v) {
+        const s = String(v ?? "");
+        return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
+      }
+
+      function exportReservationsCsv() {
+        if (!_liveData?.reservations?.length) { toast("No hay reservas para exportar", "err"); return; }
+        const club = _clubsCache.find((c) => c.id === document.getElementById("live-club-select")?.value);
+        const head = ["Codigo", "Mesa", "Sector", "Anfitrion", "Email", "Estado", "Modalidad", "Pagado", "Total", "Check-in"];
+        const lines = [head.join(",")];
+        for (const r of _liveData.reservations) {
+          lines.push([
+            r.code, r.table?.label, r.table?.sector, r.host?.fullName, r.host?.email,
+            RES_STATUS_LABEL[r.status] || r.status,
+            r.mode === "OPEN_TABLE" ? "Mesa abierta" : "Estandar",
+            r.amountPaid, r.totalAmount,
+            r.checkedInAt ? new Date(r.checkedInAt).toISOString() : "",
+          ].map(csvEscape).join(","));
+        }
+        const slug = (club?.name || "kluby").replace(/\s+/g, "-").toLowerCase();
+        downloadCsv(`reservas-${slug}-${new Date().toISOString().slice(0, 10)}.csv`, lines);
+        toast("CSV descargado", "ok");
+      }
+
+      function exportStatsCsv() {
+        if (!_lastDashboardData) { toast("Cargá las estadísticas primero", "err"); return; }
+        const d = _lastDashboardData;
+        const k = d.kpis;
+        const lines = [
+          "Metrica,Valor",
+          `Periodo,${csvEscape(d.period?.label || "")}`,
+          `Ingresos,${k.totalRevenue}`,
+          `Ocupacion %,${k.occupancyRate}`,
+          `Asistencia %,${k.showRate}`,
+          `Reservas,${k.reservationsCount}`,
+          `Ticket promedio,${k.avgTicket}`,
+          "",
+          "Tipo pago,Monto,Cantidad",
+          ...(d.salesByType || []).map((r) => [r.type, r.total, r.count].map(csvEscape).join(",")),
+          "",
+          "Mesa,Reservas,Ingresos",
+          ...(d.topTables || []).slice(0, 20).map((t) => [t.label, t.reservationCount, t.revenue].map(csvEscape).join(",")),
+        ];
+        downloadCsv(`estadisticas-kluby-${new Date().toISOString().slice(0, 10)}.csv`, lines);
+        toast("CSV descargado", "ok");
+      }
 
       const PAYMENT_TYPE_LABEL = {
         DEPOSIT: "Señas",
@@ -2071,7 +2701,12 @@
       }
 
       // Auto-login si hay token guardado.
-      if (token && currentUser) {
+      if (!token || !currentUser) {
+        location.href = "/login.html?next=" + encodeURIComponent("/panel.html");
+      } else if (!["CLUB_ADMIN", "SUPER_ADMIN"].includes(currentUser.role)) {
+        const dest = currentUser.role === "STAFF" ? "/publi.html" : currentUser.role === "PUERTA" ? "/staff.html" : "/app.html";
+        location.href = dest;
+      } else {
         enterApp().catch(() => logout());
       }
     </script>

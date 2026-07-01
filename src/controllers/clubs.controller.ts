@@ -129,10 +129,14 @@ export const getClubById = async (
       where: { id },
       include: { tables: true, events: true },
     });
-    if (club === null) {
+    if (club === null || club.isActive === false) {
       throw new AppError("Boliche no encontrado", 404);
     }
-    sendSuccess(res, club);
+    const { tables, events, ...publicClub } = club;
+    sendSuccess(res, {
+      ...publicClub,
+      events: events.filter((e) => e.isActive),
+    });
   } catch (error) {
     next(error);
   }

@@ -1,0 +1,85 @@
+/* Kluby · pantallas operativas (puerta / publi) — mobile-first */
+.ops-shell { max-width: 480px; margin: 0 auto; padding: 16px 16px 32px; }
+.ops-tabs {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  margin-bottom: 16px; padding: 4px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+}
+.ops-tab {
+  padding: 12px 8px; border: none; border-radius: 9px; background: transparent;
+  color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.ops-tab.active { background: var(--surface-3); color: var(--text); }
+.ops-panel { display: none; }
+.ops-panel.active { display: block; }
+
+#qr-reader { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+#qr-reader video { border-radius: 14px; }
+.ops-scan-hint {
+  text-align: center; color: var(--muted); font-size: 13px; margin: 12px 0 4px;
+}
+
+.ops-btn-lg {
+  width: 100%; padding: 16px 18px; border-radius: 12px; border: none;
+  font-size: 16px; font-weight: 800; cursor: pointer;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff;
+}
+.ops-btn-lg.secondary {
+  background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+}
+.ops-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+
+.ops-kpi-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; gap: 10px;
+}
+.ops-kpi {
+  font-size: 14px; font-weight: 700; padding: 10px 14px; border-radius: 10px;
+  background: var(--surface-2); border: 1px solid var(--border); flex: 1;
+}
+.ops-kpi b { display: block; font-size: 22px; margin-top: 2px; }
+
+.ops-history { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.ops-history li {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 14px; border-radius: 12px; background: var(--surface);
+  border: 1px solid var(--border); font-size: 14px;
+}
+.ops-history .time { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.ops-history .name { font-weight: 700; }
+.ops-history .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+.ops-invite-card {
+  margin-top: 14px; padding: 16px; border-radius: 14px;
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.ops-invite-qr {
+  display: block; width: 168px; height: 168px; margin: 12px auto;
+  border-radius: 10px; background: #fff; padding: 8px;
+}
+.ops-invite-code {
+  text-align: center; font-size: 18px; font-weight: 800; letter-spacing: 1px;
+  margin-top: 4px;
+}
+.ops-invite-link {
+  font-size: 11px; color: var(--muted); word-break: break-all; text-align: center;
+  margin: 8px 0 12px;
+}
+.ops-event-card {
+  padding: 16px; margin-bottom: 12px; border-radius: 16px;
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  border: 1px solid var(--border);
+}
+.ops-event-head { margin-bottom: 12px; }
+.ops-event-head b { font-size: 17px; display: block; }
+.ops-event-head small { color: var(--muted); font-size: 13px; }
+
+.topbar.ops-topbar { padding: 12px 16px; }
+.topbar.ops-topbar .brand h1 { font-size: 16px; }
+.topbar.ops-topbar .who { display: none; }
+.topbar.ops-topbar .right { gap: 8px; }
+
+@media (min-width: 640px) {
+  .topbar.ops-topbar .who { display: block; }
+  .ops-shell { max-width: 560px; padding: 24px; }
+}

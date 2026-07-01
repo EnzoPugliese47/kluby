@@ -30,6 +30,7 @@ export type AggregateClubTable = {
 export type ClubTableAvgAggregateOutputType = {
   capacity: number | null
   minConsumption: runtime.Decimal | null
+  consumptionPercent: number | null
   price: runtime.Decimal | null
   depositPercent: number | null
   posX: number | null
@@ -39,6 +40,7 @@ export type ClubTableAvgAggregateOutputType = {
 export type ClubTableSumAggregateOutputType = {
   capacity: number | null
   minConsumption: runtime.Decimal | null
+  consumptionPercent: number | null
   price: runtime.Decimal | null
   depositPercent: number | null
   posX: number | null
@@ -53,6 +55,7 @@ export type ClubTableMinAggregateOutputType = {
   sector: string | null
   capacity: number | null
   minConsumption: runtime.Decimal | null
+  consumptionPercent: number | null
   price: runtime.Decimal | null
   depositPercent: number | null
   posX: number | null
@@ -70,6 +73,7 @@ export type ClubTableMaxAggregateOutputType = {
   sector: string | null
   capacity: number | null
   minConsumption: runtime.Decimal | null
+  consumptionPercent: number | null
   price: runtime.Decimal | null
   depositPercent: number | null
   posX: number | null
@@ -87,6 +91,7 @@ export type ClubTableCountAggregateOutputType = {
   sector: number
   capacity: number
   minConsumption: number
+  consumptionPercent: number
   price: number
   depositPercent: number
   posX: number
@@ -101,6 +106,7 @@ export type ClubTableCountAggregateOutputType = {
 export type ClubTableAvgAggregateInputType = {
   capacity?: true
   minConsumption?: true
+  consumptionPercent?: true
   price?: true
   depositPercent?: true
   posX?: true
@@ -110,6 +116,7 @@ export type ClubTableAvgAggregateInputType = {
 export type ClubTableSumAggregateInputType = {
   capacity?: true
   minConsumption?: true
+  consumptionPercent?: true
   price?: true
   depositPercent?: true
   posX?: true
@@ -124,6 +131,7 @@ export type ClubTableMinAggregateInputType = {
   sector?: true
   capacity?: true
   minConsumption?: true
+  consumptionPercent?: true
   price?: true
   depositPercent?: true
   posX?: true
@@ -141,6 +149,7 @@ export type ClubTableMaxAggregateInputType = {
   sector?: true
   capacity?: true
   minConsumption?: true
+  consumptionPercent?: true
   price?: true
   depositPercent?: true
   posX?: true
@@ -158,6 +167,7 @@ export type ClubTableCountAggregateInputType = {
   sector?: true
   capacity?: true
   minConsumption?: true
+  consumptionPercent?: true
   price?: true
   depositPercent?: true
   posX?: true
@@ -262,6 +272,7 @@ export type ClubTableGroupByOutputType = {
   sector: string | null
   capacity: number
   minConsumption: runtime.Decimal | null
+  consumptionPercent: number
   price: runtime.Decimal
   depositPercent: number
   posX: number
@@ -302,6 +313,7 @@ export type ClubTableWhereInput = {
   sector?: Prisma.StringNullableFilter<"ClubTable"> | string | null
   capacity?: Prisma.IntFilter<"ClubTable"> | number
   minConsumption?: Prisma.DecimalNullableFilter<"ClubTable"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFilter<"ClubTable"> | number
   price?: Prisma.DecimalFilter<"ClubTable"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFilter<"ClubTable"> | number
   posX?: Prisma.FloatFilter<"ClubTable"> | number
@@ -322,6 +334,7 @@ export type ClubTableOrderByWithRelationInput = {
   sector?: Prisma.SortOrderInput | Prisma.SortOrder
   capacity?: Prisma.SortOrder
   minConsumption?: Prisma.SortOrderInput | Prisma.SortOrder
+  consumptionPercent?: Prisma.SortOrder
   price?: Prisma.SortOrder
   depositPercent?: Prisma.SortOrder
   posX?: Prisma.SortOrder
@@ -345,6 +358,7 @@ export type ClubTableWhereUniqueInput = Prisma.AtLeast<{
   sector?: Prisma.StringNullableFilter<"ClubTable"> | string | null
   capacity?: Prisma.IntFilter<"ClubTable"> | number
   minConsumption?: Prisma.DecimalNullableFilter<"ClubTable"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFilter<"ClubTable"> | number
   price?: Prisma.DecimalFilter<"ClubTable"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFilter<"ClubTable"> | number
   posX?: Prisma.FloatFilter<"ClubTable"> | number
@@ -365,6 +379,7 @@ export type ClubTableOrderByWithAggregationInput = {
   sector?: Prisma.SortOrderInput | Prisma.SortOrder
   capacity?: Prisma.SortOrder
   minConsumption?: Prisma.SortOrderInput | Prisma.SortOrder
+  consumptionPercent?: Prisma.SortOrder
   price?: Prisma.SortOrder
   depositPercent?: Prisma.SortOrder
   posX?: Prisma.SortOrder
@@ -390,6 +405,7 @@ export type ClubTableScalarWhereWithAggregatesInput = {
   sector?: Prisma.StringNullableWithAggregatesFilter<"ClubTable"> | string | null
   capacity?: Prisma.IntWithAggregatesFilter<"ClubTable"> | number
   minConsumption?: Prisma.DecimalNullableWithAggregatesFilter<"ClubTable"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntWithAggregatesFilter<"ClubTable"> | number
   price?: Prisma.DecimalWithAggregatesFilter<"ClubTable"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntWithAggregatesFilter<"ClubTable"> | number
   posX?: Prisma.FloatWithAggregatesFilter<"ClubTable"> | number
@@ -405,6 +421,7 @@ export type ClubTableCreateInput = {
   sector?: string | null
   capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: number
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
   posX: number
@@ -425,6 +442,7 @@ export type ClubTableUncheckedCreateInput = {
   sector?: string | null
   capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: number
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
   posX: number
@@ -441,6 +459,7 @@ export type ClubTableUpdateInput = {
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
   posX?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -461,6 +480,7 @@ export type ClubTableUncheckedUpdateInput = {
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
   posX?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -479,6 +499,7 @@ export type ClubTableCreateManyInput = {
   sector?: string | null
   capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: number
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
   posX: number
@@ -494,6 +515,7 @@ export type ClubTableUpdateManyMutationInput = {
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
   posX?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -511,6 +533,7 @@ export type ClubTableUncheckedUpdateManyInput = {
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
   posX?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -538,6 +561,7 @@ export type ClubTableCountOrderByAggregateInput = {
   sector?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
   minConsumption?: Prisma.SortOrder
+  consumptionPercent?: Prisma.SortOrder
   price?: Prisma.SortOrder
   depositPercent?: Prisma.SortOrder
   posX?: Prisma.SortOrder
@@ -550,6 +574,7 @@ export type ClubTableCountOrderByAggregateInput = {
 export type ClubTableAvgOrderByAggregateInput = {
   capacity?: Prisma.SortOrder
   minConsumption?: Prisma.SortOrder
+  consumptionPercent?: Prisma.SortOrder
   price?: Prisma.SortOrder
   depositPercent?: Prisma.SortOrder
   posX?: Prisma.SortOrder
@@ -564,6 +589,7 @@ export type ClubTableMaxOrderByAggregateInput = {
   sector?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
   minConsumption?: Prisma.SortOrder
+  consumptionPercent?: Prisma.SortOrder
   price?: Prisma.SortOrder
   depositPercent?: Prisma.SortOrder
   posX?: Prisma.SortOrder
@@ -581,6 +607,7 @@ export type ClubTableMinOrderByAggregateInput = {
   sector?: Prisma.SortOrder
   capacity?: Prisma.SortOrder
   minConsumption?: Prisma.SortOrder
+  consumptionPercent?: Prisma.SortOrder
   price?: Prisma.SortOrder
   depositPercent?: Prisma.SortOrder
   posX?: Prisma.SortOrder
@@ -593,6 +620,7 @@ export type ClubTableMinOrderByAggregateInput = {
 export type ClubTableSumOrderByAggregateInput = {
   capacity?: Prisma.SortOrder
   minConsumption?: Prisma.SortOrder
+  consumptionPercent?: Prisma.SortOrder
   price?: Prisma.SortOrder
   depositPercent?: Prisma.SortOrder
   posX?: Prisma.SortOrder
@@ -724,6 +752,7 @@ export type ClubTableCreateWithoutClubInput = {
   sector?: string | null
   capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: number
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
   posX: number
@@ -742,6 +771,7 @@ export type ClubTableUncheckedCreateWithoutClubInput = {
   sector?: string | null
   capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: number
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
   posX: number
@@ -789,6 +819,7 @@ export type ClubTableScalarWhereInput = {
   sector?: Prisma.StringNullableFilter<"ClubTable"> | string | null
   capacity?: Prisma.IntFilter<"ClubTable"> | number
   minConsumption?: Prisma.DecimalNullableFilter<"ClubTable"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFilter<"ClubTable"> | number
   price?: Prisma.DecimalFilter<"ClubTable"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFilter<"ClubTable"> | number
   posX?: Prisma.FloatFilter<"ClubTable"> | number
@@ -804,6 +835,7 @@ export type ClubTableCreateWithoutEventInput = {
   sector?: string | null
   capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: number
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
   posX: number
@@ -822,6 +854,7 @@ export type ClubTableUncheckedCreateWithoutEventInput = {
   sector?: string | null
   capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: number
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
   posX: number
@@ -864,6 +897,7 @@ export type ClubTableCreateWithoutReservationsInput = {
   sector?: string | null
   capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: number
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
   posX: number
@@ -883,6 +917,7 @@ export type ClubTableUncheckedCreateWithoutReservationsInput = {
   sector?: string | null
   capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: number
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
   posX: number
@@ -914,6 +949,7 @@ export type ClubTableUpdateWithoutReservationsInput = {
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
   posX?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -933,6 +969,7 @@ export type ClubTableUncheckedUpdateWithoutReservationsInput = {
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
   posX?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -949,6 +986,7 @@ export type ClubTableCreateManyClubInput = {
   sector?: string | null
   capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: number
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
   posX: number
@@ -964,6 +1002,7 @@ export type ClubTableUpdateWithoutClubInput = {
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
   posX?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -982,6 +1021,7 @@ export type ClubTableUncheckedUpdateWithoutClubInput = {
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
   posX?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -999,6 +1039,7 @@ export type ClubTableUncheckedUpdateManyWithoutClubInput = {
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
   posX?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1015,6 +1056,7 @@ export type ClubTableCreateManyEventInput = {
   sector?: string | null
   capacity?: number
   minConsumption?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: number
   price: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: number
   posX: number
@@ -1030,6 +1072,7 @@ export type ClubTableUpdateWithoutEventInput = {
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
   posX?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1048,6 +1091,7 @@ export type ClubTableUncheckedUpdateWithoutEventInput = {
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
   posX?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1065,6 +1109,7 @@ export type ClubTableUncheckedUpdateManyWithoutEventInput = {
   sector?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   capacity?: Prisma.IntFieldUpdateOperationsInput | number
   minConsumption?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  consumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositPercent?: Prisma.IntFieldUpdateOperationsInput | number
   posX?: Prisma.FloatFieldUpdateOperationsInput | number
@@ -1113,6 +1158,7 @@ export type ClubTableSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   sector?: boolean
   capacity?: boolean
   minConsumption?: boolean
+  consumptionPercent?: boolean
   price?: boolean
   depositPercent?: boolean
   posX?: boolean
@@ -1134,6 +1180,7 @@ export type ClubTableSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   sector?: boolean
   capacity?: boolean
   minConsumption?: boolean
+  consumptionPercent?: boolean
   price?: boolean
   depositPercent?: boolean
   posX?: boolean
@@ -1153,6 +1200,7 @@ export type ClubTableSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   sector?: boolean
   capacity?: boolean
   minConsumption?: boolean
+  consumptionPercent?: boolean
   price?: boolean
   depositPercent?: boolean
   posX?: boolean
@@ -1172,6 +1220,7 @@ export type ClubTableSelectScalar = {
   sector?: boolean
   capacity?: boolean
   minConsumption?: boolean
+  consumptionPercent?: boolean
   price?: boolean
   depositPercent?: boolean
   posX?: boolean
@@ -1181,7 +1230,7 @@ export type ClubTableSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ClubTableOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clubId" | "eventId" | "label" | "sector" | "capacity" | "minConsumption" | "price" | "depositPercent" | "posX" | "posY" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["clubTable"]>
+export type ClubTableOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clubId" | "eventId" | "label" | "sector" | "capacity" | "minConsumption" | "consumptionPercent" | "price" | "depositPercent" | "posX" | "posY" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["clubTable"]>
 export type ClubTableInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   event?: boolean | Prisma.ClubTable$eventArgs<ExtArgs>
@@ -1212,6 +1261,7 @@ export type $ClubTablePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     sector: string | null
     capacity: number
     minConsumption: runtime.Decimal | null
+    consumptionPercent: number
     price: runtime.Decimal
     depositPercent: number
     posX: number
@@ -1652,6 +1702,7 @@ export interface ClubTableFieldRefs {
   readonly sector: Prisma.FieldRef<"ClubTable", 'String'>
   readonly capacity: Prisma.FieldRef<"ClubTable", 'Int'>
   readonly minConsumption: Prisma.FieldRef<"ClubTable", 'Decimal'>
+  readonly consumptionPercent: Prisma.FieldRef<"ClubTable", 'Int'>
   readonly price: Prisma.FieldRef<"ClubTable", 'Decimal'>
   readonly depositPercent: Prisma.FieldRef<"ClubTable", 'Int'>
   readonly posX: Prisma.FieldRef<"ClubTable", 'Float'>

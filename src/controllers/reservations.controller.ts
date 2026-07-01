@@ -423,6 +423,62 @@ export const getReservationByCode = async (
   }
 };
 
+/** GET /api/clubs/:clubId/check-ins — ingresos de la noche (puerta/admin). */
+export const listClubCheckIns = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const clubId = requireParam(req.params, "clubId");
+    await assertClubStaffCanAccessClub(req, clubId);
+
+    const eventIdParam =
+      typeof req.query.eventId === "string" ? req.query.eventId.trim() : "";
+
+    let event = null;
+    if (eventIdParam !== "") {
+      event = await prisma.eventNight.findFirst({
+        where: { id: eventIdParam, clubId },
+        select: { id: true, name: true, date: true },
+      });
+    } else {
+      event = await prisma.eventNight.findFirst({
+        where: { clubId, isActive: true },
+        orderBy: { date: "desc" },
+        select: { id: true, name: true, date: true },
+      });
+    }
+
+    if (event === null) {
+      sendSuccess(res, { event: null, checkIns: [] });
+      return;
+    }
+
+    const rows = await prisma.reservation.findMany({
+      where: {
+        clubId,
+        eventId: event.id,
+        checkedInAt: { not: null },
+      },
+      select: {
+        id: true,
+        code: true,
+        status: true,
+        checkedInAt: true,
+        table: { select: { label: true, sector: true } },
+        host: { select: { fullName: true } },
+      },
+      orderBy: { checkedInAt: "desc" },
+      take: 80,
+    });
+
+    sendSuccess(res, { event, checkIns: rows });
+  } catch (error) {
+    next(error);
+  }
+};
+
 /** GET /api/users/:id/reservations - Reservas donde el usuario es anfitrion. */
 export const listReservationsByHost = async (
   req: Request,

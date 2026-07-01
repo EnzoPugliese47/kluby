@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kluby · Ingresar</title>
+    <link rel="stylesheet" href="/kluby.css" />
+    <link rel="stylesheet" href="/kluby-public.css" />
+  </head>
+  <body>
+    <div id="k-bg"></div>
+    <div class="k-wrap">
+      <div id="k-nav"></div>
+      <main class="k-main">
+        <div class="k-login-wrap">
+          <div class="card k-login-card">
+            <div class="brand">
+              <div class="logo">K</div>
+              <div><h1 class="logo-text">KLUBY</h1><span>Acceso</span></div>
+            </div>
+            <p class="k-login-sub">Un solo ingreso para clientes, dueños y equipo.</p>
+            <div id="invite-banner" style="display:none" class="k-invite-banner"></div>
+            <div class="k-auth-tabs">
+              <button type="button" id="tab-login" class="active" onclick="switchTab('login')">Ingresar</button>
+              <button type="button" id="tab-reg" onclick="switchTab('reg')">Crear cuenta</button>
+            </div>
+            <div id="auth-form"></div>
+            <div class="error" id="auth-err"></div>
+          </div>
+          <p style="text-align:center;margin-top:20px;font-size:13px">
+            <a href="/" style="color:var(--muted)">← Volver al inicio</a>
+          </p>
+        </div>
+      </main>
+      <div id="k-footer"></div>
+    </div>
+    <script src="/kluby-ui.js"></script>
+    <script>
+      KlubyUI.mountPublicPage("");
+      const UI = KlubyUI;
+      const API = "/api";
+      const $ = (id) => document.getElementById(id);
+      const params = new URLSearchParams(location.search);
+      const nextUrl = params.get("next") || "";
+
+      function captureInviteFromUrl() {
+        const inv = params.get("invitacion");
+        const eq = params.get("equipo");
+        if (inv) localStorage.setItem("kluby_pending_event", inv.trim());
+        if (eq) localStorage.setItem("kluby_pending_equipo", eq.trim());
+        if (inv || eq) {
+          const q = new URLSearchParams();
+          if (nextUrl) q.set("next", nextUrl);
+          history.replaceState({}, "", location.pathname + (q.toString() ? "?" + q : ""));
+        }
+      }
+
+      function saveSession(data) {
+        localStorage.setItem("kluby_token", data.token);
+        localStorage.setItem("kluby_user", JSON.stringify(data.user));
+        localStorage.removeItem("kluby_staff_token");
+        localStorage.removeItem("kluby_staff_user");
+        localStorage.removeItem("kluby_publi_token");
+        localStorage.removeItem("kluby_publi_user");
+      }
+
+      async function api(path, options = {}) {
+        const token = localStorage.getItem("kluby_token") || "";
+        const res = await fetch(API + path, {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: "Bearer " + token } : {}),
+            ...(options.headers || {}),
+          },
+        });
+        const json = await res.json().catch(() => ({ success: false, error: "Respuesta inválida" }));
+        if (!res.ok || !json.success) throw new Error(json.error || "Error " + res.status);
+        return json.data;
+      }
+
+      function redirectAfterLogin(user) {
+        if (nextUrl && nextUrl.startsWith("/")) {
+          location.href = nextUrl;
+          return;
+        }
+        location.href = UI.appDest(user);
+      }
+
+      async function redeemPendingInvites(user) {
+        const eventCode = localStorage.getItem("kluby_pending_event");
+        const teamCode = localStorage.getItem("kluby_pending_equipo");
+        if (eventCode && user.role === "CLIENT") {
+          try {
+            await api("/invites/event/redeem", { method: "POST", body: JSON.stringify({ code: eventCode }) });
+            localStorage.removeItem("kluby_pending_event");
+          } catch { /* ignore */ }
+        }
+        if (teamCode) {
+          try {
+            const r = await api("/invites/club/redeem", { method: "POST", body: JSON.stringify({ code: teamCode }) });
+            localStorage.removeItem("kluby_pending_equipo");
+            if (r.token && r.user) {
+              saveSession({ token: r.token, user: r.user });
+              redirectAfterLogin(r.user);
+              return true;
+            }
+          } catch { /* ignore */ }
+        }
+        return false;
+      }
+
+      async function renderInviteBanner() {
+        const el = $("invite-banner");
+        const eventCode = localStorage.getItem("kluby_pending_event");
+        const teamCode = localStorage.getItem("kluby_pending_equipo");
+        if (!eventCode && !teamCode) { el.style.display = "none"; return; }
+        el.style.display = "block";
+        if (eventCode) {
+          try {
+            const p = await fetch(API + "/invites/event/preview?code=" + encodeURIComponent(eventCode)).then((r) => r.json());
+            if (p.success) {
+              el.innerHTML = `<b>Te invitaron a un evento</b><br/>${UI.esc(p.data.club.name)} · ${UI.esc(p.data.event.name)} · ${UI.fdatetime(p.data.event.date)}<br/><span class="hint">Ingresá o creá cuenta para confirmar.</span>`;
+              return;
+            }
+          } catch { /* ignore */ }
+        }
+        el.innerHTML = "<b>Tenés un código pendiente</b><br/>Ingresá o registrate para canjearlo.";
+      }
+
+      function switchTab(tab) {
+        $("auth-err").textContent = "";
+        $("auth-err").style.color = "";
+        $("tab-login").classList.toggle("active", tab === "login");
+        $("tab-reg").classList.toggle("active", tab === "reg");
+        if (tab === "login") {
+          $("auth-form").innerHTML = `
+            <label>Email</label>
+            <input id="l-email" type="email" placeholder="tu@email.com" autocomplete="email" />
+            <label>Contraseña</label>
+            <input id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+            <button class="btn-full" onclick="submitLogin()">Ingresar</button>
+            <div style="text-align:center;margin-top:12px">
+              <a onclick="switchTab('forgot')" style="cursor:pointer;font-size:13px;color:var(--muted)">¿Olvidaste tu contraseña?</a>
+            </div>`;
+        } else if (tab === "forgot") {
+          $("tab-login").classList.remove("active");
+          $("tab-reg").classList.remove("active");
+          $("auth-form").innerHTML = `
+            <p class="hint" style="margin-bottom:8px">Te enviamos un enlace para restablecer la contraseña.</p>
+            <label>Email</label>
+            <input id="f-email" type="email" placeholder="tu@email.com" />
+            <button class="btn-full" onclick="submitForgot()">Enviar enlace</button>
+            <div id="reset-step" style="display:none;margin-top:16px">
+              <div class="card" style="padding:14px;background:var(--surface-3)"><div class="hint" id="reset-note"></div></div>
+              <label>Token de recuperación</label>
+              <input id="r-token" placeholder="Pegá el token" />
+              <label>Nueva contraseña (mín. 8)</label>
+              <input id="r-newpass" type="password" />
+              <button class="btn-full btn-accent" onclick="submitReset()">Cambiar contraseña</button>
+            </div>
+            <div style="text-align:center;margin-top:14px">
+              <a onclick="switchTab('login')" style="cursor:pointer;font-size:13px">← Volver</a>
+            </div>`;
+        } else {
+          $("auth-form").innerHTML = `
+            <label>Nombre completo</label>
+            <input id="r-name" placeholder="Tu nombre" />
+            <label>Email</label>
+            <input id="r-email" type="email" placeholder="tu@email.com" />
+            <label>Teléfono</label>
+            <input id="r-phone" placeholder="11 1234 5678" />
+            <p class="hint" style="margin-top:-4px">Para Mesa Abierta y contacto con anfitriones.</p>
+            <label>Contraseña (mín. 8)</label>
+            <input id="r-pass" type="password" placeholder="••••••••" />
+            <button class="btn-full btn-accent" onclick="submitRegister()">Crear cuenta</button>`;
+        }
+      }
+
+      async function submitLogin() {
+        $("auth-err").textContent = "";
+        try {
+          const data = await api("/users/login", {
+            method: "POST",
+            body: JSON.stringify({ email: $("l-email").value.trim(), password: $("l-pass").value }),
+          });
+          saveSession(data);
+          const redirected = await redeemPendingInvites(data.user);
+          if (!redirected) redirectAfterLogin(data.user);
+        } catch (e) { $("auth-err").textContent = e.message; }
+      }
+
+      async function submitRegister() {
+        $("auth-err").textContent = "";
+        const phone = $("r-phone").value.trim();
+        if (phone.replace(/\D/g, "").length < 6) {
+          $("auth-err").textContent = "Ingresá un teléfono válido (mínimo 6 dígitos).";
+          return;
+        }
+        try {
+          const data = await api("/users/register", {
+            method: "POST",
+            body: JSON.stringify({
+              fullName: $("r-name").value.trim(),
+              email: $("r-email").value.trim(),
+              phone,
+              password: $("r-pass").value,
+            }),
+          });
+          saveSession(data);
+          const redirected = await redeemPendingInvites(data.user);
+          if (!redirected) redirectAfterLogin(data.user);
+        } catch (e) { $("auth-err").textContent = e.message; }
+      }
+
+      async function submitForgot() {
+        $("auth-err").textContent = "";
+        try {
+          const r = await api("/users/forgot-password", { method: "POST", body: JSON.stringify({ email: $("f-email").value.trim() }) });
+          $("reset-step").style.display = "block";
+          if (r.token) {
+            $("r-token").value = r.token;
+            $("reset-note").innerHTML = "Modo demo: token autocompletado (vence en " + (r.expiresInMinutes || 60) + " min).";
+          } else {
+            $("reset-note").textContent = r.message;
+          }
+        } catch (e) { $("auth-err").textContent = e.message; }
+      }
+
+      async function submitReset() {
+        $("auth-err").textContent = "";
+        try {
+          await api("/users/reset-password", {
+            method: "POST",
+            body: JSON.stringify({ token: $("r-token").value.trim(), newPassword: $("r-newpass").value }),
+          });
+          switchTab("login");
+          $("auth-err").style.color = "var(--accent)";
+          $("auth-err").textContent = "Contraseña actualizada. Ya podés ingresar.";
+        } catch (e) { $("auth-err").textContent = e.message; }
+      }
+
+      captureInviteFromUrl();
+      const session = UI.getSession();
+      if (session) {
+        redirectAfterLogin(session.user);
+      } else {
+        if (params.get("tab") === "reg") switchTab("reg");
+        else switchTab("login");
+        renderInviteBanner();
+      }
+    </script>
+  </body>
+</html>

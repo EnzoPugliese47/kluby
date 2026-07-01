@@ -4,6 +4,11 @@ import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
 import {
+  minConsumptionFromPercent,
+  normalizeConsumptionPercent,
+} from "../utils/tableConsumption";
+import { tableNumberFromLabel } from "../utils/tables";
+import {
   asRecord,
   optionalNumber,
   optionalString,
@@ -11,6 +16,29 @@ import {
   requireParam,
   requireString,
 } from "../utils/validation";
+
+const parseConsumptionPercent = (
+  raw: number | undefined,
+  fallback: number
+): number => {
+  const value = raw ?? fallback;
+  try {
+    return normalizeConsumptionPercent(value);
+  } catch {
+    throw new AppError("El porcentaje de consumicion debe estar entre 1 y 100", 400);
+  }
+};
+
+const resolveEventDefaults = async (
+  eventId: string,
+  clubId: string
+): Promise<{ defaultConsumptionPercent: number }> => {
+  const event = await prisma.eventNight.findUnique({ where: { id: eventId } });
+  if (event === null || event.clubId !== clubId) {
+    throw new AppError("El evento no pertenece a este boliche", 400);
+  }
+  return { defaultConsumptionPercent: event.defaultConsumptionPercent };
+};
 
 /** POST /api/clubs/:clubId/tables - Alta de mesa con coordenadas del mapa 2D. */
 export const createTable = async (
@@ -28,9 +56,9 @@ export const createTable = async (
     const posX = requireNumber(body, "posX");
     const posY = requireNumber(body, "posY");
     const sector = optionalString(body, "sector");
-    const minConsumption = optionalNumber(body, "minConsumption");
     const depositPercent = optionalNumber(body, "depositPercent");
     const eventId = optionalString(body, "eventId");
+    const consumptionPercentRaw = optionalNumber(body, "consumptionPercent");
 
     if (capacity <= 0) {
       throw new AppError("La capacidad debe ser mayor a cero", 400);
@@ -50,12 +78,16 @@ export const createTable = async (
       throw new AppError("Boliche no encontrado", 404);
     }
 
+    let eventDefault = 100;
     if (eventId !== undefined) {
-      const event = await prisma.eventNight.findUnique({ where: { id: eventId } });
-      if (event === null || event.clubId !== clubId) {
-        throw new AppError("El evento no pertenece a este boliche", 400);
-      }
+      const defs = await resolveEventDefaults(eventId, clubId);
+      eventDefault = defs.defaultConsumptionPercent;
     }
+
+    const consumptionPercent = parseConsumptionPercent(
+      consumptionPercentRaw,
+      eventDefault
+    );
 
     const table = await prisma.clubTable.create({
       data: {
@@ -67,14 +99,109 @@ export const createTable = async (
         posY,
         sector: sector ?? null,
         price: new Prisma.Decimal(price),
-        minConsumption:
-          minConsumption !== undefined
-            ? new Prisma.Decimal(minConsumption)
-            : null,
+        consumptionPercent,
+        minConsumption: minConsumptionFromPercent(price, consumptionPercent),
         ...(depositPercent !== undefined ? { depositPercent } : {}),
       },
     });
     sendSuccess(res, table, 201);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/events/:eventId/tables/bulk
+ * Crea varias mesas de un sector de una (ej. 10 mesas en "VIP Pista").
+ */
+export const bulkCreateTablesForEvent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const eventId = requireParam(req.params, "eventId");
+    const body = asRecord(req.body);
+
+    const sector = requireString(body, "sector");
+    const count = requireNumber(body, "count");
+    const capacity = requireNumber(body, "capacity");
+    const price = requireNumber(body, "price");
+    const depositPercent = optionalNumber(body, "depositPercent") ?? 10;
+    const consumptionPercentRaw = optionalNumber(body, "consumptionPercent");
+
+    if (count < 1 || count > 50) {
+      throw new AppError("La cantidad de mesas debe estar entre 1 y 50", 400);
+    }
+    if (capacity <= 0) {
+      throw new AppError("La capacidad debe ser mayor a cero", 400);
+    }
+    if (price < 0) {
+      throw new AppError("El precio no puede ser negativo", 400);
+    }
+    if (depositPercent <= 0 || depositPercent > 100) {
+      throw new AppError("El porcentaje de sena debe estar entre 1 y 100", 400);
+    }
+
+    const event = await prisma.eventNight.findUnique({ where: { id: eventId } });
+    if (event === null) {
+      throw new AppError("Evento no encontrado", 404);
+    }
+
+    const consumptionPercent = parseConsumptionPercent(
+      consumptionPercentRaw,
+      event.defaultConsumptionPercent
+    );
+    const minConsumption = minConsumptionFromPercent(price, consumptionPercent);
+
+    const existing = await prisma.clubTable.findMany({
+      where: { eventId, isActive: true },
+      select: { label: true, sector: true },
+    });
+
+    let nextNum = existing.reduce(
+      (max, t) => Math.max(max, tableNumberFromLabel(t.label)),
+      0
+    );
+
+    const sectors = [
+      ...new Set(existing.map((t) => t.sector).filter(Boolean) as string[]),
+    ];
+    const sectorIndex = sectors.includes(sector)
+      ? sectors.indexOf(sector)
+      : sectors.length;
+
+    const cols = Math.min(5, count);
+    const baseY = 12 + (sectorIndex % 4) * 18;
+    const baseX = 14;
+
+    const tables = await prisma.$transaction(async (tx) => {
+      const created = [];
+      for (let i = 0; i < count; i++) {
+        nextNum += 1;
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const table = await tx.clubTable.create({
+          data: {
+            clubId: event.clubId,
+            eventId,
+            label: `Mesa ${nextNum}`,
+            sector,
+            capacity,
+            price: new Prisma.Decimal(price),
+            consumptionPercent,
+            minConsumption,
+            depositPercent,
+            posX: Math.min(92, baseX + col * 14),
+            posY: Math.min(92, baseY + row * 9),
+          },
+        });
+        created.push(table);
+      }
+      return created;
+    });
+
+    sendSuccess(res, { sector, count: tables.length, tables }, 201);
   } catch (error) {
     next(error);
   }
@@ -108,12 +235,17 @@ export const updateTable = async (
     const id = requireParam(req.params, "id");
     const body = asRecord(req.body);
 
+    const current = await prisma.clubTable.findUnique({ where: { id } });
+    if (current === null) {
+      throw new AppError("Mesa no encontrada", 404);
+    }
+
     const data: Prisma.ClubTableUpdateInput = {};
     const label = optionalString(body, "label");
     const sector = optionalString(body, "sector");
     const capacity = optionalNumber(body, "capacity");
     const price = optionalNumber(body, "price");
-    const minConsumption = optionalNumber(body, "minConsumption");
+    const consumptionPercentRaw = optionalNumber(body, "consumptionPercent");
     const depositPercent = optionalNumber(body, "depositPercent");
     const posX = optionalNumber(body, "posX");
     const posY = optionalNumber(body, "posY");
@@ -128,8 +260,11 @@ export const updateTable = async (
       if (price < 0) throw new AppError("El precio no puede ser negativo", 400);
       data.price = new Prisma.Decimal(price);
     }
-    if (minConsumption !== undefined) {
-      data.minConsumption = new Prisma.Decimal(minConsumption);
+    if (consumptionPercentRaw !== undefined) {
+      data.consumptionPercent = parseConsumptionPercent(
+        consumptionPercentRaw,
+        current.consumptionPercent
+      );
     }
     if (depositPercent !== undefined) {
       if (depositPercent <= 0 || depositPercent > 100) {
@@ -139,6 +274,20 @@ export const updateTable = async (
     }
     if (posX !== undefined) data.posX = posX;
     if (posY !== undefined) data.posY = posY;
+
+    const nextPrice =
+      price !== undefined ? price : Number(current.price);
+    const nextPercent =
+      consumptionPercentRaw !== undefined
+        ? parseConsumptionPercent(consumptionPercentRaw, current.consumptionPercent)
+        : current.consumptionPercent;
+
+    if (price !== undefined || consumptionPercentRaw !== undefined) {
+      data.minConsumption = minConsumptionFromPercent(nextPrice, nextPercent);
+      if (consumptionPercentRaw !== undefined) {
+        data.consumptionPercent = nextPercent;
+      }
+    }
 
     if (Object.keys(data).length === 0) {
       throw new AppError("No se enviaron campos para actualizar", 400);

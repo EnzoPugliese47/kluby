@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kluby · Boliche</title>
+    <link rel="stylesheet" href="/kluby.css" />
+    <link rel="stylesheet" href="/kluby-public.css" />
+  </head>
+  <body>
+    <div id="k-bg"></div>
+    <div class="k-wrap">
+      <div id="k-nav"></div>
+      <main class="k-main">
+        <div class="k-page" id="content">
+          <div class="empty">Cargando boliche...</div>
+        </div>
+      </main>
+      <div id="k-footer"></div>
+    </div>
+    <script src="/kluby-ui.js"></script>
+    <script>
+      const UI = KlubyUI;
+      UI.mountPublicPage("explorar");
+      KlubyUI.captureInviteFromUrl();
+
+      const clubId = new URLSearchParams(location.search).get("id");
+
+      async function render() {
+        const el = document.getElementById("content");
+        if (!clubId) {
+          el.innerHTML = '<div class="empty">Boliche no especificado. <a href="/explorar.html">Volver a explorar</a></div>';
+          return;
+        }
+        try {
+          const club = await UI.loadClub(clubId);
+          if (club.isActive === false) throw new Error("Este boliche no está disponible");
+          document.title = "Kluby · " + club.name;
+          const events = await UI.loadClubEvents(clubId);
+          const upcoming = events.filter((e) => !e.isPast);
+          const past = events.filter((e) => e.isPast).slice(-3).reverse();
+          const logo = club.imageUrl
+            ? `<img class="logo-big" src="${UI.esc(club.imageUrl)}" alt="" style="object-fit:cover;width:88px;height:88px" />`
+            : `<div class="logo-big">${UI.esc((club.name || "K").charAt(0))}</div>`;
+
+          el.innerHTML = `
+            <p style="margin-bottom:20px"><a href="/explorar.html" style="color:var(--muted);font-size:14px">← Volver a explorar</a></p>
+            <div class="k-club-hero">
+              <div class="k-club-hero-main">
+                ${logo}
+                <h1>${UI.esc(club.name)}</h1>
+                <div class="tags" style="display:flex;gap:8px;flex-wrap:wrap">
+                  ${club.musicGenre ? `<span class="k-tag">${UI.esc(club.musicGenre)}</span>` : ""}
+                  <span class="k-tag cyan">${UI.esc(club.city)}</span>
+                </div>
+                ${club.description ? `<p class="desc">${UI.esc(club.description)}</p>` : ""}
+                <div class="contact">
+                  📍 ${UI.esc(club.address)}, ${UI.esc(club.city)}<br/>
+                  ${club.contactEmail ? `✉ <a href="mailto:${UI.esc(club.contactEmail)}">${UI.esc(club.contactEmail)}</a><br/>` : ""}
+                  ${club.contactPhone ? `📞 <a href="tel:${UI.esc(club.contactPhone.replace(/\s/g, ""))}">${UI.esc(club.contactPhone)}</a>` : ""}
+                </div>
+              </div>
+              <aside class="k-club-sidebar">
+                <h3>Reservá tu mesa VIP</h3>
+                <p>Elegí una fecha, mirá el mapa del salón y confirmá con seña. Solo necesitás cuenta al reservar.</p>
+                ${
+                  upcoming.length
+                    ? `<a class="k-btn-glow" href="${UI.reserveUrl(clubId, upcoming[0].id)}" style="display:block;text-align:center;width:100%">Reservar — ${UI.esc(upcoming[0].name)}</a>`
+                    : `<a class="k-btn-ghost" href="/login.html?next=${encodeURIComponent("/app.html")}" style="display:block;text-align:center">Avisame cuando haya eventos</a>`
+                }
+              </aside>
+            </div>
+
+            <section style="margin-bottom:40px">
+              <h2 style="font-family:Syne,sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:6px">Próximas fechas</h2>
+              <p class="section-sub">Elegí la noche y reservá desde el mapa de mesas.</p>
+              ${
+                upcoming.length
+                  ? `<div class="k-events-list">${upcoming.map((e) => UI.eventRowHtml(e, clubId)).join("")}</div>`
+                  : '<div class="empty" style="padding:32px">No hay eventos próximos publicados todavía.</div>'
+              }
+            </section>
+
+            ${
+              past.length
+                ? `<section>
+                    <h2 style="font-family:Syne,sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:12px;color:var(--muted)">Eventos anteriores</h2>
+                    <div class="k-events-list">${past.map((e) => UI.eventRowHtml(e, clubId)).join("")}</div>
+                  </section>`
+                : ""
+            }`;
+        } catch (e) {
+          el.innerHTML = `
+            <div class="k-404" style="padding:40px 0">
+              <div class="code" style="font-size:4rem">?</div>
+              <h1>Boliche no encontrado</h1>
+              <p>${UI.esc(e.message)}</p>
+              <a class="k-btn-glow" href="/explorar.html">Explorar boliches</a>
+            </div>`;
+        }
+      }
+
+      render();
+    </script>
+  </body>
+</html>

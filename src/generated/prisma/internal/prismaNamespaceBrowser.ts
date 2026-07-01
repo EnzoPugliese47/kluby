@@ -203,6 +203,7 @@ export const ClubTableScalarFieldEnum = {
   sector: 'sector',
   capacity: 'capacity',
   minConsumption: 'minConsumption',
+  consumptionPercent: 'consumptionPercent',
   price: 'price',
   depositPercent: 'depositPercent',
   posX: 'posX',
@@ -222,6 +223,7 @@ export const EventNightScalarFieldEnum = {
   date: 'date',
   musicGenre: 'musicGenre',
   backgroundImage: 'backgroundImage',
+  defaultConsumptionPercent: 'defaultConsumptionPercent',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

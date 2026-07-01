@@ -1,21 +1,31 @@
 import { statSync } from "node:fs";
 import path from "node:path";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../generated/prisma/client";
+import type { PrismaClient as PrismaClientType } from "../generated/prisma/client";
 import { env, isProduction } from "../config/env";
 
 /**
  * Cliente Prisma como singleton para evitar abrir multiples pools de
  * conexiones (especialmente con hot-reload en desarrollo).
- *
- * Prisma 7 usa driver adapters (cliente sin motor Rust): la conexion a
- * PostgreSQL/Supabase se realiza a traves de @prisma/adapter-pg.
  */
 
-const createPrismaClient = (): PrismaClient => {
-  // ssl.rejectUnauthorized=false: la conexion se cifra pero no se verifica la
-  // cadena de certificados. Necesario en entornos con inspeccion SSL (proxy
-  // corporativo con certificado self-signed) y equivale a sslmode=require.
+/** Quita modulos generados de require.cache tras `prisma generate`. */
+const bustGeneratedPrismaCache = (): void => {
+  for (const key of Object.keys(require.cache)) {
+    if (key.includes(`${path.sep}generated${path.sep}prisma${path.sep}`)) {
+      delete require.cache[key];
+    }
+  }
+};
+
+const loadPrismaClientClass = (): typeof PrismaClientType => {
+  bustGeneratedPrismaCache();
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  return require("../generated/prisma/client").PrismaClient as typeof PrismaClientType;
+};
+
+const createPrismaClient = (): PrismaClientType => {
+  const PrismaClient = loadPrismaClientClass();
   const adapter = new PrismaPg({
     connectionString: env.databaseUrl,
     ssl: { rejectUnauthorized: false },
@@ -38,7 +48,7 @@ const getPrismaClientKey = (): string => {
 };
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+  prisma: PrismaClientType | undefined;
   prismaClientKey?: string;
 };
 
@@ -48,10 +58,12 @@ if (!isProduction) {
     void globalForPrisma.prisma?.$disconnect();
     globalForPrisma.prisma = undefined;
     globalForPrisma.prismaClientKey = clientKey;
+    bustGeneratedPrismaCache();
   }
 }
 
-export const prisma: PrismaClient = globalForPrisma.prisma ?? createPrismaClient();
+export const prisma: PrismaClientType =
+  globalForPrisma.prisma ?? createPrismaClient();
 
 if (!isProduction) {
   globalForPrisma.prisma = prisma;

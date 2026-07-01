@@ -2,22 +2,26 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0f" />
     <title>Kluby · Publi</title>
     <link rel="stylesheet" href="/kluby.css" />
+    <link rel="stylesheet" href="/ops-mobile.css" />
   </head>
   <body>
     <div id="root"></div>
     <div class="toast" id="toast"></div>
     <script>
       const API = "/api";
-      let token = localStorage.getItem("kluby_publi_token") || localStorage.getItem("kluby_token") || "";
-      let user = JSON.parse(localStorage.getItem("kluby_publi_user") || localStorage.getItem("kluby_user") || "null");
+      let token = localStorage.getItem("kluby_token") || "";
+      let user = JSON.parse(localStorage.getItem("kluby_user") || "null");
       let memberships = [];
       let events = [];
+      let invitesByEvent = {};
+
       const $ = (id) => document.getElementById(id);
       const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-      const fdt = (d) => new Date(d).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+      const fdt = (d) => new Date(d).toLocaleString("es-AR", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
       let tt;
       function toast(m, k = "") { const t = $("toast"); t.textContent = m; t.className = "toast show " + k; clearTimeout(tt); tt = setTimeout(() => (t.className = "toast " + k), 3000); }
 
@@ -29,43 +33,35 @@
       }
 
       function inviteLink(code) {
-        const base = location.origin + "/index.html";
-        return `${base}?invitacion=${encodeURIComponent(code)}`;
+        return location.origin + "/login.html?invitacion=" + encodeURIComponent(code);
       }
 
-      function renderLogin() {
-        $("root").innerHTML = `
-          <div style="min-height:100vh;display:grid;place-items:center;padding:20px">
-            <div class="card" style="width:100%;max-width:400px;padding:32px">
-              <div class="brand" style="justify-content:center;margin-bottom:20px"><div class="logo">K</div><div><h1>KLUBY</h1><span>Panel Publi</span></div></div>
-              <label>Email</label><input id="email" />
-              <label>Contraseña</label><input id="pass" type="password" />
-              <button class="btn-full" onclick="login()">Ingresar</button>
-              <div class="error" id="err"></div>
-              <p class="hint" style="text-align:center;margin-top:14px">¿Tenés un código de equipo? <a href="/index.html" style="color:var(--accent)">Canjealo en la app</a></p>
+      function qrUrl(link) {
+        return "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(link);
+      }
+
+      function inviteCardHtml(inv, eventName) {
+        const link = inviteLink(inv.code);
+        const uses = inv._count?.guests ?? 0;
+        const max = inv.maxUses ? ` / ${inv.maxUses}` : "";
+        return `
+          <div class="ops-invite-card">
+            <img class="ops-invite-qr" src="${qrUrl(link)}" alt="QR invitación" width="168" height="168" />
+            <div class="ops-invite-code">${esc(inv.code)}</div>
+            <div class="ops-invite-link">${esc(link)}</div>
+            <div class="ops-btn-row">
+              <button type="button" class="ops-btn-lg secondary" onclick="copyInvite('${esc(inv.code)}')">Copiar</button>
+              <button type="button" class="ops-btn-lg" onclick="shareInvite('${esc(inv.code)}','${esc(eventName)}')">Compartir</button>
             </div>
+            <p class="hint" style="text-align:center;margin-top:10px">${uses}${max} usos · ${inv.expiresAt ? "vence " + fdt(inv.expiresAt) : "sin vencimiento"}</p>
           </div>`;
       }
 
-      async function login() {
-        try {
-          const d = await api("/users/login", { method: "POST", body: JSON.stringify({ email: $("email").value.trim(), password: $("pass").value }) });
-          if (!["STAFF", "CLUB_ADMIN", "SUPER_ADMIN"].includes(d.user.role)) {
-            $("err").textContent = "Esta pantalla es para publis del boliche.";
-            return;
-          }
-          token = d.token; user = d.user;
-          localStorage.setItem("kluby_publi_token", token);
-          localStorage.setItem("kluby_publi_user", JSON.stringify(user));
-          await bootstrap();
-        } catch (e) { $("err").textContent = e.message; }
-      }
-
       function logout() {
-        token = ""; user = null; memberships = []; events = [];
-        localStorage.removeItem("kluby_publi_token");
-        localStorage.removeItem("kluby_publi_user");
-        renderLogin();
+        token = ""; user = null; memberships = []; events = []; invitesByEvent = {};
+        localStorage.removeItem("kluby_token");
+        localStorage.removeItem("kluby_user");
+        location.href = "/login.html";
       }
 
       async function bootstrap() {
@@ -86,6 +82,14 @@
 
       async function loadEvents(clubId) {
         events = await api("/clubs/" + clubId + "/staff-events");
+        invitesByEvent = {};
+        await Promise.all(events.map(async (ev) => {
+          try {
+            invitesByEvent[ev.id] = await api("/events/" + ev.id + "/invites");
+          } catch {
+            invitesByEvent[ev.id] = [];
+          }
+        }));
       }
 
       function render() {
@@ -96,66 +100,95 @@
           : `<p class="role-pill">${esc(clubName)}</p>`;
 
         $("root").innerHTML = `
-          <div class="topbar">
-            <div class="brand"><div class="logo">K</div><div><h1>KLUBY</h1><span>Invitaciones · Publi</span></div></div>
+          <div class="topbar ops-topbar">
+            <div class="brand"><div class="logo">K</div><div><h1>KLUBY</h1><span>Publi</span></div></div>
             <div class="right">
               <div class="who"><b>${esc(user.fullName)}</b><small>${user.role}</small></div>
-              <a class="ghost btn-sm" href="/index.html" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);text-decoration:none">App cliente</a>
               <button class="ghost btn-sm" onclick="logout()">Salir</button>
             </div>
           </div>
-          <div class="container" style="max-width:640px">
+          <div class="ops-shell">
             ${clubSelect}
-            <div class="section-title" style="margin-top:18px">Eventos</div>
-            <div class="section-sub">Generá un link o código para invitar clientes a una noche.</div>
-            <div id="events-list"><div class="empty">Cargando...</div></div>
+            <div class="section-title" style="margin-top:18px;font-size:20px">Invitar clientes</div>
+            <div class="section-sub">Generá un link con QR para compartir en el boliche.</div>
+            <div id="events-list"><div class="empty">Cargando eventos…</div></div>
           </div>`;
         if ($("club-sel")) $("club-sel").value = clubId;
-        renderEvents(clubId);
+        renderEvents();
       }
 
       async function onClubChange() {
+        $("events-list").innerHTML = `<div class="empty">Cargando eventos…</div>`;
         await loadEvents($("club-sel").value);
-        renderEvents($("club-sel").value);
+        renderEvents();
       }
 
-      function renderEvents(clubId) {
+      function renderEvents() {
         const el = $("events-list");
-        if (!events.length) { el.innerHTML = '<div class="empty">No hay eventos próximos en este boliche.</div>'; return; }
-        el.innerHTML = events.map((ev) => `
-          <div class="card" style="padding:18px;margin-bottom:12px">
-            <div class="row-between">
-              <div><b>${esc(ev.name)}</b><br/><small>${fdt(ev.date)}${ev.musicGenre ? " · " + esc(ev.musicGenre) : ""}</small></div>
-              <button type="button" class="btn-sm btn-accent" onclick="createInvite('${ev.id}')">Invitar</button>
+        if (!events.length) {
+          el.innerHTML = '<div class="empty">No hay eventos próximos en este boliche.</div>';
+          return;
+        }
+        el.innerHTML = events.map((ev) => {
+          const invites = (invitesByEvent[ev.id] || []).slice(0, 2);
+          return `
+          <div class="ops-event-card">
+            <div class="ops-event-head">
+              <b>${esc(ev.name)}</b>
+              <small>${fdt(ev.date)}${ev.musicGenre ? " · " + esc(ev.musicGenre) : ""}</small>
             </div>
-            <div id="inv-${ev.id}" style="margin-top:10px"></div>
-          </div>`).join("");
+            <button type="button" class="ops-btn-lg" onclick="createInvite('${ev.id}','${esc(ev.name)}')">+ Nueva invitación</button>
+            ${invites.map((inv) => inviteCardHtml(inv, ev.name)).join("")}
+          </div>`;
+        }).join("");
       }
 
-      async function createInvite(eventId) {
+      async function createInvite(eventId, eventName) {
         try {
           const inv = await api("/events/" + eventId + "/invites", { method: "POST", body: JSON.stringify({ maxUses: 50, expiresInHours: 336 }) });
-          const link = inviteLink(inv.code);
-          const slot = document.getElementById("inv-" + eventId);
-          if (slot) slot.innerHTML = `
-            <div class="pick-row" style="margin-top:8px">
-              <div style="min-width:0">
-                <b>${esc(inv.code)}</b>
-                <small style="display:block;word-break:break-all">${esc(link)}</small>
-              </div>
-              <button type="button" class="btn-sm ghost" onclick="copyInvite('${esc(inv.code)}','${esc(link)}')">Copiar link</button>
-            </div>`;
-          toast("Invitación creada", "ok");
+          if (!invitesByEvent[eventId]) invitesByEvent[eventId] = [];
+          invitesByEvent[eventId].unshift(inv);
+          renderEvents();
+          toast("Invitación lista para compartir", "ok");
+          shareInvite(inv.code, eventName);
         } catch (e) { toast(e.message, "err"); }
       }
 
-      function copyInvite(code, link) {
-        const text = link || code;
-        navigator.clipboard?.writeText(text).then(() => toast("Link copiado", "ok")).catch(() => toast(text, "ok"));
+      function copyInvite(code) {
+        const link = inviteLink(code);
+        navigator.clipboard?.writeText(link).then(() => toast("Link copiado", "ok")).catch(() => toast(link, "ok"));
       }
 
-      if (token && user) bootstrap().catch(() => renderLogin());
-      else renderLogin();
+      async function shareInvite(code, eventName) {
+        const link = inviteLink(code);
+        const text = `Te invito a ${eventName} — reservá tu mesa en Kluby:\n${link}`;
+        if (navigator.share) {
+          try {
+            await navigator.share({ title: "Invitación Kluby", text, url: link });
+            return;
+          } catch (e) {
+            if (e.name === "AbortError") return;
+          }
+        }
+        const wa = "https://wa.me/?text=" + encodeURIComponent(text);
+        window.open(wa, "_blank", "noopener,noreferrer");
+      }
+
+      window.onClubChange = onClubChange;
+      window.createInvite = createInvite;
+      window.copyInvite = copyInvite;
+      window.shareInvite = shareInvite;
+      window.logout = logout;
+
+      if (token && user) {
+        if (!["STAFF", "CLUB_ADMIN", "SUPER_ADMIN"].includes(user.role)) {
+          location.href = user.role === "PUERTA" ? "/staff.html" : "/app.html";
+        } else {
+          bootstrap().catch(() => logout());
+        }
+      } else {
+        location.href = "/login.html?next=" + encodeURIComponent("/publi.html");
+      }
     </script>
   </body>
 </html>

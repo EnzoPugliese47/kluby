@@ -1,0 +1,1630 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kluby · App</title>
+    <link rel="stylesheet" href="/kluby.css" />
+    <link rel="stylesheet" href="/kluby-public.css" />
+    <link rel="stylesheet" href="/kluby-app.css" />
+    <style>
+      /* Mapa 2D de mesas */
+      .floor {
+        position: relative; width: 100%; min-width: 640px; height: 360px;
+        background:
+          linear-gradient(180deg, #10101a, #0c0c14);
+        border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+        background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+        background-size: 22px 22px;
+      }
+      .floor-wrap { overflow-x: auto; padding-bottom: 8px; }
+      .stage-label {
+        position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+        background: var(--surface-3); color: var(--muted); padding: 4px 18px;
+        border-radius: 999px; font-size: 11px; letter-spacing: 2px; font-weight: 700;
+      }
+      .table-node {
+        position: absolute; width: 78px; height: 60px; border-radius: 12px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        font-size: 11px; font-weight: 700; cursor: pointer; padding: 4px; text-align: center;
+        border: 1.5px solid transparent; transition: transform 0.1s; color: #fff;
+      }
+      .table-node small { font-weight: 600; opacity: 0.85; font-size: 10px; }
+      .table-node:hover { transform: scale(1.06); }
+      .table-node.available { background: rgba(45,226,198,0.14); border-color: var(--accent); color: var(--accent); }
+      .table-node.reserved { background: rgba(255,92,108,0.13); border-color: var(--red); color: #ff9aa3; cursor: not-allowed; }
+      .table-node.reserved:hover { transform: none; }
+      .legend { display: flex; gap: 18px; margin: 14px 0; font-size: 13px; color: var(--muted); }
+      .legend .dot { width: 11px; height: 11px; border-radius: 4px; display: inline-block; margin-right: 6px; vertical-align: middle; }
+
+      /* Mapa con imagen de fondo (plano del salon) */
+      .floor-map { position: relative; width: 100%; max-width: 560px; margin: 0 auto; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: #0c0c14; }
+      .floor-map.default-canvas {
+        aspect-ratio: 1725 / 2490;
+        background: linear-gradient(180deg, #14141f, #0c0c14);
+        border: 2px dashed var(--border);
+        min-height: 200px;
+      }
+      .floor-map img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+      .canvas-label {
+        position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+        font-size: 11px; color: var(--muted); pointer-events: none; z-index: 1;
+        background: rgba(0,0,0,0.35); padding: 4px 10px; border-radius: 6px;
+      }
+      .table-pin {
+        position: absolute; transform: translate(-50%, -50%);
+        min-width: 26px; height: 26px; padding: 0 5px; border-radius: 7px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: 800; border: 2px solid; cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.5); transition: transform 0.1s;
+      }
+      .table-pin.available { background: rgba(45,226,198,0.92); border-color: #ffffff; color: #04201c; }
+      .table-pin.reserved { background: rgba(255,92,108,0.88); border-color: rgba(255,255,255,0.6); color: #fff; cursor: not-allowed; }
+      .table-pin.available:hover { transform: translate(-50%, -50%) scale(1.18); z-index: 3; }
+      .sector-legend { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 0; font-size: 12px; color: var(--muted); justify-content: center; }
+
+      .bottles-section { margin-top: 28px; }
+      .bottles-section h3 { margin: 0 0 6px; font-size: 18px; }
+      .bottles-section .section-sub { margin-bottom: 14px; }
+      .bottles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+      .bottle-item {
+        background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px;
+        padding: 14px; display: flex; flex-direction: column; gap: 6px;
+      }
+      .bottle-item .bi-name { font-weight: 700; font-size: 14px; }
+      .bottle-item .bi-cat { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+      .bottle-item .bi-desc { font-size: 12px; color: var(--muted); line-height: 1.4; flex: 1; }
+      .bottle-item .bi-price { font-size: 17px; font-weight: 800; color: var(--accent); margin-top: 4px; }
+
+      .k-finance-block {
+        background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px;
+        padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+      }
+      .k-fin-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; gap: 10px; }
+      .k-fin-row span { color: var(--muted); }
+      .k-fin-row b { font-size: 15px; }
+      .k-fin-row.highlight span { color: var(--text); font-weight: 600; }
+      .k-fin-row.highlight b { color: var(--amber); font-size: 17px; }
+      .k-fin-row.ok b { color: var(--green); }
+      .k-fin-note { font-size: 12px; color: var(--muted); line-height: 1.45; margin-top: 2px; }
+
+      .k-calc-budget { margin: 14px 0; }
+      .k-calc-budget label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
+      .k-calc-budget input { width: 100%; padding: 12px 14px; border-radius: 10px; background: var(--surface-3); border: 1px solid var(--border); color: var(--text); font-size: 16px; font-weight: 700; }
+      .k-calc-lines { display: flex; flex-direction: column; gap: 10px; max-height: 340px; overflow-y: auto; margin: 12px 0; padding-right: 4px; }
+      .k-calc-line {
+        display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;
+        padding: 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border);
+      }
+      .k-calc-line .name { font-weight: 700; font-size: 14px; }
+      .k-calc-line .price { font-size: 12px; color: var(--muted); }
+      .k-calc-qty { display: flex; align-items: center; gap: 8px; }
+      .k-calc-qty button {
+        width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+        background: var(--surface-3); color: var(--text); font-size: 18px; cursor: pointer; line-height: 1;
+      }
+      .k-calc-qty span { min-width: 24px; text-align: center; font-weight: 800; }
+      .k-calc-line-total { font-weight: 800; color: var(--accent); font-size: 14px; white-space: nowrap; }
+      .k-calc-summary {
+        padding: 14px; border-radius: 12px; background: rgba(124,92,255,0.08);
+        border: 1px solid rgba(124,92,255,0.25); font-size: 14px; line-height: 1.5;
+      }
+      .k-calc-summary b { font-size: 16px; }
+      .k-calc-summary.over { background: rgba(255,92,108,0.08); border-color: rgba(255,92,108,0.3); }
+      .k-calc-summary.ok { background: rgba(45,226,198,0.08); border-color: rgba(45,226,198,0.25); }
+
+      .reserve-info { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+      .reserve-info .stat { background: var(--surface-3); border-radius: 10px; padding: 10px 14px; }
+      .reserve-info .stat small { display: block; color: var(--muted); font-size: 11px; }
+      .reserve-info .stat b { font-size: 16px; }
+      .pay-opt { display: flex; gap: 10px; margin-top: 8px; }
+      .pay-opt .opt {
+        flex: 1; border: 1.5px solid var(--border); border-radius: 12px; padding: 14px; cursor: pointer;
+      }
+      .pay-opt .opt.sel { border-color: var(--primary); background: rgba(124,92,255,0.08); }
+      .pay-opt .opt b { display: block; font-size: 15px; }
+      .pay-opt .opt small { color: var(--muted); }
+
+      .ticket {
+        text-align: center; padding: 10px;
+      }
+      .ticket .qr { background: #fff; padding: 12px; border-radius: 14px; display: inline-block; margin: 8px 0; }
+      .ticket .code { font-family: monospace; font-size: 13px; color: var(--muted); word-break: break-all; }
+
+      .list-card { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+      .list-card .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+      .list-card .title { font-size: 16px; font-weight: 700; }
+
+      .contact-card {
+        margin: 18px 0 24px; padding: 18px 20px;
+        background: linear-gradient(135deg, rgba(45,226,198,0.08), rgba(45,226,198,0.02));
+        border: 1px solid rgba(45,226,198,0.25);
+      }
+      .contact-card h4 { margin: 0 0 12px; font-size: 14px; font-weight: 700; color: var(--accent); letter-spacing: .3px; }
+      .contact-card .contact-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 14px; }
+      .contact-card .contact-row:last-child { margin-bottom: 0; }
+      .contact-card .contact-row a { color: var(--text); text-decoration: none; }
+      .contact-card .contact-row a:hover { color: var(--accent); text-decoration: underline; }
+      .contact-card .contact-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+      .meta { color: var(--muted); font-size: 13px; line-height: 1.6; }
+      .amount-row { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; }
+      .amount-row b { color: var(--text); }
+
+      .user-avatar { border-radius: 50%; object-fit: cover; border: 2px solid var(--border); flex-shrink: 0; display: block; }
+      .user-avatar.placeholder {
+        display: inline-flex; align-items: center; justify-content: center;
+        background: linear-gradient(135deg, #2a1d5e, #3a1d52); font-weight: 800; color: #fff;
+      }
+      .profile-card { max-width: 480px; margin: 0 auto; padding: 28px; }
+      .profile-avatar-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 22px; }
+      .profile-avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 3px solid var(--border); }
+      .profile-avatar.placeholder { display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #2a1d5e, #3a1d52); color: #fff; }
+      input.readonly-field { opacity: 0.7; cursor: not-allowed; background: var(--surface-3); }
+
+      .profile-crop-modal { max-width: 420px !important; }
+      .profile-crop-layout { display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
+      .profile-crop-viewport {
+        width: 280px; height: 280px; position: relative; overflow: hidden;
+        background: #0a0a12; border-radius: 14px; border: 1px solid var(--border);
+        cursor: grab; touch-action: none; flex-shrink: 0;
+      }
+      .profile-crop-viewport.dragging { cursor: grabbing; }
+      .profile-crop-viewport img {
+        position: absolute; left: 50%; top: 50%; transform-origin: center center;
+        max-width: none; pointer-events: none; user-select: none; -webkit-user-drag: none;
+      }
+      .profile-crop-frame {
+        position: absolute; inset: 16px; border: 2px solid var(--accent);
+        box-shadow: 0 0 0 9999px rgba(0,0,0,0.58); border-radius: 12px;
+        pointer-events: none; z-index: 2;
+      }
+      .profile-crop-side { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+      .profile-crop-preview {
+        width: 88px; height: 88px; border-radius: 50%; overflow: hidden;
+        border: 3px solid var(--border); background: var(--surface-3);
+      }
+      .profile-crop-preview canvas { display: block; width: 100%; height: 100%; }
+      .profile-crop-zoom-row { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; }
+      .profile-crop-zoom-row input[type=range] { flex: 1; accent-color: var(--accent); }
+      .profile-crop-zoom-row span { font-size: 12px; color: var(--muted); min-width: 36px; text-align: right; }
+    </style>
+  </head>
+  <body class="kluby-public kluby-app">
+    <div id="k-bg"></div>
+    <div id="root"></div>
+    <div class="modal-overlay" id="modal"><div class="card modal" id="modal-content"></div></div>
+    <div class="toast" id="toast"></div>
+
+    <script src="/kluby-ui.js"></script>
+    <script>
+      const API = "/api";
+      const state = {
+        token: localStorage.getItem("kluby_token") || "",
+        user: JSON.parse(localStorage.getItem("kluby_user") || "null"),
+        view: "home",
+        params: {},
+      };
+
+      // ---------- utils ----------
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const attr = (s) => esc(s).replace(/[\r\n]+/g, " ");
+      function imgFallback(img) {
+        img.style.display = "none";
+        const fb = img.dataset.fallback;
+        if (fb && img.parentElement) {
+          img.parentElement.classList.remove("has-img");
+          if (!img.parentElement.textContent.trim()) img.parentElement.appendChild(document.createTextNode(fb));
+        }
+      }
+      const money = (n) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(Number(n) || 0);
+      const num = (n) => Number(n) || 0;
+
+      function reservationRemaining(r) {
+        return Math.max(0, num(r.totalAmount) - num(r.amountPaid));
+      }
+
+      function reservationMinConsumption(r) {
+        const t = r.table;
+        if (!t) return 0;
+        if (t.consumptionPercent != null && t.price != null) {
+          return Math.round(num(t.price) * num(t.consumptionPercent) / 100);
+        }
+        return num(t.minConsumption);
+      }
+
+      function consumptionBudgetDefault(r) {
+        const minCons = reservationMinConsumption(r);
+        if (minCons > 0) return minCons;
+        return reservationRemaining(r);
+      }
+
+      function reservationFinanceHtml(r, compact) {
+        const remaining = reservationRemaining(r);
+        const minCons = reservationMinConsumption(r);
+        const paid = num(r.amountPaid);
+        const total = num(r.totalAmount);
+        const rows = [
+          `<div class="k-fin-row"><span>Total mesa</span><b>${money(total)}</b></div>`,
+          `<div class="k-fin-row"><span>Pagado</span><b>${money(paid)}</b></div>`,
+        ];
+        if (remaining > 0) {
+          rows.push(`<div class="k-fin-row highlight"><span>Saldo pendiente</span><b>${money(remaining)}</b></div>`);
+          rows.push(`<p class="k-fin-note">${r.paymentOption === "FULL_PAYMENT" ? "Completá el pago de la mesa." : "Resto de la mesa a abonar en el boliche (después de la seña)."}</p>`);
+        } else if (r.status !== "PENDING_PAYMENT") {
+          rows.push(`<div class="k-fin-row ok"><span>Saldo mesa</span><b>¡Pagada!</b></div>`);
+        }
+        if (minCons > 0 && !compact) {
+          rows.push(`<div class="k-fin-row"><span>Consumición mínima</span><b>${money(minCons)}</b></div>`);
+          rows.push(`<p class="k-fin-note">Monto mínimo en botellas/combos en el local (podés planificarlo con la calculadora).</p>`);
+        }
+        return `<div class="k-finance-block">${rows.join("")}</div>`;
+      }
+
+      function wizardPayPreviewHtml(t) {
+        const total = num(t.price);
+        const deposit = Math.round(total * (t.depositPercent / 100));
+        const minCons = num(t.minConsumption);
+        const isFull = _reserveSel === "FULL_PAYMENT";
+        const payNow = isFull ? total : deposit;
+        const remaining = Math.max(0, total - payNow);
+        return `
+          <div class="k-finance-block" style="margin-top:14px">
+            <div class="k-fin-row"><span>Pagás ahora</span><b>${money(payNow)}</b></div>
+            <div class="k-fin-row highlight"><span>Saldo en el boliche</span><b>${money(remaining)}</b></div>
+            ${minCons ? `<div class="k-fin-row"><span>Consumición mínima</span><b>${money(minCons)}</b></div>` : ""}
+          </div>`;
+      }
+
+      function guestFinanceHtml({ shareAmount, prepaid, minConsumption, status }) {
+        const share = num(shareAmount);
+        const minCons = num(minConsumption);
+        const rows = [];
+        if (prepaid || share === 0) {
+          rows.push(`<div class="k-fin-row ok"><span>Tu parte de la mesa</span><b>Sin costo</b></div>`);
+          rows.push(`<p class="k-fin-note">El anfitrión ya pagó la mesa entera.</p>`);
+        } else if (status === "ACCEPTED_PENDING_PAYMENT") {
+          rows.push(`<div class="k-fin-row highlight"><span>Te falta pagar</span><b>${money(share)}</b></div>`);
+          rows.push(`<p class="k-fin-note">Pagá tu parte para confirmar el ingreso a la mesa.</p>`);
+        } else {
+          rows.push(`<div class="k-fin-row"><span>Tu parte de la mesa</span><b>${money(share)}</b></div>`);
+          rows.push(`<p class="k-fin-note">Si te aceptan, abonás esta parte de la reserva.</p>`);
+        }
+        if (minCons > 0) {
+          rows.push(`<div class="k-fin-row"><span>Consumición mínima</span><b>${money(minCons)}</b></div>`);
+          rows.push(`<p class="k-fin-note">Mínimo en botellas/combos en el local (planificá con la calculadora).</p>`);
+        }
+        return `<div class="k-finance-block">${rows.join("")}</div>`;
+      }
+
+      function guestBudgetDefault({ shareAmount, prepaid, minConsumption, status }) {
+        const minCons = num(minConsumption);
+        if (minCons > 0) return minCons;
+        if (!prepaid && status === "ACCEPTED_PENDING_PAYMENT") return num(shareAmount);
+        if (!prepaid) return num(shareAmount);
+        return 0;
+      }
+      const fdate = (d) => new Date(d).toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short" });
+      const fdatetime = (d) => new Date(d).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+      let toastTimer;
+      function toast(msg, kind = "") {
+        const t = $("toast");
+        t.textContent = msg;
+        t.className = "toast show " + kind;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => (t.className = "toast " + kind), 3200);
+      }
+      function openModal(html) { $("modal-content").innerHTML = html; $("modal").classList.add("open"); }
+      function closeModal() {
+        if (_pc?.blobUrl) URL.revokeObjectURL(_pc.blobUrl);
+        _pc = null;
+        $("modal-content").classList.remove("profile-crop-modal");
+        $("modal").classList.remove("open");
+      }
+      $("modal").addEventListener("click", (e) => { if (e.target.id === "modal") closeModal(); });
+
+      async function api(path, options = {}) {
+        const res = await fetch(API + path, {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            ...(state.token ? { Authorization: "Bearer " + state.token } : {}),
+            ...(options.headers || {}),
+          },
+        });
+        const json = await res.json().catch(() => ({ success: false, error: "Respuesta invalida" }));
+        if (res.status === 401 && state.token) { doLogout(); throw new Error("Sesion expirada"); }
+        if (!res.ok || !json.success) throw new Error(json.error || "Error " + res.status);
+        return json.data;
+      }
+
+      const statusBadge = (s) => {
+        const map = {
+          PENDING_PAYMENT: ["amber", "Pago pendiente"], CONFIRMED: ["green", "Confirmada"],
+          CHECKED_IN: ["violet", "Ingresado"], COMPLETED: ["muted", "Finalizada"],
+          CANCELLED: ["red", "Cancelada"], EXPIRED: ["muted", "Expirada"],
+          REQUESTED: ["amber", "Pendiente aprobacion"], ACCEPTED_PENDING_PAYMENT: ["violet", "Aceptado · a pagar"],
+          REJECTED: ["red", "Rechazado"],
+        };
+        const [cls, label] = map[s] || ["muted", s];
+        return `<span class="badge ${cls}">${label}</span>`;
+      };
+
+      function avatarHtml(user, size = 36, cls = "user-avatar") {
+        const initial = esc((user?.fullName || "U").charAt(0).toUpperCase());
+        if (user?.profileImageUrl) {
+          return `<img class="${cls}" style="width:${size}px;height:${size}px" src="${esc(user.profileImageUrl)}" alt="${attr(user.fullName)}" onerror="this.outerHTML='<span class=\\'${cls} placeholder\\' style=\\'width:${size}px;height:${size}px\\'>${initial}</span>'" />`;
+        }
+        return `<span class="${cls} placeholder" style="width:${size}px;height:${size}px">${initial}</span>`;
+      }
+
+      // ---------- auth ----------
+      function saveSession(data) {
+        state.token = data.token; state.user = data.user;
+        localStorage.setItem("kluby_token", data.token);
+        localStorage.setItem("kluby_user", JSON.stringify(data.user));
+      }
+      function captureInviteFromUrl() {
+        const p = new URLSearchParams(location.search);
+        const inv = p.get("invitacion");
+        const eq = p.get("equipo");
+        if (inv) localStorage.setItem("kluby_pending_event", inv.trim());
+        if (eq) localStorage.setItem("kluby_pending_equipo", eq.trim());
+        if (inv || eq) history.replaceState({}, "", location.pathname);
+      }
+      async function redeemPendingInvites() {
+        const eventCode = localStorage.getItem("kluby_pending_event");
+        const teamCode = localStorage.getItem("kluby_pending_equipo");
+        if (eventCode && state.user?.role === "CLIENT") {
+          try {
+            const r = await api("/invites/event/redeem", { method: "POST", body: JSON.stringify({ code: eventCode }) });
+            localStorage.removeItem("kluby_pending_event");
+            toast(r.message, "ok");
+            if (r.club?.id && r.event?.id) go("event", { id: r.event.id, club: r.club.id });
+            return;
+          } catch (e) { toast(e.message, "err"); }
+        }
+        if (teamCode && state.token) {
+          try {
+            const r = await api("/invites/club/redeem", { method: "POST", body: JSON.stringify({ code: teamCode }) });
+            localStorage.removeItem("kluby_pending_equipo");
+            if (r.token && r.user) {
+              saveSession({ token: r.token, user: r.user });
+            }
+            toast(r.message, "ok");
+            if (r.user?.role === "STAFF") { location.href = "/publi.html"; return; }
+            if (r.user?.role === "PUERTA") { location.href = "/staff.html"; return; }
+          } catch (e) { toast(e.message, "err"); }
+        }
+      }
+      async function redeemEventCode(code) {
+        const r = await api("/invites/event/redeem", { method: "POST", body: JSON.stringify({ code: code.trim() }) });
+        toast(r.message, "ok");
+        if (r.club?.id && r.event?.id) go("event", { id: r.event.id, club: r.club.id });
+      }
+      async function redeemTeamCode(code) {
+        const r = await api("/invites/club/redeem", { method: "POST", body: JSON.stringify({ code: code.trim() }) });
+        if (r.token && r.user) saveSession({ token: r.token, user: r.user });
+        toast(r.message, "ok");
+        if (r.user?.role === "STAFF") { location.href = "/publi.html"; return; }
+        if (r.user?.role === "PUERTA") { location.href = "/staff.html"; return; }
+        render();
+      }
+      function doLogout() {
+        state.token = ""; state.user = null;
+        localStorage.removeItem("kluby_token"); localStorage.removeItem("kluby_user");
+        location.href = "/login.html";
+      }
+
+      function requireAuth() {
+        if (!state.token || !state.user) {
+          location.href = "/login.html?next=" + encodeURIComponent("/app.html" + location.search);
+          return false;
+        }
+        if (state.user.role === "PUERTA") { location.href = "/staff.html"; return false; }
+        return true;
+      }
+
+      function go(view, params = {}) {
+        clearTimeout(clubsTimer);
+        state.view = view;
+        state.params = params;
+        render();
+        window.scrollTo(0, 0);
+      }
+      function stillOn(view) { return state.view === view; }
+      function livePage(view) {
+        if (!stillOn(view)) return null;
+        return document.getElementById("page");
+      }
+
+      // ---------- Fase 2: wizard, QR, timeline, alertas ----------
+      const WIZARD_LABELS = ["Boliche", "Fecha", "Mesa", "Pago"];
+      let _wizardTables = null;
+      let _alertsCache = null;
+      let _alertsAt = 0;
+      let _reserveSel = "DEPOSIT_ONLY";
+
+      function wizardGo(step, extra = {}) {
+        const p = { ...state.params, ...extra, step: Number(step) || 1 };
+        const clean = { step: p.step };
+        if (p.step >= 2 && p.clubId) clean.clubId = p.clubId;
+        if (p.step >= 3 && p.eventId) clean.eventId = p.eventId;
+        if (p.step >= 4 && p.tableId) clean.tableId = p.tableId;
+        go("wizard", clean);
+      }
+
+      function wizardChrome(step) {
+        const pct = ((step - 1) / (WIZARD_LABELS.length - 1)) * 100;
+        const steps = WIZARD_LABELS.map((lbl, i) => {
+          const n = i + 1;
+          const cls = n < step ? "done" : n === step ? "active" : "";
+          return `<div class="k-wizard-step ${cls}"><span class="dot">${n < step ? "✓" : n}</span><span class="lbl">${lbl}</span></div>`;
+        }).join("");
+        return `<div class="k-wizard-steps">${steps}</div><div class="k-wizard-bar"><div class="k-wizard-bar-fill" style="width:${pct}%"></div></div>`;
+      }
+
+      function reservationTimelineHtml(r) {
+        if (r.status === "CANCELLED" || r.status === "EXPIRED") {
+          return `<div class="k-timeline cancelled"><div class="k-timeline-step done"><span>${r.status === "CANCELLED" ? "Cancelada" : "Expirada"}</span></div></div>`;
+        }
+        const paid = r.status !== "PENDING_PAYMENT" && (Number(r.amountPaid) > 0 || r.status === "CONFIRMED" || r.status === "CHECKED_IN" || r.status === "COMPLETED");
+        const checked = r.status === "CHECKED_IN" || r.status === "COMPLETED";
+        const done = r.status === "COMPLETED";
+        const steps = [
+          { label: "Reservada", state: "done" },
+          { label: "Pagada", state: paid ? (r.status === "PENDING_PAYMENT" ? "current" : "done") : (r.status === "PENDING_PAYMENT" ? "current" : "") },
+          { label: "Ingreso", state: checked ? "done" : paid ? "current" : "" },
+          { label: "Finalizada", state: done ? "done" : checked ? "current" : "" },
+        ];
+        if (r.status === "PENDING_PAYMENT") steps[1].state = "current";
+        else if (r.status === "CONFIRMED") steps[2].state = steps[2].state || "current";
+        return `<div class="k-timeline">${steps.map((s) => `<div class="k-timeline-step ${s.state}"><span>${s.label}</span></div>`).join("")}</div>`;
+      }
+
+      function buildEventMapHtml(event, tables, onPick) {
+        window._tables = tables;
+        _wizardTables = tables;
+        const pinHtml = (t) => {
+          const short = String(t.label).split(" ").pop();
+          const av = t.status === "AVAILABLE";
+          return `<div class="table-pin ${av ? "available" : "reserved"}"
+               style="left:${t.posX}%;top:${t.posY}%"
+               title="${esc(t.label)} · ${t.capacity}p · ${money(t.price)}${av ? "" : " · Reservada"}"
+               ${av ? `onclick="${onPick(t.id)}"` : ""}>${esc(short)}</div>`;
+        };
+        const pins = tables.map(pinHtml).join("");
+        const sectors = [...new Set(tables.map((t) => t.sector).filter(Boolean))];
+        const mapBlock = event.backgroundImage
+          ? `<div class="floor-map"><img src="${esc(event.backgroundImage)}" alt="Plano del salón" onerror="this.style.display='none'" />${pins}</div>`
+          : `<div class="floor-map default-canvas"><span class="canvas-label">Plano del salón</span>${pins}</div>`;
+        const emptyHint = tables.length === 0
+          ? `<div class="empty" style="margin-top:14px">Todavía no hay mesas en este evento.</div>`
+          : `<div class="sector-legend">${sectors.map((s) => `<span>📍 ${esc(s)}</span>`).join("")}</div>`;
+        return { mapBlock, emptyHint };
+      }
+
+      async function fetchAlertsData() {
+        const alerts = [];
+        try {
+          const [rs, joins] = await Promise.all([
+            api("/users/" + state.user.id + "/reservations"),
+            api("/users/" + state.user.id + "/guest-entries"),
+          ]);
+          const now = Date.now();
+          for (const r of rs) {
+            if (r.status === "PENDING_PAYMENT" && new Date(r.event.date).getTime() >= now) {
+              alerts.push({
+                kind: "amber",
+                text: `Pago pendiente · ${r.table.label} · ${r.club.name}`,
+                action: `payReservation('${r.id}')`,
+                label: "Pagar ahora",
+              });
+            }
+          }
+          for (const g of joins) {
+            if (g.status === "ACCEPTED_PENDING_PAYMENT" && g.reservation?.paymentOption !== "FULL_PAYMENT") {
+              alerts.push({
+                kind: "green",
+                text: `¡Te aceptaron! Pagá tu parte en ${g.reservation.table.label}`,
+                action: `payShare('${g.id}')`,
+                label: "Pagar parte",
+              });
+            }
+          }
+        } catch { /* sin alertas */ }
+        return alerts;
+      }
+
+      async function refreshAlerts() {
+        const el = document.getElementById("app-alerts");
+        if (!el || !state.user) return;
+        const now = Date.now();
+        if (!_alertsCache || now - _alertsAt > 12000) {
+          _alertsCache = await fetchAlertsData();
+          _alertsAt = now;
+        }
+        el.innerHTML = _alertsCache.length
+          ? _alertsCache.map((a) => `
+              <div class="k-alert ${a.kind}">
+                <span>${esc(a.text)}</span>
+                <button type="button" class="btn-sm ${a.kind === "green" ? "btn-accent" : ""}" onclick="${a.action}">${esc(a.label)}</button>
+              </div>`).join("")
+          : "";
+      }
+
+      function maybeOnboard(key, html, continueFn) {
+        if (localStorage.getItem(key)) {
+          continueFn();
+          return;
+        }
+        window._onboardContinue = () => { localStorage.setItem(key, "1"); closeModal(); continueFn(); };
+        openModal(`<div class="k-onboard-box">${html}</div><button type="button" class="btn-full" onclick="_onboardContinue()">Entendido, continuar</button>`);
+      }
+
+      async function renderWizard(page) {
+        const step = Number(state.params.step) || 1;
+        page.innerHTML = wizardChrome(step) + `<div class="k-wizard-body" id="wizard-body"><div class="empty">Cargando...</div></div>`;
+        const body = page.querySelector("#wizard-body");
+        try {
+          if (step === 1) {
+            body.innerHTML = `
+              <div class="k-page-head"><h1>Elegí el boliche</h1><p>Paso 1 de 4 · Seleccioná dónde querés salir.</p></div>
+              <div class="k-filters">
+                <input id="wz-q" type="search" placeholder="Buscar..." autocomplete="off" oninput="debouncedWizardClubs()" />
+                <input id="wz-genre" type="search" placeholder="Género musical..." autocomplete="off" oninput="debouncedWizardClubs()" />
+              </div>
+              <div class="k-clubs-grid" id="wz-clubs"><div class="empty">Cargando...</div></div>`;
+            loadWizardClubs();
+            return;
+          }
+          if (step === 2) {
+            if (!state.params.clubId) { wizardGo(1); return; }
+            const club = await api("/clubs/" + state.params.clubId);
+            if (!stillOn("wizard")) return;
+            const events = (club.events || []).filter((e) => e.isActive);
+            const fut = events.filter((e) => new Date(e.date) >= new Date(Date.now() - 6 * 3600 * 1000)).sort((a, b) => new Date(a.date) - new Date(b.date));
+            const list = fut.length ? fut : events;
+            body.innerHTML = `
+              <button type="button" class="ghost btn-sm k-back" onclick="wizardGo(1)">← Cambiar boliche</button>
+              <div class="k-page-head"><h1>${esc(club.name)}</h1><p>Paso 2 de 4 · Elegí la fecha del evento.</p></div>
+              <div class="k-events-list" id="wz-events">${list.length
+                ? list.map((e) => KlubyUI.eventRowAppHtml(e, club.id, "wizard")).join("")
+                : `<div class="empty">No hay fechas publicadas.</div>`}</div>`;
+            return;
+          }
+          if (step === 3) {
+            if (!state.params.clubId || !state.params.eventId) { wizardGo(2, { clubId: state.params.clubId }); return; }
+            const [data, products] = await Promise.all([
+              api("/events/" + state.params.eventId + "/availability"),
+              api("/events/" + state.params.eventId + "/products").catch(() => []),
+            ]);
+            if (!stillOn("wizard")) return;
+            const cid = state.params.clubId;
+            const eid = state.params.eventId;
+            const onPick = (tid) => `wizardGo(4,{clubId:'${cid}',eventId:'${eid}',tableId:'${tid}'})`;
+            const { mapBlock, emptyHint } = buildEventMapHtml(data.event, data.tables, onPick);
+            body.innerHTML = `
+              <button type="button" class="ghost btn-sm k-back" onclick="wizardGo(2,{clubId:'${cid}'})">← Cambiar fecha</button>
+              <div class="k-page-head"><h1>${esc(data.event.name)}</h1><p>Paso 3 de 4 · Tocá una mesa disponible.</p></div>
+              <div class="legend">
+                <span><span class="dot" style="background:var(--accent)"></span>Disponible</span>
+                <span><span class="dot" style="background:var(--red)"></span>Reservada</span>
+              </div>
+              ${mapBlock}${emptyHint}${renderBottlesSection(products)}`;
+            return;
+          }
+          if (step === 4) {
+            const { clubId, eventId, tableId } = state.params;
+            if (!clubId || !eventId || !tableId) { wizardGo(3, { clubId, eventId }); return; }
+            if (!_wizardTables) {
+              const data = await api("/events/" + eventId + "/availability");
+              if (!stillOn("wizard")) return;
+              _wizardTables = data.tables;
+            }
+            const t = (_wizardTables || []).find((x) => x.id === tableId);
+            if (!t) { body.innerHTML = `<div class="empty">Mesa no encontrada.</div>`; return; }
+            const deposit = Math.round(Number(t.price) * (t.depositPercent / 100));
+            const minCons = num(t.minConsumption);
+            _reserveSel = "DEPOSIT_ONLY";
+            window._wizardTable = t;
+            body.innerHTML = `
+              <button type="button" class="ghost btn-sm k-back" onclick="wizardGo(3,{clubId:'${clubId}',eventId:'${eventId}'})">← Cambiar mesa</button>
+              <div class="k-page-head"><h1>Confirmá tu reserva</h1><p>Paso 4 de 4 · ${esc(t.label)} · ${esc(t.sector || "")}</p></div>
+              <div class="k-wizard-pay-card">
+                <div class="reserve-info">
+                  <div class="stat"><small>Mesa</small><b>${esc(t.label)}</b></div>
+                  <div class="stat"><small>Capacidad</small><b>${t.capacity} personas</b></div>
+                  <div class="stat"><small>Total mesa</small><b>${money(t.price)}</b></div>
+                  <div class="stat"><small>Seña (${t.depositPercent}%)</small><b>${money(deposit)}</b></div>
+                  ${minCons ? `<div class="stat"><small>Consumición mín.</small><b>${money(minCons)}</b></div>` : ""}
+                </div>
+                <label>¿Cómo querés pagar?</label>
+                <div class="pay-opt">
+                  <div class="opt sel" id="opt-dep" onclick="selPay('DEPOSIT_ONLY')"><b>Seña</b><small>${money(deposit)} ahora</small></div>
+                  <div class="opt" id="opt-full" onclick="selPay('FULL_PAYMENT')"><b>Total</b><small>${money(t.price)} ahora</small></div>
+                </div>
+                <div id="wizard-pay-preview">${wizardPayPreviewHtml(t)}</div>
+                <button type="button" class="ghost btn-sm" style="margin-top:12px" onclick="openConsumptionPlanner({ eventId: '${eventId}', minConsumption: ${minCons}, tablePrice: ${num(t.price)}, depositPercent: ${t.depositPercent} })">🍾 Planificá tu consumo antes de ir</button>
+                <button type="button" class="btn-full btn-accent" id="reserve-btn" style="margin-top:22px" onclick="confirmWizardReserve('${tableId}','${eventId}')">Confirmar y pagar</button>
+                <div class="error" id="reserve-err"></div>
+              </div>`;
+          }
+        } catch (e) {
+          if (stillOn("wizard") && body) body.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+
+      let wzClubsTimer;
+      function debouncedWizardClubs() { clearTimeout(wzClubsTimer); wzClubsTimer = setTimeout(loadWizardClubs, 300); }
+      async function loadWizardClubs() {
+        if (!stillOn("wizard") || Number(state.params.step) !== 1) return;
+        const q = document.getElementById("wz-q")?.value.trim() || "";
+        const g = document.getElementById("wz-genre")?.value.trim() || "";
+        const qs = new URLSearchParams(); if (q) qs.set("search", q); if (g) qs.set("genre", g);
+        try {
+          const clubs = await api("/clubs" + (qs.toString() ? "?" + qs : ""));
+          if (!stillOn("wizard")) return;
+          const el = document.getElementById("wz-clubs"); if (!el) return;
+          if (!clubs.length) { el.innerHTML = `<div class="empty">No se encontraron boliches.</div>`; return; }
+          el.innerHTML = clubs.map((c) => KlubyUI.clubCardAppHtml(c, "wizard")).join("");
+        } catch (e) {
+          if (stillOn("wizard")) toast(e.message, "err");
+        }
+      }
+
+      async function confirmWizardReserve(tableId, eventId) {
+        const btn = $("reserve-btn");
+        if (btn) { btn.disabled = true; btn.textContent = "Procesando..."; }
+        try {
+          const r = await api("/reservations", { method: "POST", body: JSON.stringify({
+            eventId, tableId, hostId: state.user.id, paymentOption: _reserveSel, mode: "STANDARD",
+          }) });
+          const paid = await api("/reservations/" + r.id + "/pay", { method: "POST", body: JSON.stringify({ provider: "demo" }) });
+          _alertsCache = null;
+          go("ticket", { id: paid.id });
+        } catch (e) {
+          const err = document.getElementById("reserve-err");
+          if (err) err.textContent = e.message;
+          if (btn) { btn.disabled = false; btn.textContent = "Confirmar y pagar"; }
+        }
+      }
+
+      async function renderTicket(page) {
+        page.innerHTML = `<div class="empty">Cargando tu QR...</div>`;
+        try {
+          const r = await api("/reservations/" + state.params.id);
+          if (!stillOn("ticket")) return;
+          const live = livePage("ticket"); if (!live) return;
+          const qr = "https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=" + encodeURIComponent(r.code);
+          live.innerHTML = `
+            <div class="k-ticket-page">
+              <div class="k-hero-badge" style="margin-bottom:20px"><span class="pulse"></span> Reserva confirmada</div>
+              <h1>¡Listo para salir! 🎉</h1>
+              <p class="k-ticket-meta">${esc(r.club.name)}<br/><b>${esc(r.event.name)}</b><br/>${esc(r.table.label)} · ${fdatetime(r.event.date)}</p>
+              <div class="k-ticket-qr"><img src="${qr}" alt="QR ${attr(r.code)}" width="280" height="280" /></div>
+              <p class="k-ticket-code">${esc(r.code)}</p>
+              ${reservationFinanceHtml(r)}
+              <p class="hint" style="margin-top:10px">Mostrá este código en puerta para ingresar.</p>
+              <button type="button" class="ghost btn-sm" style="margin-top:12px" onclick="openConsumptionPlanner({ reservationId: '${r.id}' })">🍾 Calculadora de consumo</button>
+              ${reservationTimelineHtml(r)}
+              <div class="btn-row" style="justify-content:center;margin-top:28px">
+                <button type="button" class="ghost" onclick="go('home')">Explorar más</button>
+                <button type="button" onclick="go('mine')">Mis reservas</button>
+              </div>
+            </div>`;
+        } catch (e) {
+          const live = livePage("ticket");
+          if (live) live.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+
+      // ---------- render shell ----------
+      function render() {
+        if (!requireAuth()) return;
+        const nav = [
+          ["home", "Explorar"],
+          ["invites", "Mis invitaciones"],
+          ["open", "Mesas abiertas"],
+          ["mine", "Mis reservas"],
+          ["joins", "Mis postulaciones"],
+          ["profile", "Mi perfil"],
+        ].filter(([v]) => state.user.role === "CLIENT" || v !== "invites");
+        const staffLinks = state.user.role === "STAFF"
+          ? `<a class="k-btn-ghost" href="/publi.html">Panel publi</a>`
+          : state.user.role === "PUERTA"
+            ? `<a class="k-btn-ghost" href="/staff.html">Puerta</a>`
+            : "";
+        $("root").innerHTML = `
+          <div class="k-app-wrap">
+            <header class="k-app-nav">
+              <div class="k-app-nav-inner">
+              <a class="brand" href="#" onclick="event.preventDefault();go('home')" title="Explorar boliches">
+                <div class="logo">K</div>
+                <div><h1>KLUBY</h1><span>Tu noche, tu mesa</span></div>
+              </a>
+              <div class="k-app-tabs">
+                ${nav.map(([v, l]) => `<button type="button" class="${state.view === v ? "active" : ""}" onclick="go('${v}')">${l}</button>`).join("")}
+              </div>
+              <div class="k-app-user">
+                ${staffLinks}
+                <a class="k-btn-ghost" href="/">Inicio</a>
+                <div class="profile-link" onclick="go('profile')" title="Mi perfil">
+                  ${avatarHtml(state.user, 40)}
+                  <div class="who"><b>${esc(state.user.fullName)}</b><small>${esc(state.user.email)}</small></div>
+                </div>
+                <button type="button" class="ghost btn-sm" onclick="doLogout()">Salir</button>
+              </div>
+              </div>
+            </header>
+            <div id="app-alerts" class="k-app-alerts"></div>
+            <main class="k-main"><div class="k-page" id="page"></div></main>
+          </div>`;
+        const page = $("page");
+        if (state.view === "home") renderHome(page);
+        else if (state.view === "wizard") renderWizard(page);
+        else if (state.view === "ticket") renderTicket(page);
+        else if (state.view === "club") renderClub(page);
+        else if (state.view === "event") renderEvent(page);
+        else if (state.view === "mine") renderMine(page);
+        else if (state.view === "open") renderOpen(page);
+        else if (state.view === "joins") renderJoins(page);
+        else if (state.view === "profile") renderProfile(page);
+        else if (state.view === "invites") renderInvites(page);
+        else if (state.view === "detail") renderDetail(page);
+        void refreshAlerts();
+      }
+
+      // ---------- HOME (clubs) ----------
+      async function renderHome(page) {
+        page.innerHTML = `
+          <div class="k-page-head">
+            <h1>Explorá boliches</h1>
+            <p>Elegí un local, una fecha y reservá tu mesa desde el mapa.</p>
+          </div>
+          <div class="k-hero-cta-inline">
+            <button type="button" class="k-btn-cyan" style="border:none;cursor:pointer;font-size:15px;padding:14px 28px" onclick="wizardGo(1)">Reservar mesa →</button>
+            <span class="hint" style="align-self:center">Paso a paso: boliche · fecha · mesa · pago</span>
+          </div>
+          <div class="k-filters">
+            <input id="q" type="search" placeholder="Buscar por nombre..." autocomplete="off" oninput="debouncedClubs()" />
+            <input id="genre" type="search" placeholder="Filtrar por género musical" autocomplete="off" oninput="debouncedClubs()" />
+          </div>
+          <div class="k-clubs-grid" id="clubs"><div class="empty">Cargando...</div></div>`;
+        loadClubs();
+      }
+      let clubsTimer;
+      function debouncedClubs() { clearTimeout(clubsTimer); clubsTimer = setTimeout(loadClubs, 300); }
+      async function loadClubs() {
+        if (!stillOn("home")) return;
+        const q = document.getElementById("q")?.value.trim() || "";
+        const g = document.getElementById("genre")?.value.trim() || "";
+        const qs = new URLSearchParams(); if (q) qs.set("search", q); if (g) qs.set("genre", g);
+        try {
+          const clubs = await api("/clubs" + (qs.toString() ? "?" + qs : ""));
+          if (!stillOn("home")) return;
+          const el = document.getElementById("clubs"); if (!el) return;
+          if (!clubs.length) { el.innerHTML = `<div class="empty">No se encontraron boliches.</div>`; return; }
+          el.className = "k-clubs-grid";
+          el.innerHTML = clubs.map((c) => KlubyUI.clubCardAppHtml(c, "wizard")).join("");
+        } catch (e) {
+          if (stillOn("home")) toast(e.message, "err");
+        }
+      }
+
+      // ---------- CLUB (events) ----------
+      async function renderClub(page) {
+        page.innerHTML = `<div class="empty">Cargando...</div>`;
+        try {
+          const club = await api("/clubs/" + (state.params.id || state.params.clubId));
+          if (!stillOn("club")) return;
+          const live = livePage("club"); if (!live) return;
+          const events = (club.events || []).filter((e) => e.isActive);
+          live.innerHTML = `
+            <button type="button" class="ghost btn-sm k-back" onclick="go('home')">← Volver</button>
+            <div class="k-club-hero-main" style="margin-top:14px;margin-bottom:28px">
+              <div class="logo-big">${club.imageUrl ? `<img src="${esc(club.imageUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:18px" />` : esc((club.name || "K").charAt(0).toUpperCase())}</div>
+              <h1>${esc(club.name)}</h1>
+              <p class="meta" style="margin-bottom:12px">📍 ${esc(club.address)}, ${esc(club.city)} ${club.musicGenre ? "· <span class='k-tag'>" + esc(club.musicGenre) + "</span>" : ""}</p>
+              ${club.description ? `<p class="desc">${esc(club.description)}</p>` : ""}
+              ${club.contactEmail ? `
+              <div class="contact" style="margin-top:16px">
+                ✉️ <a href="mailto:${esc(club.contactEmail)}">${esc(club.contactEmail)}</a>
+                ${club.contactPhone ? `<br/>📞 <a href="tel:${esc(club.contactPhone.replace(/\s/g, ""))}">${esc(club.contactPhone)}</a>` : ""}
+              </div>` : ""}
+            </div>
+            <h3 style="font-family:Syne,sans-serif;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Próximas fechas</h3>
+            <div id="events" class="k-events-list"></div>`;
+          const fut = events.filter((e) => new Date(e.date) >= new Date(Date.now() - 6 * 3600 * 1000)).sort((a, b) => new Date(a.date) - new Date(b.date));
+          const list = fut.length ? fut : events;
+          const eventsEl = live.querySelector("#events");
+          if (!eventsEl) return;
+          eventsEl.innerHTML = list.length
+            ? list.map((e) => KlubyUI.eventRowAppHtml(e, club.id, "wizard")).join("")
+            : `<div class="empty" style="padding:24px 0">Este boliche aún no tiene fechas publicadas.</div>`;
+        } catch (e) {
+          const live = livePage("club");
+          if (live) live.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+
+      // ---------- EVENT (table map + reserve) ----------
+      async function renderEvent(page) {
+        page.innerHTML = `<div class="empty">Cargando mapa...</div>`;
+        try {
+          const [data, products] = await Promise.all([
+            api("/events/" + state.params.id + "/availability"),
+            api("/events/" + state.params.id + "/products").catch(() => []),
+          ]);
+          if (!stillOn("event")) return;
+          const live = livePage("event"); if (!live) return;
+          window._tables = data.tables;
+          const cid = state.params.club;
+          const eid = state.params.id;
+          const onPick = (tid) => `wizardGo(4,{clubId:'${cid}',eventId:'${eid}',tableId:'${tid}'})`;
+          const { mapBlock, emptyHint } = buildEventMapHtml(data.event, data.tables, onPick);
+          const header = `
+            <button type="button" class="ghost btn-sm k-back" onclick="go('club',{id:'${cid}'})">← Volver</button>
+            <div class="section-title" style="margin-top:14px">${esc(data.event.name)}</div>
+            <div class="section-sub">🗓️ ${fdatetime(data.event.date)} · Tocá una mesa disponible para reservar</div>
+            <div class="legend">
+              <span><span class="dot" style="background:var(--accent)"></span>Disponible</span>
+              <span><span class="dot" style="background:var(--red)"></span>Reservada</span>
+            </div>`;
+          const bottlesBlock = renderBottlesSection(products);
+          live.innerHTML = header + mapBlock + emptyHint + bottlesBlock;
+        } catch (e) {
+          const live = livePage("event");
+          if (live) live.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+      function renderBottlesGrid(products) {
+        let html = `<div class="bottles-grid">`;
+        let lastCat = null;
+        for (const p of products) {
+          const cat = p.category || "General";
+          if (cat !== lastCat) {
+            html += `<div style="grid-column:1/-1;font-size:12px;color:var(--muted);font-weight:700;margin:${lastCat ? "10px" : "0"} 0 4px;text-transform:uppercase;letter-spacing:.5px">🍾 ${esc(cat)}</div>`;
+            lastCat = cat;
+          }
+          html += `<div class="bottle-item">
+            <div class="bi-name">${esc(p.name)}</div>
+            ${p.description ? `<div class="bi-desc">${esc(p.description)}</div>` : ""}
+            <div class="bi-price">${money(p.price)}</div>
+          </div>`;
+        }
+        html += "</div>";
+        return html;
+      }
+      function renderBottlesSection(products) {
+        if (!products.length) return "";
+        return `<div class="bottles-section"><h3>Carta de botellas</h3><p class="section-sub">Precios para este evento</p>${renderBottlesGrid(products)}</div>`;
+      }
+      async function openConsumptionPlanner(opts = {}) {
+        openModal('<div class="empty">Cargando...</div>');
+        try {
+          if (opts.guestView && !opts.reservationId) {
+            throw new Error("Solo podés usar la calculadora si formás parte de la mesa.");
+          }
+          let r = null;
+          if (opts.reservationId) {
+            r = await api("/reservations/" + opts.reservationId);
+            const uid = state.user?.id;
+            if (uid) {
+              const isHost = r.hostId === uid || r.host?.id === uid;
+              const isGuest = (r.guests || []).some(
+                (g) => g.userId === uid && (g.status === "CONFIRMED" || g.status === "ACCEPTED_PENDING_PAYMENT")
+              );
+              if (!isHost && !isGuest) {
+                throw new Error("Solo podés usar la calculadora si sos anfitrión o invitado confirmado de esta mesa.");
+              }
+            }
+          }
+          const eventId = r?.eventId || r?.event?.id || opts.eventId;
+          let eventName = r?.event?.name || opts.eventName || "";
+          if (!eventId) throw new Error("No se encontró el evento");
+          if (!eventName) {
+            const av = await api("/events/" + eventId + "/availability");
+            eventName = av.event?.name || "Evento";
+          }
+          const products = await api("/events/" + eventId + "/products");
+          const defaultBudget = opts.defaultBudget ?? (opts.guestView
+            ? guestBudgetDefault(opts.guestView)
+            : (r ? consumptionBudgetDefault(r) : (opts.minConsumption > 0 ? opts.minConsumption : Math.max(0, num(opts.tablePrice) - Math.round(num(opts.tablePrice) * (opts.depositPercent || 10) / 100)))));
+          window._calcCtx = { r, eventId, eventName, products, budget: defaultBudget, qty: {}, guestView: opts.guestView || null };
+          paintConsumptionPlanner();
+        } catch (e) {
+          openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" style="margin-top:16px" onclick="closeModal()">Cerrar</button>`);
+        }
+      }
+
+      function calcLineTotal(productId) {
+        const ctx = window._calcCtx;
+        if (!ctx) return 0;
+        const p = ctx.products.find((x) => x.id === productId);
+        const q = ctx.qty[productId] || 0;
+        return p ? num(p.price) * q : 0;
+      }
+
+      function calcCartTotal() {
+        const ctx = window._calcCtx;
+        if (!ctx) return 0;
+        return ctx.products.reduce((acc, p) => acc + calcLineTotal(p.id), 0);
+      }
+
+      function setCalcQty(productId, delta) {
+        const ctx = window._calcCtx;
+        if (!ctx) return;
+        const next = Math.max(0, (ctx.qty[productId] || 0) + delta);
+        if (next === 0) delete ctx.qty[productId];
+        else ctx.qty[productId] = next;
+        paintConsumptionPlanner();
+      }
+
+      function setCalcBudget(val) {
+        const ctx = window._calcCtx;
+        if (!ctx) return;
+        ctx.budget = Math.max(0, num(val));
+        paintConsumptionPlanner();
+      }
+
+      function calcSummaryHtml(cartTotal, budget) {
+        const diff = budget - cartTotal;
+        if (!budget && !cartTotal) {
+          return `<div class="k-calc-summary">Elegí un presupuesto y agregá botellas para ver cuánto podés llevar.</div>`;
+        }
+        if (cartTotal === 0) {
+          return `<div class="k-calc-summary">Presupuesto: <b>${money(budget)}</b><br/>Agregá productos de la carta para armar tu noche.</div>`;
+        }
+        if (diff >= 0) {
+          return `<div class="k-calc-summary ok">Armado: <b>${money(cartTotal)}</b> · Presupuesto: <b>${money(budget)}</b><br/>Te sobran <b>${money(diff)}</b> dentro de tu presupuesto.</div>`;
+        }
+        return `<div class="k-calc-summary over">Armado: <b>${money(cartTotal)}</b> · Presupuesto: <b>${money(budget)}</b><br/>Te faltan <b>${money(-diff)}</b> para cubrir lo seleccionado.</div>`;
+      }
+
+      function paintConsumptionPlanner() {
+        const ctx = window._calcCtx;
+        if (!ctx) return;
+        const { r, eventName, products, budget, guestView } = ctx;
+        const cartTotal = calcCartTotal();
+        const financeBlock = guestView
+          ? guestFinanceHtml(guestView)
+          : (r ? reservationFinanceHtml(r) : "");
+        const lines = products.length
+          ? products.map((p) => {
+              const q = ctx.qty[p.id] || 0;
+              const lineTotal = calcLineTotal(p.id);
+              return `<div class="k-calc-line">
+                <div>
+                  <div class="name">${esc(p.name)}</div>
+                  <div class="price">${esc(p.category || "General")} · ${money(p.price)} c/u</div>
+                </div>
+                <div class="k-calc-qty">
+                  <button type="button" onclick="setCalcQty('${p.id}', -1)">−</button>
+                  <span>${q}</span>
+                  <button type="button" onclick="setCalcQty('${p.id}', 1)">+</button>
+                </div>
+                <div class="k-calc-line-total">${q ? money(lineTotal) : "—"}</div>
+              </div>`;
+            }).join("")
+          : `<div class="empty">Todavía no hay botellas cargadas para este evento.</div>`;
+
+        openModal(`
+          <h3>Calculadora de consumo</h3>
+          <p class="sub">${esc(eventName)} · Planificá antes de ir al boliche</p>
+          ${financeBlock}
+          <div class="k-calc-budget">
+            <label>Presupuesto para botellas / combos</label>
+            <input type="number" min="0" step="1000" value="${budget || ""}" oninput="setCalcBudget(this.value)" placeholder="Ej. consumición mínima" />
+            <p class="k-fin-note" style="margin-top:6px">Por defecto usamos la consumición mínima de la mesa, si está definida.</p>
+          </div>
+          <div class="k-calc-lines">${lines}</div>
+          ${calcSummaryHtml(cartTotal, budget)}
+          <button class="btn-full ghost" style="margin-top:16px" onclick="closeModal()">Cerrar</button>`);
+      }
+
+      async function openBottleMenu(eventId, eventName) {
+        openConsumptionPlanner({ eventId, eventName });
+      }
+
+      function openReserve(tableId) {
+        wizardGo(4, { clubId: state.params.club, eventId: state.params.id, tableId });
+      }
+      function selPay(opt) {
+        _reserveSel = opt;
+        const dep = $("opt-dep");
+        const full = $("opt-full");
+        if (dep) dep.classList.toggle("sel", opt === "DEPOSIT_ONLY");
+        if (full) full.classList.toggle("sel", opt === "FULL_PAYMENT");
+        const preview = $("wizard-pay-preview");
+        if (preview && window._wizardTable) preview.innerHTML = wizardPayPreviewHtml(window._wizardTable);
+      }
+      function showTicket(r) {
+        go("ticket", { id: r.id });
+      }
+
+      // ---------- MY RESERVATIONS ----------
+      async function renderMine(page) {
+        page.innerHTML = `<div class="k-page-head"><h1>Mis reservas</h1><p>Gestioná tus mesas, abrilas a la comunidad o mostrá tu QR.</p></div><div id="list"><div class="empty">Cargando...</div></div><div id="past-wrap"></div>`;
+        try {
+          const rs = await api("/users/" + state.user.id + "/reservations");
+          if (!stillOn("mine")) return;
+          const live = livePage("mine"); if (!live) return;
+          const now = Date.now();
+          const upcoming = rs.filter((r) => new Date(r.event.date).getTime() >= now)
+            .sort((a, b) => new Date(a.event.date) - new Date(b.event.date));
+          const past = rs.filter((r) => new Date(r.event.date).getTime() < now)
+            .sort((a, b) => new Date(b.event.date) - new Date(a.event.date));
+
+          const el = live.querySelector("#list");
+          if (!el) return;
+          if (!upcoming.length) {
+            el.className = "";
+            el.innerHTML = `<div class="empty">No tenés reservas para próximos eventos. ¡Explorá boliches!</div>`;
+          } else {
+            el.className = "grid-cards";
+            el.innerHTML = upcoming.map(upcomingCard).join("");
+          }
+          renderPast(past, live);
+        } catch (e) {
+          if (stillOn("mine")) toast(e.message, "err");
+        }
+      }
+      function upcomingCard(r) {
+        const actions = [];
+        if (r.status === "PENDING_PAYMENT") actions.push(`<button class="btn-sm" onclick="payReservation('${r.id}')">Pagar seña</button>`);
+        if (r.status === "CONFIRMED" && r.mode === "STANDARD") actions.push(`<button class="btn-sm btn-accent" onclick="openTableModal('${r.id}',${r.table.capacity})">Abrir mesa 👥</button>`);
+        if (r.mode === "OPEN_TABLE") actions.push(`<button class="btn-sm" onclick="go('detail',{id:'${r.id}'})">Invitados</button>`);
+        if (r.status === "CONFIRMED" || r.status === "CHECKED_IN") actions.push(`<button class="btn-sm btn-accent" onclick="go('ticket',{id:'${r.id}'})">Ver QR</button>`);
+        actions.push(`<button class="btn-sm ghost" onclick="openConsumptionPlanner({ reservationId: '${r.id}' })">Calculadora 🍾</button>`);
+        if (r.status === "PENDING_PAYMENT" || r.status === "CONFIRMED") actions.push(`<button class="btn-sm btn-danger" onclick="cancelReservation('${r.id}')">Cancelar</button>`);
+        return `<div class="card list-card">
+          <div class="head"><div class="title">${esc(r.table.label)}</div>${statusBadge(r.status)}</div>
+          <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}${r.mode === "OPEN_TABLE" ? `<br/>👥 Mesa abierta (${r.maxGuests} cupos)` : ""}</div>
+          ${reservationFinanceHtml(r, true)}
+          ${reservationTimelineHtml(r)}
+          <div class="btn-row">${actions.join("")}</div>
+        </div>`;
+      }
+      function renderPast(past, page = livePage("mine")) {
+        if (!page || !stillOn("mine")) return;
+        const wrap = page.querySelector("#past-wrap");
+        if (!wrap) return;
+        if (!past.length) { wrap.innerHTML = ""; return; }
+        if (!state.showPast) {
+          wrap.innerHTML = `<div style="text-align:center;margin-top:22px"><button class="ghost btn-sm" onclick="state.showPast=true;renderMine($('page'))">Ver eventos pasados (${past.length})</button></div>`;
+          return;
+        }
+        const cards = past.map((r) => `<div class="card list-card" style="opacity:.7">
+            <div class="head"><div class="title">${esc(r.table.label)}</div><span class="badge muted">Finalizado</span></div>
+            <div class="meta">🗓️ ${fdatetime(r.event.date)}</div>
+          </div>`).join("");
+        wrap.innerHTML = `<div class="section-sub" style="margin-top:26px;display:flex;justify-content:space-between;align-items:center"><span>Eventos pasados</span><button class="ghost btn-sm" onclick="state.showPast=false;renderMine($('page'))">Ocultar</button></div><div class="grid-cards">${cards}</div>`;
+      }
+      async function payReservation(id) {
+        try {
+          await api("/reservations/" + id + "/pay", { method: "POST", body: JSON.stringify({ provider: "demo" }) });
+          _alertsCache = null;
+          toast("¡Pago confirmado!", "ok");
+          renderMine($("page"));
+          void refreshAlerts();
+        } catch (e) { toast(e.message, "err"); }
+      }
+      async function cancelReservation(id) {
+        if (!confirm("¿Seguro que querés cancelar esta reserva?")) return;
+        try { const r = await api("/reservations/" + id + "/cancel", { method: "POST" }); toast("Reserva cancelada. Reembolso: " + r.refundPercent + "%", "ok"); renderMine($("page")); }
+        catch (e) { toast(e.message, "err"); }
+      }
+      async function showTicketById(id) {
+        go("ticket", { id });
+      }
+      function openTableModalInner(id, capacity) {
+        openModal(`
+          <h3>Abrir mesa a la comunidad</h3>
+          <p class="hint">Otros usuarios podrán pedir sumarse y dividir el costo. Vos aprobás quién entra.</p>
+          <label>Cupos totales (vos + invitados, máx ${capacity})</label>
+          <input id="max-guests" type="number" min="2" max="${capacity}" value="${Math.min(4, capacity)}" />
+          <div class="btn-row" style="margin-top:20px">
+            <button type="button" class="ghost" onclick="closeModal()">Cancelar</button>
+            <button type="button" style="flex:1" onclick="confirmOpen('${id}')">Abrir mesa</button>
+          </div>
+          <div class="error" id="open-err"></div>`);
+      }
+      function openTableModal(id, capacity) {
+        maybeOnboard("kluby_onboard_open_host", `
+          <h3>¿Qué es abrir tu mesa?</h3>
+          <p class="hint">Compartís la mesa con otros usuarios de Kluby y dividen el costo.</p>
+          <ul>
+            <li>Vos definís cuántos cupos hay en total.</li>
+            <li>La mesa aparece en <b>Mesas abiertas</b>.</li>
+            <li>Aprobás quién se suma antes de que paguen su parte.</li>
+          </ul>`, () => openTableModalInner(id, capacity));
+      }
+      async function confirmOpen(id) {
+        try {
+          const max = parseInt($("max-guests").value, 10);
+          await api("/reservations/" + id + "/open", { method: "POST", body: JSON.stringify({ maxGuests: max }) });
+          closeModal(); toast("¡Mesa abierta! Ya aparece en el muro.", "ok"); renderMine($("page"));
+        } catch (e) { $("open-err").textContent = e.message; }
+      }
+
+      // ---------- RESERVATION DETAIL (host manages guests) ----------
+      async function renderDetail(page) {
+        page.innerHTML = `<div class="empty">Cargando...</div>`;
+        try {
+          const r = await api("/reservations/" + state.params.id);
+          const guests = await api("/reservations/" + state.params.id + "/guests");
+          if (!stillOn("detail")) return;
+          const live = livePage("detail"); if (!live) return;
+          const share = r.paymentOption === "FULL_PAYMENT"
+            ? "Mesa pagada por el anfitrión"
+            : (r.maxGuests ? money(Number(r.totalAmount) / r.maxGuests) : "-");
+          live.innerHTML = `
+            <button type="button" class="ghost btn-sm" onclick="go('mine')">← Volver</button>
+            <div class="section-title" style="margin-top:14px">${esc(r.table.label)} · Mesa abierta</div>
+            <div class="section-sub">🗓️ ${fdatetime(r.event.date)} · ${r.maxGuests} cupos · ${r.paymentOption === "FULL_PAYMENT" ? "<b>Mesa pagada</b> · invitados sin costo" : `Parte por persona: <b>${share}</b>`}</div>
+            ${reservationFinanceHtml(r, true)}
+            ${reservationTimelineHtml(r)}
+            <h3 style="margin:8px 0 14px">Postulaciones</h3>
+            <div id="guests" class="grid-cards"></div>`;
+          const el = live.querySelector("#guests");
+          if (!el) return;
+          if (!guests.length) { el.innerHTML = `<div class="empty">Todavía nadie se postuló a tu mesa.</div>`; return; }
+          el.innerHTML = guests.map((g) => {
+            const acts = [];
+            if (g.status === "REQUESTED") {
+              acts.push(`<button class="btn-sm btn-accent" onclick="guestAction('${g.id}','accept')">Aceptar</button>`);
+              acts.push(`<button class="btn-sm btn-danger" onclick="guestAction('${g.id}','reject')">Rechazar</button>`);
+            }
+            const contact = `<br/>📧 ${esc(g.user.email)}${g.user.phone ? `<br/>📱 ${esc(g.user.phone)}` : ""}`;
+            return `<div class="card list-card">
+              <div class="head"><div class="title">${esc(g.user.fullName)}</div>${statusBadge(g.status)}</div>
+              <div class="meta">${r.paymentOption === "FULL_PAYMENT" ? "Sin costo · mesa pagada" : `Parte: <b>${money(g.shareAmount)}</b>`}${contact}</div>
+              <div class="btn-row">${acts.join("") || '<span class="hint">Sin acciones</span>'}</div>
+            </div>`;
+          }).join("");
+        } catch (e) {
+          const live = livePage("detail");
+          if (live) live.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+      async function guestAction(guestId, action) {
+        try { await api("/guests/" + guestId + "/" + action, { method: "POST" }); toast(action === "accept" ? "Invitado aceptado" : "Postulación rechazada", "ok"); renderDetail($("page")); }
+        catch (e) { toast(e.message, "err"); }
+      }
+
+      // ---------- OPEN TABLES WALL ----------
+      async function renderOpen(page) {
+        page.innerHTML = `<div class="k-page-head"><h1>Mesas abiertas</h1><p>Sumate a una mesa y dividí el costo. El anfitrión aprueba tu ingreso.</p></div><div id="wall"><div class="empty">Cargando...</div></div>`;
+        try {
+          const wall = await api("/reservations/open");
+          if (!stillOn("open")) return;
+          const live = livePage("open"); if (!live) return;
+          const el = live.querySelector("#wall");
+          if (!el) return;
+          if (!wall.length) { el.innerHTML = `<div class="empty">No hay mesas abiertas por ahora.</div>`; return; }
+          el.className = "grid-cards";
+          el.innerHTML = wall.map((w) => {
+            const isHost = w.host.id === state.user.id;
+            const minCons = num(w.table?.minConsumption);
+            const guestView = {
+              shareAmount: w.sharePerPerson,
+              prepaid: !!w.prepaid,
+              minConsumption: minCons,
+              status: "REQUESTED",
+            };
+            const calcBtn = isHost
+              ? `<button type="button" class="btn-sm ghost" onclick="openConsumptionPlanner({ reservationId: '${w.reservationId}' })">Calculadora 🍾</button>`
+              : "";
+            const joinBtn = isHost
+              ? '<span class="hint">Es tu mesa</span>'
+              : `<button type="button" class="btn-sm" onclick="joinTable('${w.reservationId}', ${w.prepaid ? "true" : "false"})">Pedir sumarme</button>`;
+            return `<div class="card list-card">
+              <div class="head"><div class="title">${esc(w.table.label)}</div><span class="badge green">${w.availableSlots} cupos</span></div>
+              <div class="meta">🏢 ${esc(w.club.name)}<br/>🗓️ ${fdatetime(w.event.date)}<br/>👤 Anfitrión: ${esc(w.host.fullName)}</div>
+              ${guestFinanceHtml(guestView)}
+              <div class="btn-row">${joinBtn}${calcBtn}</div>
+            </div>`;
+          }).join("");
+        } catch (e) {
+          if (stillOn("open")) toast(e.message, "err");
+        }
+      }
+      async function joinTable(reservationId, prepaid) {
+        const doJoin = async () => {
+          try {
+            await api("/reservations/" + reservationId + "/guests", { method: "POST", body: JSON.stringify({ userId: state.user.id }) });
+            toast("¡Postulación enviada! Esperá la aprobación.", "ok");
+            go("joins");
+          } catch (e) { toast(e.message, "err"); }
+        };
+        const payNote = prepaid
+          ? "<li>Si te aceptan, entrás <b>sin pagar</b> — la mesa ya está paga.</li>"
+          : "<li>Si te aceptan, pagás solo tu parte de la mesa.</li>";
+        maybeOnboard("kluby_onboard_open_guest", `
+          <h3>¿Cómo sumarse a una mesa?</h3>
+          <p class="hint">Pedís unirte y el anfitrión decide si te acepta.</p>
+          <ul>
+            ${payNote}
+            <li>Cuando te acepten, podés planificar consumo desde <b>Mis postulaciones</b>.</li>
+            <li>Seguí el estado en <b>Mis postulaciones</b>.</li>
+          </ul>`, doJoin);
+      }
+
+      // ---------- MY JOINS ----------
+      async function renderJoins(page) {
+        page.innerHTML = `<div class="k-page-head"><h1>Mis postulaciones</h1><p>Seguí el estado de las mesas a las que pediste sumarte.</p></div><div id="list"><div class="empty">Cargando...</div></div>`;
+        try {
+          const entries = await api("/users/" + state.user.id + "/guest-entries");
+          if (!stillOn("joins")) return;
+          const live = livePage("joins"); if (!live) return;
+          const el = live.querySelector("#list");
+          if (!el) return;
+          if (!entries.length) { el.innerHTML = `<div class="empty">No te postulaste a ninguna mesa. Mirá el muro de <a onclick="go('open')">mesas abiertas</a>.</div>`; return; }
+          el.className = "grid-cards";
+          el.innerHTML = entries.map((g) => {
+            const r = g.reservation;
+            const prepaid = r.paymentOption === "FULL_PAYMENT";
+            const guestView = {
+              shareAmount: g.shareAmount,
+              prepaid,
+              minConsumption: reservationMinConsumption(r),
+              status: g.status,
+            };
+            const act = g.status === "ACCEPTED_PENDING_PAYMENT" && !prepaid
+              ? `<button type="button" class="btn-sm btn-accent" onclick="payShare('${g.id}')">Pagar mi parte (${money(g.shareAmount)})</button>`
+              : (g.status === "CONFIRMED" && prepaid ? `<span class="hint">Confirmado · sin costo</span>` : "");
+            const canUseCalc = g.status === "ACCEPTED_PENDING_PAYMENT" || g.status === "CONFIRMED";
+            const calcBtn = canUseCalc
+              ? `<button type="button" class="btn-sm ghost" onclick='openConsumptionPlanner(${JSON.stringify({ reservationId: r.id, guestView })})'>Calculadora 🍾</button>`
+              : "";
+            return `<div class="card list-card">
+              <div class="head"><div class="title">${esc(r.table.label)}</div>${statusBadge(g.status)}</div>
+              <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}<br/>👤 ${esc(r.host.fullName)}</div>
+              ${guestFinanceHtml(guestView)}
+              <div class="btn-row">${act}${calcBtn}</div>
+            </div>`;
+          }).join("");
+        } catch (e) {
+          if (stillOn("joins")) toast(e.message, "err");
+        }
+      }
+      async function payShare(guestId) {
+        try {
+          await api("/guests/" + guestId + "/pay", { method: "POST", body: JSON.stringify({ provider: "demo" }) });
+          _alertsCache = null;
+          toast("¡Pago confirmado! Ya sos parte de la mesa.", "ok");
+          renderJoins($("page"));
+          void refreshAlerts();
+        } catch (e) { toast(e.message, "err"); }
+      }
+
+      // ---------- MI PERFIL ----------
+      let _profileImage = null;
+      const PROFILE_CROP = { size: 280, output: 400, frame: 248, zoomMin: 1, zoomMax: 3 };
+      let _pc = null;
+
+      function profileCropClamp() {
+        if (!_pc) return;
+        const s = _pc.baseScale * _pc.zoom;
+        const dw = _pc.nw * s;
+        const dh = _pc.nh * s;
+        const maxX = Math.max(0, (dw - _pc.frame) / 2);
+        const maxY = Math.max(0, (dh - _pc.frame) / 2);
+        _pc.panX = Math.min(maxX, Math.max(-maxX, _pc.panX));
+        _pc.panY = Math.min(maxY, Math.max(-maxY, _pc.panY));
+      }
+
+      function profileCropDraw(ctx, destSize) {
+        const s = _pc.baseScale * _pc.zoom;
+        const srcSize = _pc.frame / s;
+        const srcX = _pc.nw / 2 - srcSize / 2 - _pc.panX / s;
+        const srcY = _pc.nh / 2 - srcSize / 2 - _pc.panY / s;
+        ctx.drawImage(_pc.image, srcX, srcY, srcSize, srcSize, 0, 0, destSize, destSize);
+      }
+
+      function profileCropUpdate() {
+        if (!_pc?.imgEl) return;
+        const s = _pc.baseScale * _pc.zoom;
+        _pc.imgEl.style.transform = `translate(calc(-50% + ${_pc.panX}px), calc(-50% + ${_pc.panY}px)) scale(${s})`;
+        const prev = document.getElementById("profile-crop-preview-cv");
+        if (prev) {
+          const pctx = prev.getContext("2d");
+          pctx.clearRect(0, 0, prev.width, prev.height);
+          profileCropDraw(pctx, prev.width);
+        }
+        const zoomLbl = document.getElementById("profile-crop-zoom-val");
+        if (zoomLbl) zoomLbl.textContent = Math.round(_pc.zoom * 100) + "%";
+      }
+
+      function profileCropExportDataUrl() {
+        const canvas = document.createElement("canvas");
+        canvas.width = PROFILE_CROP.output;
+        canvas.height = PROFILE_CROP.output;
+        profileCropDraw(canvas.getContext("2d"), PROFILE_CROP.output);
+        return canvas.toDataURL("image/jpeg", 0.92);
+      }
+
+      function profileCropBindEvents() {
+        const vp = document.getElementById("profile-crop-vp");
+        const zoomEl = document.getElementById("profile-crop-zoom");
+        if (!vp || !zoomEl) return;
+        let startX = 0, startY = 0, startPanX = 0, startPanY = 0, dragging = false;
+
+        vp.onpointerdown = (e) => {
+          dragging = true;
+          vp.setPointerCapture(e.pointerId);
+          vp.classList.add("dragging");
+          startX = e.clientX;
+          startY = e.clientY;
+          startPanX = _pc.panX;
+          startPanY = _pc.panY;
+        };
+        vp.onpointermove = (e) => {
+          if (!dragging) return;
+          _pc.panX = startPanX + (e.clientX - startX);
+          _pc.panY = startPanY + (e.clientY - startY);
+          profileCropClamp();
+          profileCropUpdate();
+        };
+        const endDrag = () => { dragging = false; vp.classList.remove("dragging"); };
+        vp.onpointerup = endDrag;
+        vp.onpointercancel = endDrag;
+        vp.onwheel = (e) => {
+          e.preventDefault();
+          _pc.zoom = Math.min(PROFILE_CROP.zoomMax, Math.max(PROFILE_CROP.zoomMin, _pc.zoom - e.deltaY * 0.002));
+          zoomEl.value = String(_pc.zoom);
+          profileCropClamp();
+          profileCropUpdate();
+        };
+        zoomEl.oninput = () => {
+          _pc.zoom = Number(zoomEl.value);
+          profileCropClamp();
+          profileCropUpdate();
+        };
+      }
+
+      function openProfileCropper(file) {
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+          const frame = PROFILE_CROP.frame;
+          const baseScale = Math.max(frame / image.width, frame / image.height);
+          _pc = {
+            image,
+            imgEl: null,
+            nw: image.width,
+            nh: image.height,
+            baseScale,
+            zoom: 1,
+            panX: 0,
+            panY: 0,
+            frame,
+            blobUrl: url,
+          };
+          openModal(`
+            <div class="profile-crop-modal">
+              <h3>Ajustar foto de perfil</h3>
+              <p class="sub">Arrastrá la imagen para moverla · usá el zoom o la rueda del mouse</p>
+              <div class="profile-crop-layout">
+                <div class="profile-crop-viewport" id="profile-crop-vp">
+                  <img id="profile-crop-img" src="${esc(url)}" alt="" draggable="false" />
+                  <div class="profile-crop-frame" title="Área visible"></div>
+                </div>
+                <div class="profile-crop-side">
+                  <span class="hint" style="margin:0">Vista previa</span>
+                  <div class="profile-crop-preview">
+                    <canvas id="profile-crop-preview-cv" width="176" height="176"></canvas>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-crop-zoom-row">
+                <span class="hint" style="margin:0">Zoom</span>
+                <input type="range" id="profile-crop-zoom" min="${PROFILE_CROP.zoomMin}" max="${PROFILE_CROP.zoomMax}" step="0.01" value="1" />
+                <span id="profile-crop-zoom-val">100%</span>
+              </div>
+              <div class="btn-row" style="margin-top:18px">
+                <button type="button" class="ghost" onclick="cancelProfileCrop()">Cancelar</button>
+                <button type="button" style="flex:1" id="profile-crop-ok" onclick="confirmProfileCrop()">Usar esta foto</button>
+              </div>
+              <div class="error" id="profile-crop-err"></div>
+            </div>`);
+          $("modal-content").classList.add("profile-crop-modal");
+          _pc.imgEl = document.getElementById("profile-crop-img");
+          _pc.imgEl.style.width = image.width + "px";
+          _pc.imgEl.style.height = image.height + "px";
+          profileCropBindEvents();
+          profileCropUpdate();
+        };
+        image.onerror = () => {
+          URL.revokeObjectURL(url);
+          toast("No se pudo leer la imagen", "err");
+        };
+        image.src = url;
+      }
+
+      function cancelProfileCrop() {
+        closeModal();
+      }
+
+      async function confirmProfileCrop() {
+        const errEl = document.getElementById("profile-crop-err");
+        const btn = document.getElementById("profile-crop-ok");
+        if (!_pc) return;
+        btn.disabled = true;
+        btn.textContent = "Subiendo...";
+        errEl.textContent = "";
+        try {
+          const dataUrl = profileCropExportDataUrl();
+          const res = await api("/uploads/profile", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
+          _profileImage = res.url;
+          const av = document.getElementById("profile-av");
+          if (av) {
+            const img = document.createElement("img");
+            img.id = "profile-av";
+            img.className = "profile-avatar";
+            img.src = _profileImage;
+            img.alt = "Foto de perfil";
+            av.replaceWith(img);
+          }
+          const hint = document.getElementById("profile-photo-hint");
+          if (hint) {
+            hint.textContent = "Foto lista. Guardá para aplicar.";
+            hint.style.color = "var(--accent)";
+          }
+          cancelProfileCrop();
+          toast("Foto recortada y lista", "ok");
+        } catch (err) {
+          errEl.textContent = err.message;
+          btn.disabled = false;
+          btn.textContent = "Usar esta foto";
+        }
+      }
+
+      async function renderProfile(page) {
+        page.innerHTML = `<div class="k-page-head"><h1>Mi perfil</h1><p>Actualizá tu foto, nombre y teléfono.</p></div><div id="profile-form"><div class="empty">Cargando...</div></div>`;
+        try {
+          const user = await api("/users/" + state.user.id);
+          if (!stillOn("profile")) return;
+          const live = livePage("profile"); if (!live) return;
+          state.user = user;
+          localStorage.setItem("kluby_user", JSON.stringify(user));
+          _profileImage = user.profileImageUrl || null;
+          const av = _profileImage
+            ? `<img id="profile-av" class="profile-avatar" src="${esc(_profileImage)}" alt="Foto de perfil" />`
+            : `<div id="profile-av" class="profile-avatar placeholder">${esc((user.fullName || "U").charAt(0).toUpperCase())}</div>`;
+          const form = live.querySelector("#profile-form");
+          if (!form) return;
+          form.innerHTML = `
+            <div class="card profile-card">
+              <div class="profile-avatar-wrap">
+                ${av}
+                <label class="btn-sm ghost" style="cursor:pointer;margin:0">
+                  Cambiar foto
+                  <input id="profile-file" type="file" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="onProfilePhoto(event)" />
+                </label>
+                <span class="hint" id="profile-photo-hint">PNG, JPG o WebP · cualquier tamaño</span>
+              </div>
+              <label>Nombre completo</label>
+              <input id="pf-name" value="${attr(user.fullName)}" placeholder="Tu nombre" />
+              <label>Teléfono</label>
+              <input id="pf-phone" value="${attr(user.phone || "")}" placeholder="11 1234 5678" />
+              <label>Email</label>
+              <input class="readonly-field" value="${attr(user.email)}" readonly title="El email no se puede modificar" />
+              <p class="hint" style="margin-top:-6px">El email no se puede cambiar.</p>
+              <button class="btn-full" style="margin-top:18px" id="pf-save" onclick="saveProfile()">Guardar cambios</button>
+              <div class="spacer"></div>
+              <label>Código de invitación a evento</label>
+              <div class="btn-row">
+                <input id="pf-event-code" placeholder="EVENTO-XXXX-XXXX" style="flex:1" />
+                <button type="button" class="btn-sm" onclick="redeemEventCode(document.getElementById('pf-event-code').value).catch(e=>toast(e.message,'err'))">Canjear</button>
+              </div>
+              <label style="margin-top:14px">Código de equipo (publi / puerta)</label>
+              <div class="btn-row">
+                <input id="pf-team-code" placeholder="EQUIPO-XXXX-XXXX" style="flex:1" />
+                <button type="button" class="btn-sm" onclick="redeemTeamCode(document.getElementById('pf-team-code').value).catch(e=>toast(e.message,'err'))">Canjear</button>
+              </div>
+              <div class="error" id="pf-err"></div>
+            </div>`;
+        } catch (e) {
+          const live = livePage("profile");
+          const form = live?.querySelector("#profile-form");
+          if (form) form.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+      function onProfilePhoto(e) {
+        const file = e.target.files[0];
+        e.target.value = "";
+        if (!file) return;
+        const hint = document.getElementById("profile-photo-hint");
+        if (!/^image\/(png|jpeg|webp)$/i.test(file.type)) {
+          if (hint) { hint.textContent = "Formato no soportado. Usá PNG, JPG o WebP."; hint.style.color = "var(--pink)"; }
+          return;
+        }
+        if (file.size > 12 * 1024 * 1024) {
+          if (hint) { hint.textContent = "La imagen es demasiado grande (máx. 12 MB)."; hint.style.color = "var(--pink)"; }
+          return;
+        }
+        if (hint) { hint.style.color = ""; }
+        openProfileCropper(file);
+      }
+      async function saveProfile() {
+        const errEl = document.getElementById("pf-err");
+        const btn = document.getElementById("pf-save");
+        const name = document.getElementById("pf-name").value.trim();
+        const phone = document.getElementById("pf-phone").value.trim();
+        if (!name) { errEl.textContent = "El nombre es obligatorio."; return; }
+        const body = { fullName: name, phone };
+        if (_profileImage) body.profileImageUrl = _profileImage;
+        btn.disabled = true;
+        btn.textContent = "Guardando...";
+        try {
+          const user = await api("/users/" + state.user.id, { method: "PATCH", body: JSON.stringify(body) });
+          state.user = user;
+          localStorage.setItem("kluby_user", JSON.stringify(user));
+          toast("Perfil actualizado", "ok");
+          render();
+        } catch (e) {
+          errEl.textContent = e.message;
+          btn.disabled = false;
+          btn.textContent = "Guardar cambios";
+        }
+      }
+
+      async function renderInvites(page) {
+        page.innerHTML = `<div class="k-page-head"><h1>Mis invitaciones</h1><p>Eventos a los que un publi te invitó.</p></div><div id="inv-list"><div class="empty">Cargando...</div></div>`;
+        try {
+          const rows = await api("/invites/my-events");
+          if (!stillOn("invites")) return;
+          const live = livePage("invites"); if (!live) return;
+          const listEl = live.querySelector("#inv-list");
+          if (!listEl) return;
+          if (!rows.length) {
+            listEl.innerHTML = '<div class="empty">Todavía no canjeaste invitaciones a eventos.</div>';
+            return;
+          }
+          listEl.innerHTML = rows.map((r) => {
+            const club = r.club || { name: "Boliche", imageUrl: null };
+            const cover = club.imageUrl
+              ? `<img src="${esc(club.imageUrl)}" alt="" loading="lazy" />`
+              : `<span class="initial" style="display:grid;place-items:center;height:100%;font-family:Syne,sans-serif;font-size:48px;font-weight:800;opacity:0.25">${esc((club.name || "K").charAt(0))}</span>`;
+            return `
+            <div class="k-invite-card" onclick="go('event',{id:'${r.event.id}',club:'${r.event.clubId}'})">
+              <div class="cover">${cover}</div>
+              <div class="body">
+                <h4>${esc(r.event.name)}</h4>
+                <div class="meta">${esc(club.name)} · ${fdatetime(r.event.date)}</div>
+                <span class="k-tag cyan">Canjeada ${fdatetime(r.redeemedAt)}</span>
+              </div>
+            </div>`;
+          }).join("");
+        } catch (e) {
+          const live = livePage("invites");
+          const listEl = live?.querySelector("#inv-list");
+          if (listEl) listEl.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+
+      // init
+      KlubyUI.renderBg(document.getElementById("k-bg"), { orbs: false });
+      captureInviteFromUrl();
+      if (!state.token || !state.user) {
+        location.href = "/login.html?next=" + encodeURIComponent("/app.html" + location.search);
+      } else {
+        const p = new URLSearchParams(location.search);
+        const clubId = p.get("clubId");
+        const eventId = p.get("eventId");
+        if (clubId && eventId) {
+          history.replaceState({}, "", "/app.html");
+          go("wizard", { step: 3, clubId, eventId });
+        } else if (clubId) {
+          history.replaceState({}, "", "/app.html");
+          go("wizard", { step: 2, clubId });
+        } else {
+          render();
+        }
+      }
+    </script>
+  </body>
+</html>

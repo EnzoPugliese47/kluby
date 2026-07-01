@@ -1,0 +1,632 @@
+/* Kluby — app cliente (skin sobre kluby-public, sin hero pesado) */
+body.kluby-app {
+  background: #050508;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+body.kluby-app h1,
+body.kluby-app h2,
+body.kluby-app h3,
+body.kluby-app .section-title {
+  font-family: "Syne", sans-serif;
+}
+
+.k-app-wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 2;
+}
+
+.k-app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  backdrop-filter: blur(14px);
+  background: rgba(5, 5, 8, 0.78);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.k-app-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 28px;
+  max-width: 1320px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.k-app-nav .brand {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.k-app-nav .brand h1 {
+  font-size: 20px;
+  letter-spacing: 2px;
+}
+
+.k-app-nav .brand span {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--neon-cyan);
+}
+
+.k-app-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex: 1;
+  padding: 0 8px;
+}
+
+.k-app-tabs button {
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  box-shadow: none;
+  transition: color 0.2s, background 0.2s;
+}
+
+.k-app-tabs button:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+  opacity: 1;
+}
+
+.k-app-tabs button.active {
+  color: #fff;
+  background: rgba(168, 85, 247, 0.22);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.12);
+}
+
+.k-app-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.k-app-user .profile-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border-radius: 12px;
+  padding: 4px 6px;
+  transition: background 0.15s;
+}
+
+.k-app-user .profile-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.k-app-user .who {
+  text-align: right;
+  font-size: 12px;
+}
+
+.k-app-user .who b {
+  display: block;
+  font-size: 13px;
+}
+
+.k-app-user .who small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+body.kluby-app .k-page {
+  padding-top: 12px;
+  padding-bottom: 56px;
+}
+
+body.kluby-app .k-page-head h1 {
+  font-family: "Syne", sans-serif;
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+body.kluby-app .section-title {
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+body.kluby-app .section-sub {
+  color: var(--muted);
+  margin-bottom: 24px;
+  line-height: 1.55;
+}
+
+body.kluby-app .card {
+  background: linear-gradient(145deg, rgba(28, 28, 43, 0.92), rgba(20, 20, 31, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+body.kluby-app .list-card:hover {
+  border-color: rgba(168, 85, 247, 0.35);
+}
+
+body.kluby-app .list-card .title {
+  font-family: "Syne", sans-serif;
+  font-weight: 700;
+}
+
+body.kluby-app .logo {
+  background: linear-gradient(135deg, var(--neon-violet), var(--neon-pink));
+  box-shadow: 0 6px 24px rgba(168, 85, 247, 0.45);
+}
+
+body.kluby-app button:not(.ghost):not(.k-btn-ghost):not(.k-app-tabs button) {
+  background: linear-gradient(135deg, var(--neon-violet), var(--neon-pink));
+  box-shadow: 0 4px 18px rgba(168, 85, 247, 0.22);
+  border-radius: 12px;
+}
+
+body.kluby-app .btn-accent {
+  background: linear-gradient(135deg, var(--neon-cyan), #2de2c6) !important;
+  color: #050508 !important;
+  box-shadow: 0 4px 18px rgba(34, 211, 238, 0.25) !important;
+}
+
+body.kluby-app .ghost {
+  border-color: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+body.kluby-app .ghost:hover {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+}
+
+body.kluby-app input,
+body.kluby-app select,
+body.kluby-app textarea {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+body.kluby-app input:focus,
+body.kluby-app select:focus,
+body.kluby-app textarea:focus {
+  border-color: var(--neon-violet);
+}
+
+body.kluby-app .pay-opt .opt.sel {
+  border-color: rgba(168, 85, 247, 0.55);
+  background: rgba(168, 85, 247, 0.1);
+}
+
+body.kluby-app .contact-card {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.08), rgba(168, 85, 247, 0.05));
+  border-color: rgba(34, 211, 238, 0.22);
+}
+
+body.kluby-app .contact-card h4 {
+  color: var(--neon-cyan);
+}
+
+body.kluby-app .bottle-item {
+  background: rgba(20, 20, 31, 0.85);
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+body.kluby-app .bottle-item .bi-price {
+  color: var(--neon-cyan);
+}
+
+body.kluby-app .floor-map {
+  border-color: rgba(168, 85, 247, 0.28);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+body.kluby-app .modal {
+  background: linear-gradient(160deg, rgba(28, 28, 43, 0.98), rgba(14, 14, 22, 0.99));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(124, 92, 255, 0.1);
+}
+
+body.kluby-app .modal h3 {
+  font-family: "Syne", sans-serif;
+}
+
+body.kluby-app .toast {
+  background: rgba(20, 20, 31, 0.95);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+}
+
+body.kluby-app .toast.ok {
+  border-color: rgba(107, 229, 133, 0.5);
+}
+
+body.kluby-app .toast.err {
+  border-color: rgba(255, 92, 108, 0.55);
+}
+
+body.kluby-app .user-avatar {
+  border-color: rgba(168, 85, 247, 0.45);
+}
+
+body.kluby-app .user-avatar.placeholder,
+body.kluby-app .profile-avatar.placeholder {
+  background: linear-gradient(135deg, #1a0a2e, #3d1a6e);
+}
+
+body.kluby-app .profile-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.kluby-app .profile-avatar {
+  border-color: rgba(168, 85, 247, 0.45);
+}
+
+body.kluby-app .k-club-card {
+  cursor: pointer;
+}
+
+body.kluby-app .k-back {
+  margin-bottom: 4px;
+}
+
+@media (max-width: 960px) {
+  .k-app-nav-inner {
+    padding: 12px 18px;
+  }
+
+  .k-app-tabs {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+
+  .k-app-user .who {
+    display: none;
+  }
+}
+
+/* —— Fase 2: wizard, QR, timeline, alertas —— */
+.k-wizard-steps {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 28px;
+  padding: 0 8px;
+}
+
+.k-wizard-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 56px;
+  max-width: 100px;
+  opacity: 0.4;
+  text-align: center;
+}
+
+.k-wizard-step span.lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.k-wizard-step.active {
+  opacity: 1;
+}
+
+.k-wizard-step.done {
+  opacity: 0.85;
+}
+
+.k-wizard-step .dot {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: "Syne", sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.k-wizard-step.active .dot {
+  border-color: rgba(168, 85, 247, 0.7);
+  background: rgba(168, 85, 247, 0.22);
+  box-shadow: 0 0 24px rgba(168, 85, 247, 0.35);
+  color: #fff;
+}
+
+.k-wizard-step.done .dot {
+  background: rgba(34, 211, 238, 0.15);
+  border-color: rgba(34, 211, 238, 0.55);
+  color: var(--neon-cyan);
+}
+
+.k-wizard-bar {
+  position: relative;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  margin: -18px 48px 28px;
+  overflow: hidden;
+}
+
+.k-wizard-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-violet), var(--neon-cyan));
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.k-wizard-body {
+  animation: k-wiz-in 0.25s ease;
+}
+
+@keyframes k-wiz-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.k-wizard-pay-card {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 28px;
+  border-radius: 24px;
+  background: linear-gradient(160deg, rgba(28, 28, 43, 0.95), rgba(14, 14, 22, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.k-ticket-page {
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 8px 0 48px;
+}
+
+.k-ticket-page h1 {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  margin-bottom: 8px;
+}
+
+.k-ticket-qr {
+  background: #fff;
+  padding: 22px;
+  border-radius: 24px;
+  display: inline-block;
+  margin: 28px 0 16px;
+  box-shadow: 0 0 60px rgba(34, 211, 238, 0.18), 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.k-ticket-qr img {
+  display: block;
+  width: min(280px, 72vw);
+  height: auto;
+}
+
+.k-ticket-code {
+  font-family: ui-monospace, monospace;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: var(--neon-cyan);
+  word-break: break-all;
+  margin-bottom: 20px;
+}
+
+.k-ticket-meta {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+  margin-bottom: 24px;
+}
+
+.k-timeline {
+  display: flex;
+  gap: 0;
+  margin: 18px 0 0;
+  padding: 16px 0 4px;
+}
+
+.k-timeline-step {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.k-timeline-step::before {
+  content: "";
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin: 0 auto 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  position: relative;
+  z-index: 1;
+}
+
+.k-timeline-step.done::before {
+  background: rgba(34, 211, 238, 0.25);
+  border-color: var(--neon-cyan);
+}
+
+.k-timeline-step.current::before {
+  background: rgba(168, 85, 247, 0.35);
+  border-color: var(--neon-violet);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
+}
+
+.k-timeline-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  z-index: 0;
+}
+
+.k-timeline-step.done:not(:last-child)::after {
+  background: rgba(34, 211, 238, 0.35);
+}
+
+.k-timeline.cancelled .k-timeline-step::before {
+  background: rgba(255, 92, 108, 0.2);
+  border-color: var(--red);
+}
+
+.k-app-alerts {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 12px 28px 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.k-alert {
+  padding: 14px 18px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.k-alert.amber {
+  background: rgba(255, 180, 84, 0.1);
+  border: 1px solid rgba(255, 180, 84, 0.35);
+}
+
+.k-alert.green {
+  background: rgba(107, 229, 133, 0.1);
+  border: 1px solid rgba(107, 229, 133, 0.35);
+}
+
+.k-alert.violet {
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+}
+
+.k-alert button {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.k-invite-card {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--surface-2);
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  margin-bottom: 14px;
+}
+
+.k-invite-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(168, 85, 247, 0.45);
+  box-shadow: 0 16px 40px rgba(124, 92, 255, 0.2);
+}
+
+.k-invite-card .cover {
+  height: 100%;
+  min-height: 110px;
+  background: linear-gradient(135deg, #1a0a2e, #3d1a6e);
+}
+
+.k-invite-card .cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.k-invite-card .body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.k-invite-card .body h4 {
+  font-family: "Syne", sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.k-onboard-box {
+  padding: 8px 0 4px;
+}
+
+.k-onboard-box ul {
+  margin: 12px 0 16px 18px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.k-hero-cta-inline {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 520px) {
+  .k-invite-card {
+    grid-template-columns: 1fr;
+  }
+
+  .k-invite-card .cover {
+    min-height: 100px;
+  }
+
+  .k-app-alerts {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}

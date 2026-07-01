@@ -2,22 +2,32 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0f" />
     <title>Kluby · Puerta</title>
     <link rel="stylesheet" href="/kluby.css" />
+    <link rel="stylesheet" href="/ops-mobile.css" />
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   </head>
   <body>
     <div id="root"></div>
     <div class="toast" id="toast"></div>
     <script>
       const API = "/api";
-      let token = localStorage.getItem("kluby_staff_token") || "";
-      let user = JSON.parse(localStorage.getItem("kluby_staff_user") || "null");
+      let token = localStorage.getItem("kluby_token") || "";
+      let user = JSON.parse(localStorage.getItem("kluby_user") || "null");
       let memberships = JSON.parse(localStorage.getItem("kluby_staff_clubs") || "[]");
+      let staffClubId = null;
+      let currentEventId = null;
+      let staffTab = "scan";
+      let qrScanner = null;
+      let checkInsTimer = null;
+
       const $ = (id) => document.getElementById(id);
       const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
       const money = (n) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(Number(n) || 0);
       const fdt = (d) => new Date(d).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+      const ft = (d) => new Date(d).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
       let tt;
       function toast(m, k = "") { const t = $("toast"); t.textContent = m; t.className = "toast show " + k; clearTimeout(tt); tt = setTimeout(() => (t.className = "toast " + k), 3000); }
 
@@ -37,48 +47,122 @@
         return memberships.map((m) => m.club?.id || m.clubId).filter(Boolean);
       }
 
+      function primaryClubId() {
+        if (memberships.length) return memberships[0].club?.id || memberships[0].clubId;
+        return staffClubId;
+      }
+
       function clubLabel() {
-        if (!memberships.length) return "Sin boliche asignado";
+        if (!memberships.length) return staffClubId ? "Admin" : "Sin boliche asignado";
         return memberships.map((m) => m.club?.name || "Boliche").join(", ");
       }
 
+      function normalizeCode(raw) {
+        let t = String(raw || "").trim();
+        if (!t) return "";
+        try {
+          const u = new URL(t);
+          const last = u.pathname.split("/").filter(Boolean).pop();
+          return last || t;
+        } catch {
+          return t.split("/").pop() || t;
+        }
+      }
+
+      function setTab(tab) {
+        staffTab = tab;
+        document.querySelectorAll(".ops-tab").forEach((el) => el.classList.toggle("active", el.dataset.tab === tab));
+        document.querySelectorAll(".ops-panel").forEach((el) => el.classList.toggle("active", el.dataset.panel === tab));
+        if (tab === "scan") startScanner();
+        else stopScanner();
+        if (tab === "history") loadCheckIns();
+      }
+
+      async function startScanner() {
+        if (typeof Html5Qrcode === "undefined") return;
+        if (qrScanner) return;
+        const box = $("qr-reader");
+        if (!box) return;
+        qrScanner = new Html5Qrcode("qr-reader");
+        try {
+          await qrScanner.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 240, height: 240 }, aspectRatio: 1 },
+            (decoded) => {
+              stopScanner();
+              const code = normalizeCode(decoded);
+              if ($("code")) $("code").value = code;
+              lookup(code);
+              setTab("manual");
+            },
+            () => {}
+          );
+        } catch (e) {
+          qrScanner = null;
+          toast("No se pudo abrir la cámara. Usá código manual.", "err");
+          setTab("manual");
+        }
+      }
+
+      async function stopScanner() {
+        if (!qrScanner) return;
+        try {
+          await qrScanner.stop();
+          qrScanner.clear();
+        } catch {}
+        qrScanner = null;
+      }
+
       function render() {
-        if (!token || !user) return renderLogin();
+        if (!token || !user) {
+          location.href = "/login.html?next=" + encodeURIComponent("/staff.html");
+          return;
+        }
         const isOwnerOrAdmin = ["CLUB_ADMIN", "SUPER_ADMIN"].includes(user.role);
         $("root").innerHTML = `
-          <div class="topbar">
-            <div class="brand"><div class="logo">K</div><div><h1>KLUBY</h1><span>Control de acceso · Puerta</span></div></div>
+          <div class="topbar ops-topbar">
+            <div class="brand"><div class="logo">K</div><div><h1>KLUBY</h1><span>Puerta</span></div></div>
             <div class="right">
               <div class="who"><b>${esc(user.fullName)}</b><small>${esc(clubLabel())}</small></div>
               ${isOwnerOrAdmin ? `<a class="ghost btn-sm" href="/panel.html" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);text-decoration:none">Gestión</a>` : ""}
               <button class="ghost btn-sm" onclick="logout()">Salir</button>
             </div>
           </div>
-          <div class="container" style="max-width:560px">
-            <div class="section-title">Validar reserva</div>
-            <div class="section-sub">Escaneá o pegá el código QR. Solo podés operar reservas de tu boliche.</div>
-            <div class="card" style="padding:20px">
-              <label>Código de reserva (QR)</label>
-              <input id="code" placeholder="Pegá o escaneá el código" onkeydown="if(event.key==='Enter')lookup()" />
-              <button class="btn-full" onclick="lookup()">Buscar</button>
+          <div class="ops-shell">
+            <div class="ops-tabs">
+              <button type="button" class="ops-tab ${staffTab === "scan" ? "active" : ""}" data-tab="scan" onclick="setTab('scan')">Escanear</button>
+              <button type="button" class="ops-tab ${staffTab === "manual" ? "active" : ""}" data-tab="manual" onclick="setTab('manual')">Manual</button>
+              <button type="button" class="ops-tab ${staffTab === "history" ? "active" : ""}" data-tab="history" onclick="setTab('history')">Ingresos</button>
             </div>
-            <div id="result" style="margin-top:18px"></div>
-          </div>`;
-        setTimeout(() => $("code")?.focus(), 50);
-      }
 
-      function renderLogin() {
-        $("root").innerHTML = `
-          <div style="min-height:100vh;display:grid;place-items:center;padding:20px">
-            <div class="card" style="width:100%;max-width:380px;padding:32px">
-              <div class="brand" style="justify-content:center;margin-bottom:20px"><div class="logo">K</div><div><h1>KLUBY</h1><span>Acceso Puerta</span></div></div>
-              <label>Email</label><input id="email" value="puerta@kluby.com" />
-              <label>Contraseña</label><input id="pass" type="password" value="password123" />
-              <button class="btn-full" onclick="login()">Ingresar</button>
-              <div class="error" id="err"></div>
-              <p class="hint" style="text-align:center;margin-top:14px">Demo: puerta@kluby.com / password123</p>
+            <div class="ops-panel ${staffTab === "scan" ? "active" : ""}" data-panel="scan">
+              <p class="ops-scan-hint">Apuntá la cámara al QR del cliente</p>
+              <div id="qr-reader"></div>
+              <button type="button" class="ops-btn-lg secondary" style="margin-top:14px" onclick="setTab('manual')">Ingresar código a mano</button>
+            </div>
+
+            <div class="ops-panel ${staffTab === "manual" ? "active" : ""}" data-panel="manual">
+              <label>Código de reserva</label>
+              <input id="code" placeholder="Pegá o escribí el código" onkeydown="if(event.key==='Enter')lookup()" />
+              <button type="button" class="ops-btn-lg" style="margin-top:12px" onclick="lookup()">Buscar reserva</button>
+              <div id="result" style="margin-top:16px"></div>
+            </div>
+
+            <div class="ops-panel ${staffTab === "history" ? "active" : ""}" data-panel="history">
+              <div class="ops-kpi-row">
+                <div class="ops-kpi" id="checkins-kpi">Cargando…</div>
+                <button type="button" class="ghost btn-sm" onclick="loadCheckIns()">↻</button>
+              </div>
+              <div id="checkins-list"><div class="empty">Cargando ingresos…</div></div>
             </div>
           </div>`;
+
+        clearInterval(checkInsTimer);
+        checkInsTimer = setInterval(() => { if (staffTab === "history") loadCheckIns(true); }, 30000);
+
+        if (staffTab === "scan") setTimeout(() => startScanner(), 100);
+        else if (staffTab === "manual") setTimeout(() => $("code")?.focus(), 50);
+        else loadCheckIns();
       }
 
       async function loadMemberships() {
@@ -88,44 +172,61 @@
         } else {
           memberships = [];
           localStorage.removeItem("kluby_staff_clubs");
+          const clubs = await api("/clubs");
+          if (clubs.length) staffClubId = clubs[0].id;
         }
       }
 
-      async function login() {
+      async function loadCheckIns(silent) {
+        const clubId = primaryClubId();
+        const list = $("checkins-list");
+        const kpi = $("checkins-kpi");
+        if (!clubId || !list) return;
+        if (!silent) list.innerHTML = `<div class="empty">Cargando ingresos…</div>`;
         try {
-          const d = await api("/users/login", { method: "POST", body: JSON.stringify({ email: $("email").value.trim(), password: $("pass").value }) });
-          if (!["PUERTA", "CLUB_ADMIN", "SUPER_ADMIN"].includes(d.user.role)) {
-            $("err").textContent = "Esta pantalla es solo para personal de puerta o dueños.";
+          const q = currentEventId ? "?eventId=" + encodeURIComponent(currentEventId) : "";
+          const data = await api("/clubs/" + clubId + "/check-ins" + q);
+          if (data.event) currentEventId = data.event.id;
+          const rows = data.checkIns || [];
+          if (kpi) {
+            kpi.innerHTML = `<span>Ingresos${data.event ? " · " + esc(data.event.name) : ""}</span><b>${rows.length}</b>`;
+          }
+          if (!rows.length) {
+            list.innerHTML = `<div class="empty">Todavía no hay ingresos registrados esta noche.</div>`;
             return;
           }
-          token = d.token; user = d.user;
-          localStorage.setItem("kluby_staff_token", token);
-          localStorage.setItem("kluby_staff_user", JSON.stringify(user));
-          await loadMemberships();
-          if (user.role === "PUERTA" && !memberships.length) {
-            $("err").textContent = "Tu cuenta no tiene un boliche asignado. Pedile al dueño que te dé acceso.";
-            token = ""; user = null;
-            localStorage.removeItem("kluby_staff_token");
-            localStorage.removeItem("kluby_staff_user");
-            return;
-          }
-          render();
-        } catch (e) { $("err").textContent = e.message; }
+          list.innerHTML = `<ul class="ops-history">${rows.map((r) => `
+            <li>
+              <div>
+                <div class="name">${esc(r.host?.fullName || "—")}</div>
+                <div class="meta">${esc(r.table?.label || "Mesa")}${r.table?.sector ? " · " + esc(r.table.sector) : ""}</div>
+              </div>
+              <div class="time">${r.checkedInAt ? ft(r.checkedInAt) : "—"}</div>
+            </li>`).join("")}</ul>`;
+        } catch (e) {
+          if (!silent) list.innerHTML = `<div class="empty" style="color:var(--red)">${esc(e.message)}</div>`;
+        }
       }
 
       function logout() {
+        stopScanner();
+        clearInterval(checkInsTimer);
         token = ""; user = null; memberships = [];
-        localStorage.removeItem("kluby_staff_token");
-        localStorage.removeItem("kluby_staff_user");
+        localStorage.removeItem("kluby_token");
+        localStorage.removeItem("kluby_user");
         localStorage.removeItem("kluby_staff_clubs");
-        render();
+        location.href = "/login.html?next=" + encodeURIComponent("/staff.html");
       }
 
-      async function lookup() {
-        const code = $("code").value.trim(); if (!code) return;
+      async function lookup(codeArg) {
+        const code = normalizeCode(codeArg || $("code")?.value);
+        if (!code) return;
+        if ($("code")) $("code").value = code;
         $("result").innerHTML = `<div class="empty">Buscando...</div>`;
         try {
           const r = await api("/reservations/by-code/" + encodeURIComponent(code));
+          staffClubId = r.club.id;
+          currentEventId = r.event?.id || currentEventId;
           const allowed = activeClubIds();
           if (user.role === "PUERTA" && allowed.length && !allowed.includes(r.club.id)) {
             throw new Error(`Esta reserva es de ${r.club.name}. Solo podés operar en: ${clubLabel()}.`);
@@ -141,24 +242,49 @@
                 ${r.mode === "OPEN_TABLE" ? `<br/>👥 Mesa abierta · ${guests.length + 1} confirmados` : ""}
               </div>
               <div class="btn-row">
-                ${r.status === "CONFIRMED" ? `<button onclick="act('${r.id}','check-in')">✅ Registrar ingreso</button>` : ""}
-                ${r.status === "CHECKED_IN" ? `<button class="btn-accent" onclick="act('${r.id}','checkout')">🚪 Cerrar mesa (check-out)</button>` : ""}
-                ${["COMPLETED","CANCELLED","EXPIRED","PENDING_PAYMENT"].includes(r.status) ? `<span class="hint">Sin acciones disponibles para este estado.</span>` : ""}
+                ${r.status === "CONFIRMED" ? `<button class="ops-btn-lg" onclick="act('${r.id}','check-in')">Registrar ingreso</button>` : ""}
+                ${r.status === "CHECKED_IN" ? `<button class="ops-btn-lg secondary" onclick="act('${r.id}','checkout')">Cerrar mesa</button>` : ""}
+                ${["COMPLETED","CANCELLED","EXPIRED","PENDING_PAYMENT"].includes(r.status) ? `<span class="hint">Sin acciones para este estado.</span>` : ""}
               </div>
             </div>`;
         } catch (e) { $("result").innerHTML = `<div class="card" style="padding:20px;border-color:var(--red)"><b style="color:var(--red)">${esc(e.message)}</b></div>`; }
       }
 
       async function act(id, action) {
-        try { await api("/reservations/" + id + "/" + action, { method: "POST" }); toast(action === "check-in" ? "Ingreso registrado ✅" : "Mesa cerrada 🚪", "ok"); lookup(); }
-        catch (e) { toast(e.message, "err"); }
+        try {
+          await api("/reservations/" + id + "/" + action, { method: "POST" });
+          toast(action === "check-in" ? "Ingreso registrado" : "Mesa cerrada", "ok");
+          lookup();
+          loadCheckIns(true);
+        } catch (e) { toast(e.message, "err"); }
       }
 
+      window.setTab = setTab;
+      window.lookup = lookup;
+      window.act = act;
+      window.logout = logout;
+      window.loadCheckIns = loadCheckIns;
+
       if (token && user) {
-        loadMemberships().then(render).catch(() => renderLogin());
+        if (!["PUERTA", "CLUB_ADMIN", "SUPER_ADMIN"].includes(user.role)) {
+          location.href = user.role === "STAFF" ? "/publi.html" : "/app.html";
+        } else {
+          loadMemberships()
+            .then(() => {
+              if (user.role === "PUERTA" && !memberships.length) {
+                alert("Tu cuenta no tiene un boliche asignado. Pedile al dueño que te dé acceso.");
+                logout();
+                return;
+              }
+              render();
+            })
+            .catch(() => logout());
+        }
       } else {
-        render();
+        location.href = "/login.html?next=" + encodeURIComponent("/staff.html");
       }
+
+      window.addEventListener("pagehide", () => { stopScanner(); clearInterval(checkInsTimer); });
     </script>
   </body>
 </html>

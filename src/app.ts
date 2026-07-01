@@ -1,8 +1,18 @@
 import path from "node:path";
-import express, { type Application } from "express";
+import express, { type Application, type RequestHandler } from "express";
 import cors from "cors";
 import apiRoutes from "./routes";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler";
+
+const publicDir = path.join(__dirname, "..", "public");
+
+/** 404 HTML para rutas del sitio (no API). */
+const htmlNotFoundHandler: RequestHandler = (req, res, next) => {
+  if (req.path.startsWith("/api")) return next();
+  if (req.method !== "GET" && req.method !== "HEAD") return next();
+  if (/\.[a-z0-9]+$/i.test(req.path)) return next();
+  res.status(404).sendFile(path.join(publicDir, "404.html"));
+};
 
 /** Construye la aplicacion Express con middlewares y rutas montadas (Kluby API). */
 export const createApp = (): Application => {
@@ -18,7 +28,7 @@ export const createApp = (): Application => {
   // Forzamos revalidacion del HTML para evitar que el navegador sirva una
   // version cacheada y vieja del panel/sitio.
   app.use(
-    express.static(path.join(__dirname, "..", "public"), {
+    express.static(publicDir, {
       etag: true,
       setHeaders: (res, filePath) => {
         if (filePath.endsWith(".html")) {
@@ -28,7 +38,14 @@ export const createApp = (): Application => {
     })
   );
 
+  // URL limpia para ficha publica de boliche.
+  app.get("/boliche/:id", (req, res) => {
+    res.redirect(302, `/boliche.html?id=${encodeURIComponent(req.params.id)}`);
+  });
+
   app.use("/api", apiRoutes);
+
+  app.use(htmlNotFoundHandler);
 
   // Manejo de rutas no encontradas y errores (siempre al final).
   app.use(notFoundHandler);
