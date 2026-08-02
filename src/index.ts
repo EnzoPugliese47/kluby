@@ -4,8 +4,9 @@ import { prisma } from "./lib/prisma";
 
 const app = createApp();
 
-const server = app.listen(env.port, () => {
-  console.log(`[Kluby] API escuchando en http://localhost:${env.port}`);
+const host = "0.0.0.0";
+const server = app.listen(env.port, host, () => {
+  console.log(`[Kluby] API escuchando en http://${host}:${env.port}`);
   console.log(`[Kluby] Entorno: ${env.nodeEnv}`);
 });
 
