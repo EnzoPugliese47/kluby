@@ -19,7 +19,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Kluby - reservas de mesas VIP en boliches",
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
