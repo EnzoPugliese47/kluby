@@ -2,10 +2,10 @@
 # https://docs.railway.com/reference/config-as-code
 
 [build]
-buildCommand = "npm install && npm run build && npx prisma migrate deploy"
+buildCommand = "npm install && npm run build"
 
 [deploy]
-startCommand = "npm start"
+startCommand = "npx prisma migrate deploy && npm start"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"
