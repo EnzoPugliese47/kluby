@@ -34,6 +34,10 @@ export const createApp = (): Application => {
         if (filePath.endsWith(".html")) {
           res.setHeader("Cache-Control", "no-cache, must-revalidate");
         }
+        if (filePath.endsWith(".apk")) {
+          res.setHeader("Content-Type", "application/vnd.android.package-archive");
+          res.setHeader("Content-Disposition", 'attachment; filename="kluby.apk"');
+        }
       },
     })
   );

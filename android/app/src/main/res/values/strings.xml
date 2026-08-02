@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Kluby</string>
+    <string name="title_activity_main">Kluby</string>
+    <string name="package_name">com.kluby.app</string>
+    <string name="custom_url_scheme">com.kluby.app</string>
+</resources>

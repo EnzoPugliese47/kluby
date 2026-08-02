@@ -61,6 +61,34 @@
             <div class="empty" style="grid-column:1/-1">Cargando...</div>
           </div>
 
+          <section class="k-app-install" id="app-android" aria-labelledby="app-android-title">
+            <div>
+              <div class="k-app-install-badge">📱 Android · APK</div>
+              <h2 id="app-android-title">Instalá Kluby en tu celular</h2>
+              <p class="lead">La misma app de reservas, mesas VIP y QR — optimizada para llevar en el bolsillo. Necesitás conexión a internet.</p>
+              <ol class="k-app-install-steps">
+                <li>
+                  <span class="num">1</span>
+                  <div><b>Descargá el APK</b> con el botón de la derecha (desde el celular o pasalo por WhatsApp / Drive).</div>
+                </li>
+                <li>
+                  <span class="num">2</span>
+                  <div><b>Permití “Instalar apps desconocidas”</b> para Chrome o Archivos cuando Android te lo pida.</div>
+                </li>
+                <li>
+                  <span class="num">3</span>
+                  <div><b>Abrí el archivo</b> <code style="color:var(--neon-cyan)">kluby.apk</code>, tocá Instalar y listo.</div>
+                </li>
+              </ol>
+            </div>
+            <div class="k-app-install-actions">
+              <a class="k-btn-android" id="k-install-btn" href="/downloads/kluby.apk" download="kluby.apk">
+                <span aria-hidden="true">⬇</span> Descargar para Android
+              </a>
+              <p class="k-app-install-note" id="k-install-note">Comprobando disponibilidad del APK…</p>
+            </div>
+          </section>
+
           <div class="k-cta-band" style="margin-top:48px">
             <h2>¿Listo para salir?</h2>
             <p>Explorá fechas o creá tu cuenta cuando quieras reservar.</p>
@@ -92,6 +120,29 @@
           document.getElementById("clubs").innerHTML =
             '<div class="empty" style="grid-column:1/-1">No pudimos cargar los boliches. <a href="/explorar.html">Intentá de nuevo</a>.</div>';
         });
+
+      (function checkApkDownload() {
+        const btn = document.getElementById("k-install-btn");
+        const note = document.getElementById("k-install-note");
+        if (!btn || !note) return;
+        fetch("/downloads/kluby.apk", { method: "HEAD" })
+          .then((r) => {
+            if (r.ok) {
+              note.textContent = "APK listo para instalar en Android.";
+              note.classList.add("ok");
+              return;
+            }
+            btn.classList.add("is-disabled");
+            btn.removeAttribute("href");
+            btn.removeAttribute("download");
+            note.textContent =
+              "El APK todavía no está publicado en el servidor. Compilalo en tu PC (ver APK.md) y subilo a public/downloads/kluby.apk.";
+          })
+          .catch(() => {
+            btn.classList.add("is-disabled");
+            note.textContent = "No pudimos verificar la descarga. Intentá más tarde.";
+          });
+      })();
     </script>
   </body>
 </html>

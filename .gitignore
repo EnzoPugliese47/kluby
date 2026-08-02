@@ -4,3 +4,12 @@ dist
 .env
 
 /generated/prisma
+
+# Capacitor / Android
+android/.gradle
+android/app/build
+android/build
+android/local.properties
+*.apk
+*.aab
+.idea

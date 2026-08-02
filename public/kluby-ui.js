@@ -73,6 +73,7 @@ window.KlubyUI = (function () {
     const links = [
       ["home", "/", "Inicio"],
       ["explorar", "/explorar.html", "Explorar"],
+      ["app", "/#app-android", "App Android"],
     ];
     container.innerHTML = `
       <nav class="k-nav">
@@ -105,6 +106,7 @@ window.KlubyUI = (function () {
           <a href="/explorar.html">Explorar</a>
           <a href="/login.html">Ingresar</a>
           <a href="/app.html">App cliente</a>
+          <a href="/#app-android">Descargar app</a>
           <a href="/panel.html">Panel dueños</a>
         </div>
       </footer>`;
