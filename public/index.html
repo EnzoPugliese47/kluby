@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#050508" />
-    <meta name="description" content="Kluby — reservá mesas VIP en los mejores boliches de Buenos Aires. Tu noche, tu mesa." />
+    <meta name="description" content="Kluby — reservá mesas VIP en los mejores boliches de Buenos Aires. Explorá por zona, fecha y género." />
     <meta property="og:title" content="Kluby · Tu noche empieza acá" />
     <meta property="og:description" content="Reservá mesas VIP, explorá boliches y viví la noche sin filas." />
     <title>Kluby · Tu noche empieza acá</title>
@@ -21,12 +21,12 @@
           <h1>Tu noche.<br/><span class="grad">Tu mesa.</span></h1>
           <p class="lead">Elegí el boliche, la fecha y tu mesa en el mapa. Explorá sin cuenta — registrate solo cuando quieras reservar.</p>
           <div class="k-hero-cta">
-            <a class="k-btn-cyan" href="/explorar.html">Explorar boliches</a>
+            <a class="k-btn-cyan" href="#explorar">Explorar boliches</a>
             <a class="secondary" href="/login.html">Ingresar</a>
           </div>
           <div class="k-stats">
             <div><b id="stat-clubs">—</b><small>Boliches</small></div>
-            <div><b>24/7</b><small>Reservas online</small></div>
+            <div><b id="stat-events">—</b><small>Eventos próximos</small></div>
             <div><b>VIP</b><small>Mesas en el mapa</small></div>
           </div>
         </section>
@@ -36,11 +36,11 @@
             <h2>¿Cómo funciona?</h2>
             <p>Tres pasos y estás adentro. Sin filas, sin drama.</p>
           </div>
-          <div class="k-steps" style="margin-bottom:64px">
+          <div class="k-steps" style="margin-bottom:48px">
             <div class="k-step">
               <div class="k-step-num">01</div>
               <h3>Explorá</h3>
-              <p>Mirá boliches, géneros y próximas fechas sin crear cuenta.</p>
+              <p>Mirá boliches, géneros y fechas. Filtrá por zona o por evento.</p>
             </div>
             <div class="k-step">
               <div class="k-step-num">02</div>
@@ -54,13 +54,18 @@
             </div>
           </div>
 
-          <div class="k-page-head">
-            <h2>Boliches en Kluby</h2>
-            <p>Los locales que ya están en la plataforma.</p>
-          </div>
-          <div class="k-clubs-grid" id="clubs">
-            <div class="empty" style="grid-column:1/-1">Cargando...</div>
-          </div>
+          <section class="k-landing-explore" id="explorar">
+            <div class="k-page-head">
+              <h2>Explorá la noche</h2>
+              <p>Buscá por boliche o por evento. Filtrá zona, fecha y género — no necesitás cuenta para mirar.</p>
+            </div>
+            <div class="k-explore-tabs" role="tablist">
+              <button type="button" class="active" id="tab-clubs" role="tab" aria-selected="true" onclick="setLandingExploreTab('clubs')">Por boliche</button>
+              <button type="button" id="tab-events" role="tab" aria-selected="false" onclick="setLandingExploreTab('events')">Por evento</button>
+            </div>
+            <div id="filters-wrap"></div>
+            <div id="explore-list"><div class="empty">Cargando...</div></div>
+          </section>
 
           <section class="k-app-install" id="app-android" aria-labelledby="app-android-title">
             <div>
@@ -92,8 +97,8 @@
 
           <div class="k-cta-band" style="margin-top:48px">
             <h2>¿Listo para salir?</h2>
-            <p>Explorá fechas o creá tu cuenta cuando quieras reservar.</p>
-            <a class="k-btn-glow" href="/explorar.html">Ver todos los boliches</a>
+            <p>Reservá tu mesa en minutos desde la app.</p>
+            <a class="k-btn-glow" href="/login.html?next=%2Fapp.html">Crear cuenta y reservar</a>
           </div>
         </div>
       </main>
@@ -101,49 +106,45 @@
     </div>
     <script src="/kluby-ui.js"></script>
     <script>
-      KlubyUI.mountPublicPage("home");
+      const UI = KlubyUI;
       const p = new URLSearchParams(location.search);
       if (p.get("invitacion") || p.get("equipo")) {
-        KlubyUI.captureInviteFromUrl();
+        UI.captureInviteFromUrl();
         location.href = "/login.html" + location.search;
       }
-      KlubyUI.loadClubs()
-        .then((clubs) => {
-          document.getElementById("stat-clubs").textContent = clubs.length || "0";
-          const el = document.getElementById("clubs");
-          if (!clubs.length) {
-            el.innerHTML = '<div class="empty" style="grid-column:1/-1">Próximamente más boliches.</div>';
-            return;
-          }
-          el.innerHTML = clubs.slice(0, 6).map((c) => KlubyUI.clubCardHtml(c)).join("");
+
+      const navActive = location.hash === "#explorar" || p.get("tab") ? "explorar" : "home";
+      UI.mountPublicPage(navActive);
+
+      const initialTab = p.get("tab") === "events" ? "events" : "clubs";
+      const exploreCtrl = UI.mountExplore({
+        initialTab,
+        onClubsLoaded(clubs) {
+          const stat = document.getElementById("stat-clubs");
+          if (stat) stat.textContent = clubs.length || "0";
+        },
+      });
+      function setLandingExploreTab(tab) {
+        exploreCtrl.setTab(tab);
+      }
+
+      UI.loadExploreEvents({})
+        .then((events) => {
+          const stat = document.getElementById("stat-events");
+          if (stat) stat.textContent = events.length || "0";
         })
         .catch(() => {
-          document.getElementById("clubs").innerHTML =
-            '<div class="empty" style="grid-column:1/-1">No pudimos cargar los boliches. <a href="/explorar.html">Intentá de nuevo</a>.</div>';
+          const stat = document.getElementById("stat-events");
+          if (stat) stat.textContent = "—";
         });
 
-      (function checkApkDownload() {
-        const btn = document.getElementById("k-install-btn");
-        const note = document.getElementById("k-install-note");
-        if (!btn || !note) return;
-        fetch("/downloads/kluby.apk", { method: "HEAD" })
-          .then((r) => {
-            if (r.ok) {
-              note.textContent = "APK listo para instalar en Android.";
-              note.classList.add("ok");
-              return;
-            }
-            btn.classList.add("is-disabled");
-            btn.removeAttribute("href");
-            btn.removeAttribute("download");
-            note.textContent =
-              "El APK todavía no está publicado en el servidor. Compilalo en tu PC (ver APK.md) y subilo a public/downloads/kluby.apk.";
-          })
-          .catch(() => {
-            btn.classList.add("is-disabled");
-            note.textContent = "No pudimos verificar la descarga. Intentá más tarde.";
-          });
-      })();
+      UI.checkApkDownload();
+
+      if (location.hash === "#explorar" || p.get("tab")) {
+        requestAnimationFrame(() => {
+          document.getElementById("explorar")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
     </script>
   </body>
 </html>

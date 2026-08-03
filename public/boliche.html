@@ -30,7 +30,7 @@
       async function render() {
         const el = document.getElementById("content");
         if (!clubId) {
-          el.innerHTML = '<div class="empty">Boliche no especificado. <a href="/explorar.html">Volver a explorar</a></div>';
+          el.innerHTML = '<div class="empty">Boliche no especificado. <a href="/#explorar">Volver a explorar</a></div>';
           return;
         }
         try {
@@ -45,7 +45,7 @@
             : `<div class="logo-big">${UI.esc((club.name || "K").charAt(0))}</div>`;
 
           el.innerHTML = `
-            <p style="margin-bottom:20px"><a href="/explorar.html" style="color:var(--muted);font-size:14px">← Volver a explorar</a></p>
+            <p style="margin-bottom:20px"><a href="/#explorar" style="color:var(--muted);font-size:14px">← Volver a explorar</a></p>
             <div class="k-club-hero">
               <div class="k-club-hero-main">
                 ${logo}
@@ -98,7 +98,7 @@
               <div class="code" style="font-size:4rem">?</div>
               <h1>Boliche no encontrado</h1>
               <p>${UI.esc(e.message)}</p>
-              <a class="k-btn-glow" href="/explorar.html">Explorar boliches</a>
+              <a class="k-btn-glow" href="/#explorar">Explorar boliches</a>
             </div>`;
         }
       }

@@ -283,7 +283,14 @@ body.kluby-public .section-title {
   outline: 2px solid var(--neon-cyan);
   outline-offset: 2px;
 }
+.k-landing-explore {
+  margin-top: 56px;
+  padding-top: 56px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+#explorar { scroll-margin-top: 88px; }
 .k-explore-club-block { margin-bottom: 48px; }
+
 .k-explore-events-list { display: flex; flex-direction: column; gap: 10px; }
 .k-explore-event-row .k-event-club-line { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
 .tag.violet { background: rgba(124, 92, 255, 0.12); color: #c4b5ff; border: 1px solid rgba(124, 92, 255, 0.25); }

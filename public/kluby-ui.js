@@ -124,7 +124,7 @@ window.KlubyUI = (function () {
     const session = getSession();
     const links = [
       ["home", "/", "Inicio"],
-      ["explorar", "/explorar.html", "Explorar"],
+      ["explorar", "/#explorar", "Explorar"],
       ["app", "/#app-android", "App Android"],
     ];
     container.innerHTML = `
@@ -155,7 +155,7 @@ window.KlubyUI = (function () {
         <p>© ${new Date().getFullYear()} Kluby · Plataforma de reservas VIP</p>
         <div class="links">
           <a href="/">Inicio</a>
-          <a href="/explorar.html">Explorar</a>
+          <a href="/#explorar">Explorar</a>
           <a href="/login.html">Ingresar</a>
           <a href="/app.html">App cliente</a>
           <a href="/#app-android">Descargar app</a>
@@ -447,6 +447,149 @@ window.KlubyUI = (function () {
       .map((e) => ({ ...e, isPast: new Date(e.date) < now }));
   }
 
+  /**
+   * Monta la sección explorar (tabs boliche/evento + filtros + listado).
+   * Usada en index.html y compatible con explorar.html vía redirect.
+   */
+  function mountExplore(options = {}) {
+    const prefix = options.prefix || "ex-";
+    const filtersId = options.filtersId || "filters-wrap";
+    const listId = options.listId || "explore-list";
+    const tabClubsId = options.tabClubsId || "tab-clubs";
+    const tabEventsId = options.tabEventsId || "tab-events";
+    let exploreTab = options.initialTab || "clubs";
+    let timer = null;
+
+    const $(id) => document.getElementById(id);
+
+    function renderFilters() {
+      const wrap = $(filtersId);
+      if (!wrap) return;
+      wrap.innerHTML = exploreFiltersHtml(prefix, { tab: exploreTab });
+      wrap.querySelectorAll("input, select").forEach((el) => {
+        el.addEventListener("input", debouncedLoad);
+        el.addEventListener("change", debouncedLoad);
+      });
+    }
+
+    function setTab(tab) {
+      exploreTab = tab;
+      const tc = $(tabClubsId);
+      const te = $(tabEventsId);
+      if (tc) {
+        tc.classList.toggle("active", tab === "clubs");
+        tc.setAttribute("aria-selected", tab === "clubs");
+      }
+      if (te) {
+        te.classList.toggle("active", tab === "events");
+        te.setAttribute("aria-selected", tab === "events");
+      }
+      renderFilters();
+      void load();
+    }
+
+    async function loadClubsView() {
+      const el = $(listId);
+      if (!el) return;
+      const f = readExploreFilters(prefix);
+      const qs = clubsQueryString(f);
+      const clubs = await loadClubs(Object.fromEntries(new URLSearchParams(qs)));
+      if (options.onClubsLoaded) options.onClubsLoaded(clubs);
+      if (!clubs.length) {
+        el.innerHTML = '<div class="empty">No encontramos boliches con esos filtros.</div>';
+        return;
+      }
+      const blocks = await Promise.all(
+        clubs.map(async (club) => {
+          let events = [];
+          try {
+            events = (await loadClubEvents(club.id)).filter((e) => !e.isPast).slice(0, 3);
+          } catch { /* sin eventos */ }
+          return `
+            <section class="k-explore-club-block">
+              <div class="row-between" style="margin-bottom:16px;align-items:flex-end">
+                <div>
+                  <h2 style="font-family:Syne,sans-serif;font-size:1.4rem;font-weight:800">${esc(club.name)}</h2>
+                  <p class="muted" style="font-size:13px;margin-top:4px">📍 ${esc(clubLocationMeta(club))}${club.musicGenre ? " · 🎵 " + esc(club.musicGenre) : ""}</p>
+                </div>
+                <a class="k-btn-ghost" href="/boliche.html?id=${encodeURIComponent(club.id)}">Ver ficha →</a>
+              </div>
+              <div class="k-explore-row">
+                ${clubCardHtml(club)}
+                <div>
+                  <h3 style="font-family:Syne,sans-serif;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Próximos eventos</h3>
+                  ${
+                    events.length
+                      ? `<div class="k-events-list">${events.map((e) => eventRowHtml(e, club.id)).join("")}</div>`
+                      : '<p class="hint">Todavía no hay fechas publicadas.</p>'
+                  }
+                </div>
+              </div>
+            </section>`;
+        })
+      );
+      el.innerHTML = blocks.join("");
+    }
+
+    async function loadEventsView() {
+      const el = $(listId);
+      if (!el) return;
+      const f = readExploreFilters(prefix);
+      const qs = eventsQueryString(f);
+      const events = await loadExploreEvents(Object.fromEntries(new URLSearchParams(qs)));
+      if (!events.length) {
+        el.innerHTML = '<div class="empty">No hay eventos con esos filtros. Probá otra fecha o zona.</div>';
+        return;
+      }
+      el.innerHTML = `<div class="k-events-list k-explore-events-list">${events.map((e) => exploreEventRowHtml(e)).join("")}</div>`;
+    }
+
+    async function load() {
+      const el = $(listId);
+      if (!el) return;
+      el.innerHTML = '<div class="empty">Cargando...</div>';
+      try {
+        if (exploreTab === "clubs") await loadClubsView();
+        else await loadEventsView();
+      } catch (e) {
+        el.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+      }
+    }
+
+    function debouncedLoad() {
+      clearTimeout(timer);
+      timer = setTimeout(load, 300);
+    }
+
+    renderFilters();
+    void load();
+
+    return { setTab, load, getTab: () => exploreTab };
+  }
+
+  function checkApkDownload(btnId, noteId) {
+    const btn = document.getElementById(btnId || "k-install-btn");
+    const note = document.getElementById(noteId || "k-install-note");
+    if (!btn || !note) return;
+    fetch("/downloads/kluby.apk", { method: "HEAD" })
+      .then((r) => {
+        if (r.ok) {
+          note.textContent = "APK listo para instalar en Android.";
+          note.classList.add("ok");
+          return;
+        }
+        btn.classList.add("is-disabled");
+        btn.removeAttribute("href");
+        btn.removeAttribute("download");
+        note.textContent =
+          "El APK todavía no está publicado en el servidor. Compilalo en tu PC (ver APK.md) y subilo a public/downloads/kluby.apk.";
+      })
+      .catch(() => {
+        btn.classList.add("is-disabled");
+        note.textContent = "No pudimos verificar la descarga. Intentá más tarde.";
+      });
+  }
+
   return {
     esc,
     fdatetime,
@@ -485,5 +628,7 @@ window.KlubyUI = (function () {
     loadExploreEvents,
     loadClub,
     loadClubEvents,
+    mountExplore,
+    checkApkDownload,
   };
 })();

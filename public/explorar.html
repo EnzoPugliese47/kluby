@@ -2,134 +2,19 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#050508" />
-    <meta name="description" content="Explorá boliches y eventos en Kluby. Filtrá por zona, fecha y género. Reservá mesas VIP." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kluby · Explorar</title>
-    <link rel="stylesheet" href="/kluby.css" />
-    <link rel="stylesheet" href="/kluby-public.css" />
+    <meta http-equiv="refresh" content="0;url=/#explorar" />
+    <script>
+      (function () {
+        const p = new URLSearchParams(location.search);
+        const tab = p.get("tab");
+        const q = tab ? "?tab=" + encodeURIComponent(tab) : "";
+        location.replace("/" + q + "#explorar");
+      })();
+    </script>
   </head>
   <body>
-    <div id="k-bg"></div>
-    <div class="k-wrap">
-      <div id="k-nav"></div>
-      <main class="k-main">
-        <div class="k-page">
-          <div class="k-page-head">
-            <h1>Explorá la noche</h1>
-            <p>Buscá por boliche o por evento. Filtrá zona, fecha y género — no necesitás cuenta para mirar.</p>
-          </div>
-          <div class="k-explore-tabs" role="tablist">
-            <button type="button" class="active" id="tab-clubs" role="tab" aria-selected="true" onclick="setExploreTab('clubs')">Por boliche</button>
-            <button type="button" id="tab-events" role="tab" aria-selected="false" onclick="setExploreTab('events')">Por evento</button>
-          </div>
-          <div id="filters-wrap"></div>
-          <div id="list"><div class="empty">Cargando...</div></div>
-        </div>
-      </main>
-      <div id="k-footer"></div>
-    </div>
-    <script src="/kluby-ui.js"></script>
-    <script>
-      const UI = KlubyUI;
-      UI.mountPublicPage("explorar");
-      KlubyUI.captureInviteFromUrl();
-
-      let exploreTab = "clubs";
-      let timer;
-      const $ = (id) => document.getElementById(id);
-
-      function renderFilters() {
-        const wrap = $("filters-wrap");
-        if (!wrap) return;
-        wrap.innerHTML = UI.exploreFiltersHtml("ex-", { tab: exploreTab });
-        wrap.querySelectorAll("input, select").forEach((el) => {
-          el.addEventListener("input", debouncedLoad);
-          el.addEventListener("change", debouncedLoad);
-        });
-      }
-
-      function setExploreTab(tab) {
-        exploreTab = tab;
-        $("tab-clubs").classList.toggle("active", tab === "clubs");
-        $("tab-events").classList.toggle("active", tab === "events");
-        $("tab-clubs").setAttribute("aria-selected", tab === "clubs");
-        $("tab-events").setAttribute("aria-selected", tab === "events");
-        renderFilters();
-        load();
-      }
-
-      async function loadClubsView() {
-        const el = $("list");
-        const f = UI.readExploreFilters("ex-");
-        const qs = UI.clubsQueryString(f);
-        const clubs = await UI.loadClubs(Object.fromEntries(new URLSearchParams(qs)));
-        if (!clubs.length) {
-          el.innerHTML = '<div class="empty">No encontramos boliches con esos filtros.</div>';
-          return;
-        }
-        const blocks = await Promise.all(
-          clubs.map(async (club) => {
-            let events = [];
-            try {
-              events = (await UI.loadClubEvents(club.id)).filter((e) => !e.isPast).slice(0, 3);
-            } catch { /* sin eventos */ }
-            return `
-              <section class="k-explore-club-block">
-                <div class="row-between" style="margin-bottom:16px;align-items:flex-end">
-                  <div>
-                    <h2 style="font-family:Syne,sans-serif;font-size:1.4rem;font-weight:800">${UI.esc(club.name)}</h2>
-                    <p class="muted" style="font-size:13px;margin-top:4px">📍 ${UI.esc(UI.clubLocationMeta(club))}${club.musicGenre ? " · 🎵 " + UI.esc(club.musicGenre) : ""}</p>
-                  </div>
-                  <a class="k-btn-ghost" href="/boliche.html?id=${encodeURIComponent(club.id)}">Ver ficha →</a>
-                </div>
-                <div class="k-explore-row">
-                  ${UI.clubCardHtml(club)}
-                  <div>
-                    <h3 style="font-family:Syne,sans-serif;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Próximos eventos</h3>
-                    ${
-                      events.length
-                        ? `<div class="k-events-list">${events.map((e) => UI.eventRowHtml(e, club.id)).join("")}</div>`
-                        : '<p class="hint">Todavía no hay fechas publicadas.</p>'
-                    }
-                  </div>
-                </div>
-              </section>`;
-          })
-        );
-        el.innerHTML = blocks.join("");
-      }
-
-      async function loadEventsView() {
-        const el = $("list");
-        const f = UI.readExploreFilters("ex-");
-        const qs = UI.eventsQueryString(f);
-        const events = await UI.loadExploreEvents(Object.fromEntries(new URLSearchParams(qs)));
-        if (!events.length) {
-          el.innerHTML = '<div class="empty">No hay eventos con esos filtros. Probá otra fecha o zona.</div>';
-          return;
-        }
-        el.innerHTML = `<div class="k-events-list k-explore-events-list">${events.map((e) => UI.exploreEventRowHtml(e)).join("")}</div>`;
-      }
-
-      async function load() {
-        const el = $("list");
-        el.innerHTML = '<div class="empty">Cargando...</div>';
-        try {
-          if (exploreTab === "clubs") await loadClubsView();
-          else await loadEventsView();
-        } catch (e) {
-          el.innerHTML = `<div class="empty">${UI.esc(e.message)}</div>`;
-        }
-      }
-
-      function debouncedLoad() {
-        clearTimeout(timer);
-        timer = setTimeout(load, 300);
-      }
-
-      renderFilters();
-      load();
-    </script>
+    <p>Redirigiendo a <a href="/#explorar">Kluby</a>…</p>
   </body>
 </html>
