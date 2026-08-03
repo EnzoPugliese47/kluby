@@ -272,6 +272,7 @@ window.KlubyUI = (function () {
             ? `<label class="k-filter-check"><input type="checkbox" id="${prefix}upcoming" checked /> Solo con eventos próximos</label>`
             : ""
         }
+        <label class="k-filter-check"><input type="checkbox" id="${prefix}available" /> Solo con mesas disponibles</label>
       </div>`;
   }
 
@@ -281,8 +282,9 @@ window.KlubyUI = (function () {
     const zone = document.getElementById(prefix + "zone")?.value || "";
     const datePreset = document.getElementById(prefix + "date")?.value || "";
     const upcomingOnly = document.getElementById(prefix + "upcoming")?.checked;
+    const availableOnly = document.getElementById(prefix + "available")?.checked;
     const range = computeDateRange(datePreset);
-    return { q, genre, zone, upcomingOnly, ...range };
+    return { q, genre, zone, upcomingOnly, availableOnly, ...range };
   }
 
   function clubsQueryString(filters) {
@@ -291,6 +293,7 @@ window.KlubyUI = (function () {
     if (filters.genre) qs.set("genre", filters.genre);
     if (filters.zone) qs.set("zone", filters.zone);
     if (filters.upcomingOnly) qs.set("upcomingOnly", "1");
+    if (filters.availableOnly) qs.set("availableOnly", "1");
     return qs.toString();
   }
 
@@ -301,6 +304,7 @@ window.KlubyUI = (function () {
     if (filters.zone) qs.set("zone", filters.zone);
     if (filters.from) qs.set("from", filters.from);
     if (filters.to) qs.set("to", filters.to);
+    if (filters.availableOnly) qs.set("availableOnly", "1");
     return qs.toString();
   }
 
@@ -374,15 +378,22 @@ window.KlubyUI = (function () {
     return `/login.html?next=${encodeURIComponent(dest)}`;
   }
 
+  function availBadge(count) {
+    if (count === undefined || count === null) return "";
+    if (count <= 0) return `<span class="tag muted">Sin mesas</span>`;
+    return `<span class="tag cyan">${count} mesa${count === 1 ? "" : "s"} libre${count === 1 ? "" : "s"}</span>`;
+  }
+
   function exploreEventRowHtml(item) {
     const club = item.club || {};
     const cid = esc(club.id);
     const genre = item.musicGenre || club.musicGenre;
     const loc = clubLocationMeta(club);
+    const avail = availBadge(item.availableTableCount);
     return `
       <div class="k-event-row k-explore-event-row">
         <div class="info">
-          <h4>${esc(item.name)}</h4>
+          <h4>${esc(item.name)} ${avail}</h4>
           <small>🗓 ${fdatetime(item.date)}${genre ? " · 🎵 " + esc(genre) : ""}</small>
           <small class="k-event-club-line">🏢 ${esc(club.name || "")}${loc ? " · 📍 " + esc(loc) : ""}</small>
         </div>
@@ -392,10 +403,11 @@ window.KlubyUI = (function () {
 
   function eventRowHtml(event, clubId) {
     const isPast = new Date(event.date) < new Date();
+    const avail = !isPast ? availBadge(event.availableTableCount) : "";
     return `
       <div class="k-event-row">
         <div class="info">
-          <h4>${esc(event.name)}</h4>
+          <h4>${esc(event.name)} ${avail}</h4>
           <small>🗓 ${fdatetime(event.date)}${event.musicGenre ? " · 🎵 " + esc(event.musicGenre) : ""}</small>
         </div>
         ${
@@ -419,6 +431,7 @@ window.KlubyUI = (function () {
     if (params.genre) qs.set("genre", params.genre);
     if (params.zone) qs.set("zone", params.zone);
     if (params.upcomingOnly) qs.set("upcomingOnly", "1");
+    if (params.availableOnly) qs.set("availableOnly", "1");
     const q = qs.toString();
     return fetchJson("/clubs" + (q ? "?" + q : ""));
   }
@@ -430,6 +443,7 @@ window.KlubyUI = (function () {
     if (params.zone) qs.set("zone", params.zone);
     if (params.from) qs.set("from", params.from);
     if (params.to) qs.set("to", params.to);
+    if (params.availableOnly) qs.set("availableOnly", "1");
     const q = qs.toString();
     return fetchJson("/events/explore" + (q ? "?" + q : ""));
   }
@@ -438,8 +452,13 @@ window.KlubyUI = (function () {
     return fetchJson("/clubs/" + encodeURIComponent(id));
   }
 
-  async function loadClubEvents(clubId) {
-    const events = await fetchJson("/clubs/" + encodeURIComponent(clubId) + "/events");
+  async function loadClubEvents(clubId, opts = {}) {
+    const qs = new URLSearchParams();
+    if (opts.availableOnly) qs.set("availableOnly", "1");
+    const q = qs.toString();
+    const events = await fetchJson(
+      "/clubs/" + encodeURIComponent(clubId) + "/events" + (q ? "?" + q : "")
+    );
     const now = new Date();
     return events
       .filter((e) => e.isActive !== false)
@@ -500,14 +519,16 @@ window.KlubyUI = (function () {
       const clubs = await loadClubs(Object.fromEntries(new URLSearchParams(qs)));
       if (options.onClubsLoaded) options.onClubsLoaded(clubs);
       if (!clubs.length) {
-        el.innerHTML = '<div class="empty">No encontramos boliches con esos filtros.</div>';
+        el.innerHTML = `<div class="empty">${f.availableOnly ? "No hay boliches con mesas disponibles para esos filtros." : "No encontramos boliches con esos filtros."}</div>`;
         return;
       }
       const blocks = await Promise.all(
         clubs.map(async (club) => {
           let events = [];
           try {
-            events = (await loadClubEvents(club.id)).filter((e) => !e.isPast).slice(0, 3);
+            events = (await loadClubEvents(club.id, { availableOnly: f.availableOnly }))
+              .filter((e) => !e.isPast)
+              .slice(0, 3);
           } catch { /* sin eventos */ }
           return `
             <section class="k-explore-club-block">
@@ -542,7 +563,7 @@ window.KlubyUI = (function () {
       const qs = eventsQueryString(f);
       const events = await loadExploreEvents(Object.fromEntries(new URLSearchParams(qs)));
       if (!events.length) {
-        el.innerHTML = '<div class="empty">No hay eventos con esos filtros. Probá otra fecha o zona.</div>';
+        el.innerHTML = `<div class="empty">${f.availableOnly ? "No hay eventos con mesas disponibles. Probá ampliar fecha o zona." : "No hay eventos con esos filtros. Probá otra fecha o zona."}</div>`;
         return;
       }
       el.innerHTML = `<div class="k-events-list k-explore-events-list">${events.map((e) => exploreEventRowHtml(e)).join("")}</div>`;

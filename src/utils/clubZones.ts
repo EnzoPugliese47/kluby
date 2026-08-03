@@ -41,3 +41,35 @@ export const requireClubZone = (raw: unknown): ClubZone => {
   }
   return zone;
 };
+
+/** Inferir zona amplia desde localidad/barrio/dirección (para datos legacy). */
+export const inferClubZoneFromLocation = (
+  city: string,
+  address?: string | null
+): ClubZone => {
+  const text = `${city} ${address ?? ""}`.toLowerCase();
+
+  if (
+    /tigre|san isidro|vicente l[oó]pez|escobar|pilar|san fernando|malvinas|campana|z[aá]rate|tortuguitas|del viso|boulogne|mart[ií]nez|olivos|n[oó]rdelta|zona norte/.test(
+      text
+    )
+  ) {
+    return "ZONA_NORTE" as ClubZone;
+  }
+  if (
+    /avellaneda|lan[uú]s|quilmes|berazategui|la plata|adrogu[eé]|banfield|temperley|lomas|san justo|haedo|mor[oó]n|zona sur/.test(
+      text
+    )
+  ) {
+    return "ZONA_SUR" as ClubZone;
+  }
+  if (
+    /mor[oó]n|ramos|merlo|moreno|ituzaing[oó]|castelar|haedo|san justo|tres de febrero|zona oeste/.test(
+      text
+    )
+  ) {
+    return "ZONA_OESTE" as ClubZone;
+  }
+
+  return "CABA" as ClubZone;
+};

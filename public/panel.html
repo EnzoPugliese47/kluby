@@ -903,6 +903,7 @@
                 <small>📍 ${esc(clubZoneLabel(c.zone))}${c.city ? " · " + esc(c.city) : ""}</small>
                 <small>${esc(c.address)}</small>
                 ${c.musicGenre ? `<small>🎵 ${esc(c.musicGenre)}</small>` : ""}
+                <small>⭐ Kluby Points: $${Number(c.pointValue ?? 1)} de descuento por punto canjeado</small>
               </div>
               <div class="btn-row">
                 <button type="button" class="btn-sm ghost" onclick="editClub('${c.id}')">Editar</button>

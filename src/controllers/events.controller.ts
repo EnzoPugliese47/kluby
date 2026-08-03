@@ -28,6 +28,7 @@ import {
   parseDraftTables,
 } from "../utils/eventDraft";
 import { parseClubZone } from "../utils/clubZones";
+import { countAvailableTablesByEvent } from "../utils/tableAvailability";
 
 const PAYMENT_OPTION_VALUES = Object.values(PaymentOption);
 
@@ -409,7 +410,7 @@ export const deleteEvent = async (
   }
 };
 
-/** GET /api/clubs/:clubId/events — próximos por defecto; ?includePast=1 → { upcoming, past } */
+/** GET /api/clubs/:clubId/events — próximos por defecto; ?includePast=1 → { upcoming, past }; ?availableOnly=1 */
 export const listEventsByClub = async (
   req: Request,
   res: Response,
@@ -419,6 +420,9 @@ export const listEventsByClub = async (
     const clubId = requireParam(req.params, "clubId");
     const includePast =
       req.query.includePast === "1" || req.query.includePast === "true";
+    const availableOnly =
+      req.query.availableOnly === "1" ||
+      req.query.availableOnly === "true";
     const cutoff = openTablesEventCutoff();
 
     const events = await prisma.eventNight.findMany({
@@ -427,17 +431,33 @@ export const listEventsByClub = async (
       orderBy: { date: "desc" },
     });
 
-    const upcoming = events
+    const enrich = async (list: typeof events) => {
+      const counts = await countAvailableTablesByEvent(list.map((e) => e.id));
+      return list.map((e) => ({
+        ...e,
+        availableTableCount: counts.get(e.id) ?? 0,
+      }));
+    };
+
+    let upcoming = events
       .filter((e) => e.date >= cutoff)
       .sort((a, b) => a.date.getTime() - b.date.getTime());
     const past = events.filter((e) => e.date < cutoff);
 
+    if (availableOnly) {
+      upcoming = upcoming.filter((e) => e._count.tables > 0);
+      const counts = await countAvailableTablesByEvent(upcoming.map((e) => e.id));
+      upcoming = upcoming.filter((e) => (counts.get(e.id) ?? 0) > 0);
+    }
+
     if (includePast) {
-      sendSuccess(res, { upcoming, past });
+      const pastEnriched = await enrich(past);
+      const upcomingEnriched = await enrich(upcoming);
+      sendSuccess(res, { upcoming: upcomingEnriched, past: pastEnriched });
       return;
     }
 
-    sendSuccess(res, upcoming);
+    sendSuccess(res, await enrich(upcoming));
   } catch (error) {
     next(error);
   }
@@ -622,6 +642,9 @@ export const listExploreEvents = async (
     const zoneRaw = req.query["zone"];
     const fromRaw = req.query["from"];
     const toRaw = req.query["to"];
+    const availableOnly =
+      req.query["availableOnly"] === "1" ||
+      req.query["availableOnly"] === "true";
 
     const cutoff = openTablesEventCutoff();
     const dateFilter: Prisma.DateTimeFilter = { gte: cutoff };
@@ -679,7 +702,7 @@ export const listExploreEvents = async (
       where.AND = and;
     }
 
-    const events = await prisma.eventNight.findMany({
+    let events = await prisma.eventNight.findMany({
       where,
       orderBy: { date: "asc" },
       take: 80,
@@ -697,6 +720,12 @@ export const listExploreEvents = async (
       },
     });
 
+    const availCounts = await countAvailableTablesByEvent(events.map((e) => e.id));
+
+    if (availableOnly) {
+      events = events.filter((e) => (availCounts.get(e.id) ?? 0) > 0);
+    }
+
     sendSuccess(
       res,
       events.map((e) => ({
@@ -705,6 +734,7 @@ export const listExploreEvents = async (
         date: e.date,
         musicGenre: e.musicGenre,
         club: e.club,
+        availableTableCount: availCounts.get(e.id) ?? 0,
       }))
     );
   } catch (error) {

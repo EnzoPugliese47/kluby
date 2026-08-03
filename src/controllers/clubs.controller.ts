@@ -15,6 +15,10 @@ import {
 } from "../utils/validation";
 import { parseClubZone, requireClubZone } from "../utils/clubZones";
 import { openTablesEventCutoff } from "../utils/eventTiming";
+import {
+  countAvailableTablesByEvent,
+  eventIdsWithAvailableTables,
+} from "../utils/tableAvailability";
 
 const normalizeEmail = (raw: string): string => raw.trim().toLowerCase();
 
@@ -103,7 +107,8 @@ export const createClub = async (
 
 /**
  * GET /api/clubs - Listado con busqueda (?search= nombre/ciudad), genero (?genre=),
- * zona (?zone=), y solo con eventos proximos (?upcomingOnly=1).
+ * zona (?zone=), solo con eventos proximos (?upcomingOnly=1),
+ * solo con mesas libres (?availableOnly=1).
  */
 export const listClubs = async (
   req: Request,
@@ -117,7 +122,11 @@ export const listClubs = async (
     const upcomingOnly =
       req.query["upcomingOnly"] === "1" ||
       req.query["upcomingOnly"] === "true";
+    const availableOnly =
+      req.query["availableOnly"] === "1" ||
+      req.query["availableOnly"] === "true";
 
+    const cutoff = openTablesEventCutoff();
     const where: Prisma.ClubWhereInput = { isActive: true };
     if (typeof search === "string" && search.trim() !== "") {
       const term = search.trim();
@@ -135,11 +144,11 @@ export const listClubs = async (
     if (zone !== null) {
       where.zone = zone;
     }
-    if (upcomingOnly) {
+    if (upcomingOnly || availableOnly) {
       where.events = {
         some: {
           isActive: true,
-          date: { gte: openTablesEventCutoff() },
+          date: { gte: cutoff },
         },
       };
     }
@@ -148,10 +157,31 @@ export const listClubs = async (
       where.ownerId = req.user.sub;
     }
 
-    const clubs = await prisma.club.findMany({
+    let clubs = await prisma.club.findMany({
       where,
       orderBy: { name: "asc" },
     });
+
+    if (availableOnly && clubs.length > 0) {
+      const clubIds = clubs.map((c) => c.id);
+      const upcomingEvents = await prisma.eventNight.findMany({
+        where: {
+          clubId: { in: clubIds },
+          isActive: true,
+          date: { gte: cutoff },
+        },
+        select: { id: true, clubId: true },
+      });
+      const availIds = await eventIdsWithAvailableTables(
+        upcomingEvents.map((e) => e.id)
+      );
+      const clubsWithTables = new Set<string>();
+      for (const e of upcomingEvents) {
+        if (availIds.has(e.id)) clubsWithTables.add(e.clubId);
+      }
+      clubs = clubs.filter((c) => clubsWithTables.has(c.id));
+    }
+
     sendSuccess(res, clubs);
   } catch (error) {
     next(error);
