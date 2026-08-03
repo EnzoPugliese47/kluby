@@ -433,7 +433,8 @@
       }
 
       function go(view, params = {}) {
-        clearTimeout(clubsTimer);
+        clearTimeout(homeTimer);
+        clearTimeout(wzClubsTimer);
         state.view = view;
         state.params = params;
         render();
