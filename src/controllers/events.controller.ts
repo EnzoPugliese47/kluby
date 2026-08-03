@@ -184,7 +184,11 @@ export const updateEvent = async (
     const defaultConsumptionPercent = optionalNumber(body, "defaultConsumptionPercent");
     if (name !== undefined) data.name = name;
     if (musicGenre !== undefined) data.musicGenre = musicGenre;
-    if (backgroundImage !== undefined) data.backgroundImage = backgroundImage;
+    if (body["backgroundImage"] === null) {
+      data.backgroundImage = null;
+    } else if (backgroundImage !== undefined) {
+      data.backgroundImage = backgroundImage;
+    }
     if (typeof body["isActive"] === "boolean") data.isActive = body["isActive"];
     if (defaultConsumptionPercent !== undefined) {
       if (defaultConsumptionPercent < 1 || defaultConsumptionPercent > 100) {

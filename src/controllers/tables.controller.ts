@@ -3,6 +3,7 @@ import { Prisma } from "../generated/prisma/client";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
+import { occupyingReservationFilter } from "../utils/reservation";
 import {
   minConsumptionFromPercent,
   normalizeConsumptionPercent,
@@ -397,6 +398,89 @@ export const updateTable = async (
 
     const table = await prisma.clubTable.update({ where: { id }, data });
     sendSuccess(res, table);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/** DELETE /api/clubs/:clubId/template/tables - Baja todas las mesas base. */
+export const deleteAllTemplateTables = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const clubId = requireParam(req.params, "clubId");
+
+    const tables = await prisma.clubTable.findMany({
+      where: { clubId, eventId: null, isActive: true },
+      select: { id: true },
+    });
+    if (tables.length === 0) {
+      sendSuccess(res, { deleted: 0 });
+      return;
+    }
+
+    const tableIds = tables.map((t) => t.id);
+    const activeReservations = await prisma.reservation.count({
+      where: { tableId: { in: tableIds }, ...occupyingReservationFilter() },
+    });
+    if (activeReservations > 0) {
+      throw new AppError(
+        "No se pueden eliminar: hay reservas activas en estas mesas",
+        400
+      );
+    }
+
+    const result = await prisma.clubTable.updateMany({
+      where: { id: { in: tableIds } },
+      data: { isActive: false },
+    });
+    sendSuccess(res, { deleted: result.count });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/** DELETE /api/events/:eventId/tables - Baja todas las mesas del evento. */
+export const deleteAllEventTables = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const eventId = requireParam(req.params, "eventId");
+
+    const event = await prisma.eventNight.findUnique({ where: { id: eventId } });
+    if (event === null) {
+      throw new AppError("Evento no encontrado", 404);
+    }
+
+    const tables = await prisma.clubTable.findMany({
+      where: { eventId, isActive: true },
+      select: { id: true },
+    });
+    if (tables.length === 0) {
+      sendSuccess(res, { deleted: 0 });
+      return;
+    }
+
+    const tableIds = tables.map((t) => t.id);
+    const activeReservations = await prisma.reservation.count({
+      where: { tableId: { in: tableIds }, ...occupyingReservationFilter() },
+    });
+    if (activeReservations > 0) {
+      throw new AppError(
+        "No se pueden eliminar: hay reservas activas en estas mesas",
+        400
+      );
+    }
+
+    const result = await prisma.clubTable.updateMany({
+      where: { id: { in: tableIds } },
+      data: { isActive: false },
+    });
+    sendSuccess(res, { deleted: result.count });
   } catch (error) {
     next(error);
   }

@@ -1571,9 +1571,11 @@
             <label style="margin-top:0">Plano del salón (imagen de fondo)</label>
             <input id="tpl-map" type="file" accept="image/*" onchange="onClubTemplateMap(event)" />
             <div id="tpl-map-preview" style="margin-top:10px">${_clubTemplateBg ? `<img src="${esc(_clubTemplateBg)}" style="max-width:100%;max-height:120px;border-radius:8px;border:1px solid var(--border)"/>` : '<span class="role-pill">Sin plano base. El diseñador usará la grilla por defecto.</span>'}</div>
+            ${_clubTemplateBg ? `<button type="button" class="btn-sm btn-danger" style="margin-top:8px" onclick="clearClubTemplateMap()">Quitar imagen del plano</button>` : ""}
             <label style="margin-top:14px">Mesas en el plano (${_clubTemplateTables.length})</label>
             ${templateMapHtml(_clubTemplateBg, _clubTemplateTables, "tpl-preview")}
             <p class="hint" style="margin-top:8px;text-align:left">${_clubTemplateTables.length ? "Vista previa de las mesas base. Editá posiciones en el diseñador." : "Todavía no hay mesas base. Agregalas con el botón de abajo."}</p>
+            ${_clubTemplateTables.length ? `<button type="button" class="btn-sm btn-danger" style="margin-top:8px" onclick="deleteAllClubTemplateTables()">Eliminar todas las mesas</button>` : ""}
             <label>Género musical default</label>
             <input id="tpl-genre" value="${tpl.musicGenre ? attr(tpl.musicGenre) : ""}" placeholder="Ej. Electrónica" />
             <label>% consumición default (mesas nuevas)</label>
@@ -1635,6 +1637,28 @@
         } catch (e) {
           errEl.textContent = e.message;
         }
+      }
+
+      async function clearClubTemplateMap() {
+        if (!confirm("¿Quitar la imagen del plano base?")) return;
+        try {
+          await api("/clubs/" + _clubTemplate.clubId + "/template", {
+            method: "PATCH",
+            body: JSON.stringify({ floorMapUrl: null }),
+          });
+          _clubTemplateBg = null;
+          toast("Plano base eliminado", "ok");
+          openClubTemplateConfig(_clubTemplate.clubId, _clubTemplate.name);
+        } catch (e) { toast(e.message, "err"); }
+      }
+
+      async function deleteAllClubTemplateTables() {
+        if (!confirm("¿Eliminar TODAS las mesas base del boliche?\nNo se puede deshacer.")) return;
+        try {
+          const res = await api("/clubs/" + _clubTemplate.clubId + "/template/tables", { method: "DELETE" });
+          toast(res.deleted ? `${res.deleted} mesas eliminadas` : "No había mesas para eliminar", "ok");
+          openClubTemplateConfig(_clubTemplate.clubId, _clubTemplate.name);
+        } catch (e) { toast(e.message, "err"); }
       }
 
       async function openClubTemplateBottles() {
@@ -1763,25 +1787,139 @@
       }
       let _eventBg = null;
       let _editingEventId = null;
-      function openEventForm(ev) {
-        const editing = ev && ev.id;
-        _editingEventId = editing ? ev.id : null;
-        _eventBg = editing && ev.backgroundImage ? ev.backgroundImage : null;
+      let _pendingEventBottles = [];
+      let _eventFormDraft = null;
+
+      function renderPendingBottlesHtml() {
+        if (!_pendingEventBottles.length) {
+          return '<div class="empty" style="padding:10px 0;margin:0;font-size:13px">Sin botellas agregadas todavía.</div>';
+        }
+        return _pendingEventBottles
+          .map(
+            (b, i) => `
+          <div class="pick-row">
+            <div><b>${esc(b.name)}</b><small>${esc(b.category || "General")} · ${fmtMoney(b.price)} · stock ${b.stock || 0}</small></div>
+            <div class="btn-row">
+              <button type="button" class="btn-sm ghost" onclick="openPendingBottleForm(${i})">Editar</button>
+              <button type="button" class="btn-sm btn-danger" onclick="removePendingBottle('${b._localId}')">Quitar</button>
+            </div>
+          </div>`
+          )
+          .join("");
+      }
+
+      function eventBottlesHint(setup) {
+        if (setup === "past") {
+          return "Al crear se copia la carta del evento pasado. Podés sumar o reemplazar botellas acá antes de guardar.";
+        }
+        if (setup === "empty") {
+          return "Definí la carta acá o cargala después desde la lista de eventos.";
+        }
+        return "Al crear se copia la carta base del boliche. Podés sumar botellas extra acá.";
+      }
+
+      function captureEventFormDraft() {
+        return {
+          editingId: _editingEventId,
+          name: document.getElementById("ev-name")?.value ?? "",
+          date: document.getElementById("ev-date")?.value ?? "",
+          musicGenre: document.getElementById("ev-genre")?.value ?? "",
+          consPct: document.getElementById("ev-cons-pct")?.value ?? "100",
+          setup: document.getElementById("ev-setup")?.value ?? "club",
+          copyFrom: document.getElementById("ev-copy-from")?.value ?? "",
+          eventBg: _eventBg,
+          pendingBottles: _pendingEventBottles.map((b) => ({ ...b })),
+        };
+      }
+
+      function reopenEventFormFromDraft() {
+        const d = _eventFormDraft;
+        if (!d) return;
+        openEventForm(d.editingId ? { id: d.editingId, name: d.name } : null, d);
+      }
+
+      function openPendingBottleForm(index) {
+        _eventFormDraft = captureEventFormDraft();
+        const product = index != null ? _pendingEventBottles[index] : null;
+        const editing = product != null;
+        openModal(`
+          <h3>${editing ? "Editar botella" : "Nueva botella"}</h3>
+          <p class="sub">${editing ? "Modificá la bebida de la carta del evento." : "Se agregará a la carta al crear el evento."}</p>
+          <label style="margin-top:0">Nombre</label>
+          <input id="b-name" value="${editing ? esc(product.name) : ""}" placeholder="Ej. Vodka Absolut 750ml" />
+          <label>Categoría (opcional)</label>
+          <input id="b-cat" value="${editing && product.category ? esc(product.category) : ""}" placeholder="Ej. Vodka, Gin, Combo" />
+          <label>Precio ($)</label>
+          <input id="b-price" type="number" min="0" step="1" value="${editing ? Number(product.price) : ""}" placeholder="45000" />
+          <label>Stock</label>
+          <input id="b-stock" type="number" min="0" step="1" value="${editing ? product.stock : "0"}" />
+          <label>Descripción (opcional)</label>
+          <input id="b-desc" value="${editing && product.description ? esc(product.description) : ""}" placeholder="Ej. Incluye hielo y 4 energéticas" />
+          <div class="btn-row" style="margin-top:20px">
+            <button type="button" class="ghost" onclick="reopenEventFormFromDraft()">← Volver al evento</button>
+            <button type="button" style="flex:1" onclick="savePendingBottle(${editing ? index : "null"})">${editing ? "Guardar" : "Agregar"}</button>
+          </div>
+          <div class="error" id="b-err"></div>`);
+      }
+
+      function savePendingBottle(index) {
+        const name = document.getElementById("b-name").value.trim();
+        const category = document.getElementById("b-cat").value.trim();
+        const price = Number(document.getElementById("b-price").value);
+        const stock = Number(document.getElementById("b-stock").value);
+        const description = document.getElementById("b-desc").value.trim();
+        if (!name || !Number.isFinite(price) || price < 0) {
+          document.getElementById("b-err").textContent = "Nombre y precio válido son obligatorios.";
+          return;
+        }
+        const item = {
+          _localId: index != null ? _pendingEventBottles[index]._localId : "b" + Date.now(),
+          name,
+          category,
+          price,
+          stock: Number.isFinite(stock) && stock >= 0 ? stock : 0,
+          description,
+        };
+        if (index != null) _pendingEventBottles[index] = item;
+        else _pendingEventBottles.push(item);
+        reopenEventFormFromDraft();
+      }
+
+      function removePendingBottle(localId) {
+        _pendingEventBottles = _pendingEventBottles.filter((b) => b._localId !== localId);
+        const area = document.getElementById("ev-bottles-list");
+        if (area) area.innerHTML = renderPendingBottlesHtml();
+      }
+
+      function openEventForm(ev, draft) {
+        const editingId = draft?.editingId ?? (ev?.id ?? null);
+        const editing = !!editingId;
+        _editingEventId = editing ? editingId : null;
+        _eventBg = draft?.eventBg ?? (editing && ev?.backgroundImage ? ev.backgroundImage : null);
+        if (draft?.pendingBottles) _pendingEventBottles = draft.pendingBottles;
+        else if (!editing) _pendingEventBottles = [];
+
+        const name = draft?.name ?? (editing ? ev.name : "");
+        const dateVal = draft?.date ?? toLocalInput(editing ? ev.date : null);
+        const musicGenre = draft?.musicGenre ?? (editing && ev.musicGenre ? ev.musicGenre : "");
+        const consPct = draft?.consPct ?? (editing && ev.defaultConsumptionPercent != null ? ev.defaultConsumptionPercent : 100);
+        const setup = draft?.setup ?? "club";
+        const copyFrom = draft?.copyFrom ?? "";
         const copyBlock = !editing
           ? `<label>Configuración inicial</label>
           <select id="ev-setup" onchange="onEventSetupChange()">
-            <option value="club" selected>Usar configuración base del boliche</option>
-            <option value="past"${_eventsPastCache.length ? "" : " disabled"}>Copiar evento pasado</option>
-            <option value="empty">Empezar vacío</option>
+            <option value="club"${setup === "club" ? " selected" : ""}>Usar configuración base del boliche</option>
+            <option value="past"${_eventsPastCache.length ? "" : " disabled"}${setup === "past" ? " selected" : ""}>Copiar evento pasado</option>
+            <option value="empty"${setup === "empty" ? " selected" : ""}>Empezar vacío</option>
           </select>
-          <div id="ev-past-wrap" style="display:none;margin-top:10px">
+          <div id="ev-past-wrap" style="display:${setup === "past" ? "block" : "none"};margin-top:10px">
             <label>Evento pasado a copiar</label>
             <select id="ev-copy-from">
               <option value="">Elegí un evento...</option>
               ${_eventsPastCache
                 .map(
                   (e) =>
-                    `<option value="${e.id}">${esc(e.name)} · ${fdt(e.date)}${
+                    `<option value="${e.id}"${copyFrom === e.id ? " selected" : ""}>${esc(e.name)} · ${fdt(e.date)}${
                       e._count?.tables || e._count?.products
                         ? ` (${e._count?.tables || 0} mesas · ${e._count?.products || 0} productos)`
                         : ""
@@ -1790,21 +1928,36 @@
                 .join("")}
             </select>
           </div>
-          <p class="hint" style="margin-top:-6px;text-align:left" id="ev-setup-hint">Se copiarán plano, mesas y carta base del boliche. Solo definís nombre y fecha abajo.</p>`
+          <p class="hint" style="margin-top:-6px;text-align:left" id="ev-setup-hint">${
+            setup === "past"
+              ? "Se copia todo del evento pasado excepto nombre y fecha."
+              : setup === "empty"
+                ? "El evento arranca sin plano, mesas ni carta copiada."
+                : "Se copiarán plano, mesas y carta base del boliche. Solo definís nombre y fecha abajo."
+          }</p>`
           : "";
+        const bottlesBlock = editing
+          ? `<label>Carta de botellas</label>
+          <button type="button" class="btn-sm btn-accent" onclick='openEventBottles(${JSON.stringify(editingId)}, ${JSON.stringify(name || ev.name)})'>Gestionar carta de botellas</button>
+          <p class="hint" style="margin-top:6px;text-align:left">Editá precios, stock y productos de este evento.</p>`
+          : `<label>Carta de botellas</label>
+          <div class="pick-list" id="ev-bottles-list">${renderPendingBottlesHtml()}</div>
+          <button type="button" class="btn-sm btn-accent" style="margin-top:8px" onclick="openPendingBottleForm()">+ Agregar botella</button>
+          <p class="hint" style="margin-top:6px;text-align:left" id="ev-bottles-hint">${eventBottlesHint(setup)}</p>`;
         openModal(`
           <h3>${editing ? "Editar evento" : "Nuevo evento"}</h3>
           <p class="sub">${editing ? "Modificá los datos de la fecha." : "Creá una nueva fecha para el boliche seleccionado."}</p>
           ${copyBlock}
           <label style="margin-top:0">Nombre</label>
-          <input id="ev-name" value="${editing ? attr(ev.name) : ""}" placeholder="Ej. Saturday Night" />
+          <input id="ev-name" value="${editing ? attr(name) : attr(name)}" placeholder="Ej. Saturday Night" />
           <label>Fecha y hora</label>
-          <input id="ev-date" type="datetime-local" value="${toLocalInput(editing ? ev.date : null)}" />
+          <input id="ev-date" type="datetime-local" value="${dateVal}" />
           <label>Género musical</label>
-          <input id="ev-genre" value="${editing && ev.musicGenre ? attr(ev.musicGenre) : ""}" placeholder="Ej. Electrónica" />
+          <input id="ev-genre" value="${attr(musicGenre)}" placeholder="Ej. Electrónica" />
           <label>% consumición default (mesas nuevas)</label>
-          <input id="ev-cons-pct" type="number" min="1" max="100" value="${editing && ev.defaultConsumptionPercent != null ? ev.defaultConsumptionPercent : 100}" />
+          <input id="ev-cons-pct" type="number" min="1" max="100" value="${consPct}" />
           <p class="hint" style="margin-top:-6px">Porcentaje del precio de mesa que se acredita en botellas. Ej. 100 = el total de la mesa en consumición.</p>
+          ${bottlesBlock}
           <label>Plano del salón (imagen de fondo)</label>
           <input id="ev-img" type="file" accept="image/*" onchange="onEventImage(event)" />
           <div id="ev-img-preview" style="margin-top:10px">${_eventBg ? `<img src="${esc(_eventBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>` : '<span class="role-pill">Sin imagen. El mapa usará la grilla por defecto.</span>'}</div>
@@ -1818,15 +1971,16 @@
         const setup = document.getElementById("ev-setup")?.value || "club";
         const pastWrap = document.getElementById("ev-past-wrap");
         const hint = document.getElementById("ev-setup-hint");
+        const bottlesHint = document.getElementById("ev-bottles-hint");
         if (pastWrap) pastWrap.style.display = setup === "past" ? "block" : "none";
-        if (hint) {
-          hint.textContent =
-            setup === "past"
-              ? "Se copia todo del evento pasado excepto nombre y fecha."
-              : setup === "empty"
-                ? "El evento arranca sin plano, mesas ni carta."
-                : "Se copiarán plano, mesas y carta base del boliche. Solo definís nombre y fecha abajo.";
-        }
+        const setupText =
+          setup === "past"
+            ? "Se copia todo del evento pasado excepto nombre y fecha."
+            : setup === "empty"
+              ? "El evento arranca sin plano, mesas ni carta copiada."
+              : "Se copiarán plano, mesas y carta base del boliche. Solo definís nombre y fecha abajo.";
+        if (hint) hint.textContent = setupText;
+        if (bottlesHint) bottlesHint.textContent = eventBottlesHint(setup);
       }
       async function onEventImage(e) {
         const file = e.target.files[0];
@@ -1882,9 +2036,25 @@
             const lc = created.layoutCopy;
             const parts = [];
             if (lc?.tablesCopied) parts.push(`${lc.tablesCopied} mesa${lc.tablesCopied === 1 ? "" : "s"}`);
-            if (lc?.productsCopied) parts.push(`${lc.productsCopied} producto${lc.productsCopied === 1 ? "" : "s"}`);
+            if (lc?.productsCopied) parts.push(`${lc.productsCopied} producto${lc.productsCopied === 1 ? "" : "s"} copiado${lc.productsCopied === 1 ? "" : "s"}`);
             if (lc?.backgroundCopied) parts.push("plano copiado");
+            if (_pendingEventBottles.length) {
+              for (const b of _pendingEventBottles) {
+                await api("/events/" + created.id + "/products", {
+                  method: "POST",
+                  body: JSON.stringify({
+                    name: b.name,
+                    category: b.category,
+                    price: b.price,
+                    stock: b.stock,
+                    description: b.description,
+                  }),
+                });
+              }
+              parts.push(`${_pendingEventBottles.length} botella${_pendingEventBottles.length === 1 ? "" : "s"} agregada${_pendingEventBottles.length === 1 ? "" : "s"}`);
+            }
             toast(parts.length ? `Evento creado · ${parts.join(" · ")}` : "Evento creado", "ok");
+            _pendingEventBottles = [];
           }
           _editingEventId = null;
           closeModal();
@@ -2124,12 +2294,48 @@
             <button class="btn-sm btn-accent" onclick="openBulkSectorForm()">+ Agregar sector</button>
             <button class="btn-sm" onclick="openSingleTableForm()">+ Agregar mesa</button>
             <span class="role-pill" style="align-self:center">${d.tables.length} mesas</span>
+            ${d.bg ? `<button type="button" class="btn-sm btn-danger" onclick="clearDesignerMap()">Quitar plano</button>` : ""}
+            ${d.tables.length ? `<button type="button" class="btn-sm btn-danger" onclick="deleteAllDesignerTables()">Eliminar todas las mesas</button>` : ""}
           </div>
           <div class="${mapClass}" id="dmap">${mapInner}</div>
           <button class="btn-full ghost" style="margin-top:14px" onclick="closeDesigner()">Listo</button>`);
         document.getElementById("modal-content").classList.add("wide");
         setTimeout(attachDragHandlers, 30);
       }
+
+      async function clearDesignerMap() {
+        if (!confirm("¿Quitar la imagen del plano?")) return;
+        try {
+          if (_designer.isTemplate) {
+            await api("/clubs/" + _designer.clubId + "/template", {
+              method: "PATCH",
+              body: JSON.stringify({ floorMapUrl: null }),
+            });
+          } else {
+            await api("/events/" + _designer.eventId, {
+              method: "PATCH",
+              body: JSON.stringify({ backgroundImage: null }),
+            });
+          }
+          _designer.bg = null;
+          renderDesigner();
+          toast("Plano eliminado", "ok");
+        } catch (e) { toast(e.message, "err"); }
+      }
+
+      async function deleteAllDesignerTables() {
+        if (!confirm("¿Eliminar TODAS las mesas del plano?\nNo se puede deshacer.")) return;
+        try {
+          const url = _designer.isTemplate
+            ? "/clubs/" + _designer.clubId + "/template/tables"
+            : "/events/" + _designer.eventId + "/tables";
+          const res = await api(url, { method: "DELETE" });
+          _designer.tables = [];
+          renderDesigner();
+          toast(res.deleted ? `${res.deleted} mesas eliminadas` : "No había mesas para eliminar", "ok");
+        } catch (e) { toast(e.message, "err"); }
+      }
+
       function dpin(t) {
         const taken = t.status === "RESERVED";
         const x = Number(t.posX);

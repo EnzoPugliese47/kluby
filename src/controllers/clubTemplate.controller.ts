@@ -80,7 +80,11 @@ export const updateClubTemplate = async (
       "defaultConsumptionPercent"
     );
 
-    if (floorMapUrl !== undefined) data.floorMapUrl = floorMapUrl;
+    if (body["floorMapUrl"] === null) {
+      data.floorMapUrl = null;
+    } else if (floorMapUrl !== undefined) {
+      data.floorMapUrl = floorMapUrl;
+    }
     if (musicGenre !== undefined) data.musicGenre = musicGenre;
     if (defaultConsumptionPercent !== undefined) {
       if (

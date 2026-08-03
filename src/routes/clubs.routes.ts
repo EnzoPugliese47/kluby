@@ -10,6 +10,7 @@ import {
   createTable,
   listTablesByClub,
   bulkCreateTemplateTables,
+  deleteAllTemplateTables,
 } from "../controllers/tables.controller";
 import {
   getClubTemplate,
@@ -59,6 +60,7 @@ router.get("/", optionalAuthenticate, listClubs);
 router.get("/:clubId/template", ...adminOnly, getClubTemplate);
 router.patch("/:clubId/template", ...adminOnly, updateClubTemplate);
 router.post("/:clubId/template/tables/bulk", ...staffOrAdmin, bulkCreateTemplateTables);
+router.delete("/:clubId/template/tables", ...staffOrAdmin, deleteAllTemplateTables);
 router.get("/:id", getClubById);
 router.get("/:clubId/tables", listTablesByClub);
 router.get("/:clubId/events", listEventsByClub);
