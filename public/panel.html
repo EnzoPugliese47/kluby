@@ -320,6 +320,8 @@
       }
       .designer-map.tpl-preview { max-height: 320px; margin-top: 8px; }
       .designer-map.tpl-preview.default-canvas { max-width: 100%; }
+      .event-setup-preview { margin-top: 12px; margin-bottom: 4px; }
+      .event-setup-preview .role-pill { display: inline-block; margin-bottom: 8px; }
       .canvas-label {
         position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
         font-size: 11px; color: var(--muted); pointer-events: none; z-index: 1;
@@ -1810,12 +1812,110 @@
 
       function eventBottlesHint(setup) {
         if (setup === "past") {
-          return "Al crear se copia la carta del evento pasado. Podés sumar o reemplazar botellas acá antes de guardar.";
+          return "Abajo ves la carta que se copia. Podés sumar botellas extra antes de guardar.";
         }
         if (setup === "empty") {
           return "Definí la carta acá o cargala después desde la lista de eventos.";
         }
-        return "Al crear se copia la carta base del boliche. Podés sumar botellas extra acá.";
+        return "Abajo ves la carta base que se copia. Podés sumar botellas extra antes de guardar.";
+      }
+
+      function renderEventSetupPreviewContent({ setup, tables, products, bg, sourceLabel }) {
+        if (setup === "empty") {
+          return '<p class="hint" style="text-align:left">Empezás sin copiar plano, mesas ni carta.</p>';
+        }
+        const mapHtml = templateMapHtml(bg, tables, "tpl-preview");
+        const productLines = products
+          .slice(0, 8)
+          .map(
+            (p) =>
+              `<div class="pick-row"><div><b>${esc(p.name)}</b><small>${esc(p.category || "General")} · ${fmtMoney(Number(p.price))}</small></div></div>`
+          )
+          .join("");
+        const moreProducts =
+          products.length > 8
+            ? `<p class="hint" style="margin:6px 0 0">… y ${products.length - 8} producto${products.length - 8 === 1 ? "" : "s"} más</p>`
+            : "";
+        return `
+          <span class="role-pill">${esc(sourceLabel)} · ${tables.length} mesa${tables.length === 1 ? "" : "s"} · ${products.length} producto${products.length === 1 ? "" : "s"}</span>
+          ${mapHtml}
+          ${
+            products.length
+              ? `<label style="margin-top:12px;font-size:12px">Carta que se copiará</label><div class="pick-list" style="max-height:140px;overflow-y:auto">${productLines}${moreProducts}</div>`
+              : '<p class="hint" style="margin-top:8px;text-align:left">Sin productos en la carta origen.</p>'
+          }`;
+      }
+
+      async function refreshEventSetupPreview() {
+        const wrap = document.getElementById("ev-setup-preview");
+        if (!wrap) return;
+        const setup = document.getElementById("ev-setup")?.value || "club";
+        const clubId = document.getElementById("event-club-select")?.value;
+
+        if (setup === "empty") {
+          wrap.innerHTML = renderEventSetupPreviewContent({
+            setup: "empty",
+            tables: [],
+            products: [],
+            bg: null,
+            sourceLabel: "",
+          });
+          return;
+        }
+
+        wrap.innerHTML = '<div class="empty" style="padding:12px;margin:0">Cargando vista previa...</div>';
+
+        try {
+          let tables = [];
+          let products = [];
+          let bg = null;
+          let sourceLabel = "";
+
+          if (setup === "club") {
+            if (!clubId) {
+              wrap.innerHTML = '<p class="hint">Seleccioná un boliche.</p>';
+              return;
+            }
+            const tpl = await api("/clubs/" + clubId + "/template");
+            tables = tpl.tables || [];
+            products = tpl.products || [];
+            bg = tpl.floorMapUrl || null;
+            sourceLabel = "Configuración base";
+          } else if (setup === "past") {
+            const eventId = document.getElementById("ev-copy-from")?.value;
+            if (!eventId) {
+              wrap.innerHTML =
+                '<p class="hint" style="text-align:left">Elegí un evento pasado para ver qué se copiará.</p>';
+              return;
+            }
+            const [avail, prods] = await Promise.all([
+              api("/events/" + eventId + "/availability"),
+              api("/events/" + eventId + "/products"),
+            ]);
+            tables = avail.tables || [];
+            products = prods || [];
+            bg = avail.event?.backgroundImage || null;
+            const pastEv = _eventsPastCache.find((e) => e.id === eventId);
+            sourceLabel = pastEv ? `Copiando: ${pastEv.name}` : "Evento pasado";
+          }
+
+          const previewBg = _eventBg || bg;
+          wrap.innerHTML = renderEventSetupPreviewContent({
+            setup,
+            tables,
+            products,
+            bg: previewBg,
+            sourceLabel,
+          });
+        } catch (e) {
+          wrap.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+
+      function onEventPastCopyChange() {
+        refreshEventSetupPreview();
+        const bottlesHint = document.getElementById("ev-bottles-hint");
+        if (bottlesHint) bottlesHint.textContent = eventBottlesHint("past");
       }
 
       function captureEventFormDraft() {
@@ -1914,7 +2014,7 @@
           </select>
           <div id="ev-past-wrap" style="display:${setup === "past" ? "block" : "none"};margin-top:10px">
             <label>Evento pasado a copiar</label>
-            <select id="ev-copy-from">
+            <select id="ev-copy-from" onchange="onEventPastCopyChange()">
               <option value="">Elegí un evento...</option>
               ${_eventsPastCache
                 .map(
@@ -1934,15 +2034,17 @@
               : setup === "empty"
                 ? "El evento arranca sin plano, mesas ni carta copiada."
                 : "Se copiarán plano, mesas y carta base del boliche. Solo definís nombre y fecha abajo."
-          }</p>`
+          }</p>
+          <label>Vista previa</label>
+          <div id="ev-setup-preview" class="event-setup-preview"><div class="empty" style="padding:12px;margin:0">Cargando...</div></div>`
           : "";
         const bottlesBlock = editing
           ? `<label>Carta de botellas</label>
           <button type="button" class="btn-sm btn-accent" onclick='openEventBottles(${JSON.stringify(editingId)}, ${JSON.stringify(name || ev.name)})'>Gestionar carta de botellas</button>
           <p class="hint" style="margin-top:6px;text-align:left">Editá precios, stock y productos de este evento.</p>`
-          : `<label>Carta de botellas</label>
+          : `<label>Botellas extra (opcional)</label>
           <div class="pick-list" id="ev-bottles-list">${renderPendingBottlesHtml()}</div>
-          <button type="button" class="btn-sm btn-accent" style="margin-top:8px" onclick="openPendingBottleForm()">+ Agregar botella</button>
+          <button type="button" class="btn-sm btn-accent" style="margin-top:8px" onclick="openPendingBottleForm()">+ Agregar botella extra</button>
           <p class="hint" style="margin-top:6px;text-align:left" id="ev-bottles-hint">${eventBottlesHint(setup)}</p>`;
         openModal(`
           <h3>${editing ? "Editar evento" : "Nuevo evento"}</h3>
@@ -1966,6 +2068,7 @@
             <button type="button" style="flex:1" id="ev-save" onclick="saveEvent()">${editing ? "Guardar cambios" : "Crear evento"}</button>
           </div>
           <div class="error" id="ev-err"></div>`);
+        if (!editing) setTimeout(refreshEventSetupPreview, 0);
       }
       function onEventSetupChange() {
         const setup = document.getElementById("ev-setup")?.value || "club";
@@ -1981,6 +2084,7 @@
               : "Se copiarán plano, mesas y carta base del boliche. Solo definís nombre y fecha abajo.";
         if (hint) hint.textContent = setupText;
         if (bottlesHint) bottlesHint.textContent = eventBottlesHint(setup);
+        refreshEventSetupPreview();
       }
       async function onEventImage(e) {
         const file = e.target.files[0];
@@ -1997,6 +2101,7 @@
           const res = await api("/uploads/map", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
           _eventBg = res.url;
           prev.innerHTML = `<img src="${esc(_eventBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>`;
+          refreshEventSetupPreview();
           toast("Imagen cargada", "ok");
         } catch (err) { prev.innerHTML = `<span style="color:var(--pink)">${esc(err.message)}</span>`; }
       }
