@@ -19,6 +19,8 @@ import {
   requireParam,
   requireString,
 } from "../utils/validation";
+import { openTablesEventCutoff, isEventPast } from "../utils/eventTiming";
+import { copyEventLayoutFrom } from "../utils/eventLayout";
 
 const PAYMENT_OPTION_VALUES = Object.values(PaymentOption);
 
@@ -36,6 +38,7 @@ export const createEvent = async (
     const musicGenre = optionalString(body, "musicGenre");
     const backgroundImage = optionalString(body, "backgroundImage");
     const defaultConsumptionPercent = optionalNumber(body, "defaultConsumptionPercent");
+    const copyFromEventId = optionalString(body, "copyFromEventId");
 
     const date = new Date(dateRaw);
     if (Number.isNaN(date.getTime())) {
@@ -68,7 +71,42 @@ export const createEvent = async (
           : {}),
       },
     });
-    sendSuccess(res, event, 201);
+
+    let layoutCopy: { tablesCopied: number; backgroundCopied: boolean } | null =
+      null;
+    if (copyFromEventId) {
+      const sourceEvent = await prisma.eventNight.findUnique({
+        where: { id: copyFromEventId },
+      });
+      if (
+        sourceEvent === null ||
+        sourceEvent.clubId !== clubId ||
+        !sourceEvent.isActive
+      ) {
+        throw new AppError(
+          "El evento origen no existe o no pertenece al mismo boliche",
+          400
+        );
+      }
+      if (!isEventPast(sourceEvent.date)) {
+        throw new AppError(
+          "Solo podés copiar el plano de eventos ya finalizados",
+          400
+        );
+      }
+      layoutCopy = await copyEventLayoutFrom(copyFromEventId, event.id, clubId);
+      if (layoutCopy.backgroundCopied && !backgroundImage) {
+        const refreshed = await prisma.eventNight.findUnique({
+          where: { id: event.id },
+        });
+        if (refreshed) {
+          sendSuccess(res, { ...refreshed, layoutCopy }, 201);
+          return;
+        }
+      }
+    }
+
+    sendSuccess(res, layoutCopy ? { ...event, layoutCopy } : event, 201);
   } catch (error) {
     next(error);
   }
@@ -288,7 +326,7 @@ export const deleteEvent = async (
   }
 };
 
-/** GET /api/clubs/:clubId/events */
+/** GET /api/clubs/:clubId/events — próximos por defecto; ?includePast=1 → { upcoming, past } */
 export const listEventsByClub = async (
   req: Request,
   res: Response,
@@ -296,11 +334,27 @@ export const listEventsByClub = async (
 ): Promise<void> => {
   try {
     const clubId = requireParam(req.params, "clubId");
+    const includePast =
+      req.query.includePast === "1" || req.query.includePast === "true";
+    const cutoff = openTablesEventCutoff();
+
     const events = await prisma.eventNight.findMany({
       where: { clubId, isActive: true },
-      orderBy: { date: "asc" },
+      include: { _count: { select: { tables: true } } },
+      orderBy: { date: "desc" },
     });
-    sendSuccess(res, events);
+
+    const upcoming = events
+      .filter((e) => e.date >= cutoff)
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+    const past = events.filter((e) => e.date < cutoff);
+
+    if (includePast) {
+      sendSuccess(res, { upcoming, past });
+      return;
+    }
+
+    sendSuccess(res, upcoming);
   } catch (error) {
     next(error);
   }

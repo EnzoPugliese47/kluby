@@ -210,6 +210,19 @@
 
       /* Tabla de datos */
       table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+      .events-section { margin-bottom: 16px; }
+      .events-section-title { font-size: 14px; font-weight: 600; color: var(--muted); margin: 0 0 10px 4px; letter-spacing: 0.02em; text-transform: uppercase; }
+      .events-past-wrap { margin-top: 8px; }
+      .events-past-wrap summary {
+        cursor: pointer; list-style: none; font-size: 14px; font-weight: 600; color: var(--muted);
+        padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface);
+        user-select: none;
+      }
+      .events-past-wrap summary::-webkit-details-marker { display: none; }
+      .events-past-wrap summary::before { content: "▸ "; display: inline-block; transition: transform 0.15s; }
+      .events-past-wrap[open] summary::before { transform: rotate(90deg); }
+      .events-past-wrap .card { margin-top: 10px; opacity: 0.92; }
+      tr.event-past td { color: var(--muted); }
       table.data th, table.data td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); }
       table.data th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
       table.data tr:hover td { background: rgba(255,255,255,0.02); }
@@ -788,7 +801,8 @@
           return;
         }
         try {
-          const events = await api("/clubs/" + clubId + "/events");
+          const data = await api("/clubs/" + clubId + "/events?includePast=1");
+          const events = [...(data.upcoming || []), ...(data.past || [])];
           events
             .sort((a, b) => new Date(b.date) - new Date(a.date))
             .forEach((e) => {
@@ -1511,34 +1525,59 @@
         loadEvents();
       }
       let _eventsCache = [];
+      let _eventsPastCache = [];
+      function eventsTableHtml(rows, isPast) {
+        if (!rows.length) return "";
+        return `<div class="card panel" style="padding:0;overflow:hidden"><table class="data">
+          <thead><tr><th>Evento</th><th>Fecha</th><th>Género</th><th></th></tr></thead>
+          <tbody>${rows.map((e) => eventRow(e, isPast)).join("")}</tbody></table></div>`;
+      }
       async function loadEvents() {
         const clubId = document.getElementById("event-club-select").value;
         const area = document.getElementById("events-area");
         if (!clubId) { area.innerHTML = '<div class="empty">Seleccioná un boliche.</div>'; return; }
         try {
-          const events = await api("/clubs/" + clubId + "/events");
-          _eventsCache = events;
-          if (!events.length) { area.innerHTML = '<div class="empty">Este boliche no tiene eventos. Agregá uno con el botón de arriba.</div>'; return; }
-          area.innerHTML = `<div class="card panel" style="padding:0;overflow:hidden"><table class="data">
-            <thead><tr><th>Evento</th><th>Fecha</th><th>Género</th><th></th></tr></thead>
-            <tbody>${events.map(eventRow).join("")}</tbody></table></div>`;
+          const data = await api("/clubs/" + clubId + "/events?includePast=1");
+          const upcoming = data.upcoming || [];
+          const past = data.past || [];
+          _eventsCache = upcoming;
+          _eventsPastCache = past;
+          if (!upcoming.length && !past.length) {
+            area.innerHTML = '<div class="empty">Este boliche no tiene eventos. Agregá uno con el botón de arriba.</div>';
+            return;
+          }
+          let html = "";
+          if (upcoming.length) {
+            html += `<div class="events-section"><h3 class="events-section-title">Próximos eventos</h3>${eventsTableHtml(upcoming, false)}</div>`;
+          } else {
+            html += '<div class="empty" style="margin-bottom:12px">No hay eventos próximos. Creá uno nuevo con el botón de arriba.</div>';
+          }
+          if (past.length) {
+            html += `<details class="events-past-wrap"><summary>Eventos pasados (${past.length})</summary>${eventsTableHtml(past, true)}</details>`;
+          }
+          area.innerHTML = html;
         } catch (e) {
           if (String(e.message).includes("401")) return logout();
           area.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
         }
       }
-      function eventRow(e) {
-        return `<tr>
-          <td><b>${esc(e.name)}</b></td>
+      function eventRow(e, isPast) {
+        const pastCls = isPast ? ' class="event-past"' : "";
+        const actions = isPast
+          ? `<button class="btn-sm btn-accent" onclick='openEventTables(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Ver mesas</button>
+             <button class="btn-sm" onclick='openEventBottles(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Botellas</button>
+             <button class="btn-sm btn-danger" onclick='deleteEvent(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Eliminar</button>`
+          : `<button class="btn-sm btn-accent" onclick='openEventTables(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Ver mesas</button>
+             <button class="btn-sm" onclick='openDesigner(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Diseñar mesas</button>
+             <button class="btn-sm" onclick='openEventBottles(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Botellas</button>
+             <button type="button" class="btn-sm ghost" onclick="editEvent('${e.id}')">Editar</button>
+             <button class="btn-sm btn-danger" onclick='deleteEvent(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Eliminar</button>`;
+        const tableHint = e._count?.tables ? ` · ${e._count.tables} mesas` : "";
+        return `<tr${pastCls}>
+          <td><b>${esc(e.name)}</b>${isPast ? `<span style="font-size:11px;color:var(--muted)">${tableHint}</span>` : ""}</td>
           <td>${fdt(e.date)}</td>
           <td>${esc(e.musicGenre || "—")}</td>
-          <td><div class="btn-row">
-            <button class="btn-sm btn-accent" onclick='openEventTables(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Ver mesas</button>
-            <button class="btn-sm" onclick='openDesigner(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Diseñar mesas</button>
-            <button class="btn-sm" onclick='openEventBottles(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Botellas</button>
-            <button type="button" class="btn-sm ghost" onclick="editEvent('${e.id}')">Editar</button>
-            <button class="btn-sm btn-danger" onclick='deleteEvent(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Eliminar</button>
-          </div></td>
+          <td><div class="btn-row">${actions}</div></td>
         </tr>`;
       }
       async function deleteEvent(id, name) {
@@ -1550,7 +1589,7 @@
         } catch (e) { toast(e.message, "err"); }
       }
       function editEvent(id) {
-        const ev = _eventsCache.find((e) => e.id === id);
+        const ev = _eventsCache.find((e) => e.id === id) || _eventsPastCache.find((e) => e.id === id);
         if (!ev) { toast("Evento no encontrado", "err"); return; }
         openEventForm(ev);
       }
@@ -1565,9 +1604,26 @@
         const editing = ev && ev.id;
         _editingEventId = editing ? ev.id : null;
         _eventBg = editing && ev.backgroundImage ? ev.backgroundImage : null;
+        const copyBlock =
+          !editing && _eventsPastCache.length
+            ? `<label>Copiar plano y mesas de evento anterior</label>
+          <select id="ev-copy-from">
+            <option value="">Empezar vacío</option>
+            ${_eventsPastCache
+              .map(
+                (e) =>
+                  `<option value="${e.id}">${esc(e.name)} · ${fdt(e.date)}${
+                    e._count?.tables ? ` (${e._count.tables} mesas)` : ""
+                  }</option>`
+              )
+              .join("")}
+          </select>
+          <p class="hint" style="margin-top:-6px;text-align:left">Duplica la imagen del plano y todas las mesas del evento elegido.</p>`
+            : "";
         openModal(`
           <h3>${editing ? "Editar evento" : "Nuevo evento"}</h3>
           <p class="sub">${editing ? "Modificá los datos de la fecha." : "Creá una nueva fecha para el boliche seleccionado."}</p>
+          ${copyBlock}
           <label style="margin-top:0">Nombre</label>
           <input id="ev-name" value="${editing ? attr(ev.name) : ""}" placeholder="Ej. Saturday Night" />
           <label>Fecha y hora</label>
@@ -1625,8 +1681,16 @@
             toast("Evento actualizado", "ok");
           } else {
             const clubId = document.getElementById("event-club-select").value;
-            await api("/clubs/" + clubId + "/events", { method: "POST", body: JSON.stringify(body) });
-            toast("Evento creado", "ok");
+            const copyFrom = document.getElementById("ev-copy-from")?.value;
+            if (copyFrom) body.copyFromEventId = copyFrom;
+            const created = await api("/clubs/" + clubId + "/events", { method: "POST", body: JSON.stringify(body) });
+            const lc = created.layoutCopy;
+            toast(
+              lc
+                ? `Evento creado · ${lc.tablesCopied} mesa${lc.tablesCopied === 1 ? "" : "s"} copiada${lc.tablesCopied === 1 ? "" : "s"}${lc.backgroundCopied ? " · plano copiado" : ""}`
+                : "Evento creado",
+              "ok"
+            );
           }
           _editingEventId = null;
           closeModal();
