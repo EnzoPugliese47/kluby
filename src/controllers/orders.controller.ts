@@ -208,6 +208,11 @@ export const payOrder = async (
         },
       });
 
+      await tx.reservation.update({
+        where: { id: current.reservationId },
+        data: { amountPaid: { increment: current.total } },
+      });
+
       return tx.order.update({
         where: { id: orderId },
         data: { status: OrderStatus.PAID },

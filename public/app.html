@@ -188,6 +188,25 @@
       .profile-crop-zoom-row { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; }
       .profile-crop-zoom-row input[type=range] { flex: 1; accent-color: var(--accent); }
       .profile-crop-zoom-row span { font-size: 12px; color: var(--muted); min-width: 36px; text-align: right; }
+      .k-loyalty-block {
+        margin-top: 16px; padding: 14px 16px; border-radius: 12px;
+        background: linear-gradient(135deg, rgba(124,92,255,0.12), rgba(45,226,198,0.08));
+        border: 1px solid rgba(124,92,255,0.35);
+      }
+      .k-loyalty-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+      .k-loyalty-head span { font-size: 13px; color: var(--muted); }
+      .k-loyalty-head b { font-size: 18px; color: var(--accent); }
+      .k-loyalty-toggle { display: flex; align-items: center; gap: 8px; margin: 10px 0 6px; font-size: 14px; cursor: pointer; }
+      .k-loyalty-slider { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+      .k-loyalty-slider input[type=range] { flex: 1; accent-color: var(--accent); }
+      .k-loyalty-slider.hidden { display: none; }
+      .k-loyalty-card { margin-top: 20px; }
+      .k-loyalty-club { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+      .k-loyalty-club:last-child { border-bottom: none; }
+      .k-loyalty-txn { font-size: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
+      .k-loyalty-txn b { color: var(--text); }
+      .k-loyalty-txn.earn b { color: var(--accent); }
+      .k-loyalty-txn.redeem b { color: var(--pink); }
     </style>
   </head>
   <body class="kluby-public kluby-app">
@@ -245,10 +264,17 @@
         const minCons = reservationMinConsumption(r);
         const paid = num(r.amountPaid);
         const total = num(r.totalAmount);
+        const loyaltyDisc = num(r.loyaltyDiscount);
         const rows = [
           `<div class="k-fin-row"><span>Total mesa</span><b>${money(total)}</b></div>`,
-          `<div class="k-fin-row"><span>Pagado</span><b>${money(paid)}</b></div>`,
         ];
+        if (loyaltyDisc > 0) {
+          rows.push(`<div class="k-fin-row"><span>Descuento Kluby Points</span><b>-${money(loyaltyDisc)}</b></div>`);
+          if (r.loyaltyPointsRedeemed) {
+            rows.push(`<div class="k-fin-row"><span>Puntos usados</span><b>${r.loyaltyPointsRedeemed} pts</b></div>`);
+          }
+        }
+        rows.push(`<div class="k-fin-row"><span>Pagado</span><b>${money(paid)}</b></div>`);
         if (remaining > 0) {
           rows.push(`<div class="k-fin-row highlight"><span>Saldo pendiente</span><b>${money(remaining)}</b></div>`);
           rows.push(`<p class="k-fin-note">${r.paymentOption === "FULL_PAYMENT" ? "Completá el pago de la mesa." : "Resto de la mesa a abonar en el boliche (después de la seña)."}</p>`);
@@ -262,19 +288,103 @@
         return `<div class="k-finance-block">${rows.join("")}</div>`;
       }
 
+      let _loyaltyRules = null;
+      let _wizardLoyalty = null;
+
+      async function loadLoyaltyRules() {
+        if (!_loyaltyRules) _loyaltyRules = await api("/loyalty/config");
+        return _loyaltyRules;
+      }
+
+      function maxRedeemPoints(balance, payAmount, pointValue, rules) {
+        if (!balance || balance < rules.minRedeemPoints) return 0;
+        const pv = Number(pointValue) || 1;
+        const maxDiscount = payAmount * (rules.maxRedeemPercent / 100);
+        return Math.min(balance, Math.max(0, Math.floor(maxDiscount / pv)));
+      }
+
       function wizardPayPreviewHtml(t) {
         const total = num(t.price);
         const deposit = Math.round(total * (t.depositPercent / 100));
         const minCons = num(t.minConsumption);
         const isFull = _reserveSel === "FULL_PAYMENT";
-        const payNow = isFull ? total : deposit;
-        const remaining = Math.max(0, total - payNow);
+        let payNow = isFull ? total : deposit;
+        const remaining = Math.max(0, total - (isFull ? total : deposit));
+        let loyaltyLine = "";
+        if (_wizardLoyalty?.pointsToUse > 0) {
+          const disc = _wizardLoyalty.pointsToUse * (_wizardLoyalty.pointValue || 1);
+          payNow = Math.max(0, payNow - disc);
+          loyaltyLine = `<div class="k-fin-row"><span>Kluby Points</span><b>-${money(disc)}</b></div>`;
+        }
         return `
           <div class="k-finance-block" style="margin-top:14px">
             <div class="k-fin-row"><span>Pagás ahora</span><b>${money(payNow)}</b></div>
+            ${loyaltyLine}
             <div class="k-fin-row highlight"><span>Saldo en el boliche</span><b>${money(remaining)}</b></div>
             ${minCons ? `<div class="k-fin-row"><span>Consumición mínima</span><b>${money(minCons)}</b></div>` : ""}
           </div>`;
+      }
+
+      function wizardLoyaltyHtml(balance, maxPts, rules) {
+        return `
+          <div class="k-loyalty-block" id="wizard-loyalty">
+            <div class="k-loyalty-head"><span>⭐ Kluby Points en este boliche</span><b>${balance} pts</b></div>
+            <p class="hint" style="margin:0">Canjeá hasta ${rules.maxRedeemPercent}% del pago · mínimo ${rules.minRedeemPoints} pts</p>
+            <label class="k-loyalty-toggle"><input type="checkbox" id="wizard-loyalty-use" onchange="toggleWizardLoyalty()" /> Usar puntos en esta reserva</label>
+            <div class="k-loyalty-slider hidden" id="wizard-loyalty-slider">
+              <input type="range" id="wizard-loyalty-range" min="${rules.minRedeemPoints}" max="${maxPts}" step="1" value="${maxPts}" oninput="onWizardLoyaltyChange()" />
+              <span id="wizard-loyalty-val">${maxPts} pts</span>
+            </div>
+          </div>`;
+      }
+
+      function refreshWizardLoyaltyUi() {
+        if (!_wizardLoyalty || !window._wizardTable) return;
+        const t = window._wizardTable;
+        const total = num(t.price);
+        const deposit = Math.round(total * (t.depositPercent / 100));
+        const payBase = _reserveSel === "FULL_PAYMENT" ? total : deposit;
+        _wizardLoyalty.payBase = payBase;
+        const maxPts = maxRedeemPoints(_wizardLoyalty.balance, payBase, _wizardLoyalty.pointValue, _wizardLoyalty.rules);
+        const range = document.getElementById("wizard-loyalty-range");
+        const useCb = document.getElementById("wizard-loyalty-use");
+        if (!range || !useCb?.checked) {
+          _wizardLoyalty.pointsToUse = 0;
+        } else {
+          range.max = String(Math.max(maxPts, _wizardLoyalty.rules.minRedeemPoints));
+          if (Number(range.value) > maxPts) range.value = String(maxPts);
+          if (Number(range.value) < _wizardLoyalty.rules.minRedeemPoints) range.value = String(_wizardLoyalty.rules.minRedeemPoints);
+          _wizardLoyalty.pointsToUse = maxPts >= _wizardLoyalty.rules.minRedeemPoints ? Number(range.value) : 0;
+          onWizardLoyaltyChange();
+        }
+        const preview = $("wizard-pay-preview");
+        if (preview) preview.innerHTML = wizardPayPreviewHtml(t);
+      }
+
+      function toggleWizardLoyalty() {
+        const slider = document.getElementById("wizard-loyalty-slider");
+        const useCb = document.getElementById("wizard-loyalty-use");
+        if (!slider || !_wizardLoyalty) return;
+        if (useCb?.checked) {
+          slider.classList.remove("hidden");
+          _wizardLoyalty.pointsToUse = Number(document.getElementById("wizard-loyalty-range")?.value || 0);
+        } else {
+          slider.classList.add("hidden");
+          _wizardLoyalty.pointsToUse = 0;
+        }
+        refreshWizardLoyaltyUi();
+      }
+
+      function onWizardLoyaltyChange() {
+        if (!_wizardLoyalty) return;
+        const range = document.getElementById("wizard-loyalty-range");
+        const valEl = document.getElementById("wizard-loyalty-val");
+        const pts = Number(range?.value || 0);
+        _wizardLoyalty.pointsToUse = pts;
+        const disc = pts * (_wizardLoyalty.pointValue || 1);
+        if (valEl) valEl.textContent = `${pts} pts (-${money(disc)})`;
+        const preview = $("wizard-pay-preview");
+        if (preview && window._wizardTable) preview.innerHTML = wizardPayPreviewHtml(window._wizardTable);
       }
 
       function guestFinanceHtml({ shareAmount, prepaid, minConsumption, status }) {
@@ -637,6 +747,25 @@
             const minCons = num(t.minConsumption);
             _reserveSel = "DEPOSIT_ONLY";
             window._wizardTable = t;
+            _wizardLoyalty = null;
+            let loyaltySection = "";
+            try {
+              const bal = await api("/loyalty/clubs/" + clubId + "/balance");
+              if (!stillOn("wizard")) return;
+              const rules = bal.rules || await loadLoyaltyRules();
+              const payBase = deposit;
+              const maxPts = maxRedeemPoints(bal.balance, payBase, bal.pointValue, rules);
+              _wizardLoyalty = {
+                balance: bal.balance,
+                pointValue: Number(bal.pointValue) || 1,
+                rules,
+                pointsToUse: 0,
+                payBase,
+              };
+              if (maxPts >= rules.minRedeemPoints) {
+                loyaltySection = wizardLoyaltyHtml(bal.balance, maxPts, rules);
+              }
+            } catch { _wizardLoyalty = null; }
             body.innerHTML = `
               <button type="button" class="ghost btn-sm k-back" onclick="wizardGo(3,{clubId:'${clubId}',eventId:'${eventId}'})">← Cambiar mesa</button>
               <div class="k-page-head"><h1>Confirmá tu reserva</h1><p>Paso 4 de 4 · ${esc(t.label)} · ${esc(t.sector || "")}</p></div>
@@ -653,6 +782,7 @@
                   <div class="opt sel" id="opt-dep" onclick="selPay('DEPOSIT_ONLY')"><b>Seña</b><small>${money(deposit)} ahora</small></div>
                   <div class="opt" id="opt-full" onclick="selPay('FULL_PAYMENT')"><b>Total</b><small>${money(t.price)} ahora</small></div>
                 </div>
+                ${loyaltySection}
                 <div id="wizard-pay-preview">${wizardPayPreviewHtml(t)}</div>
                 <button type="button" class="ghost btn-sm" style="margin-top:12px" onclick="openConsumptionPlanner({ eventId: '${eventId}', minConsumption: ${minCons}, tablePrice: ${num(t.price)}, depositPercent: ${t.depositPercent} })">🍾 Planificá tu consumo antes de ir</button>
                 <button type="button" class="btn-full btn-accent" id="reserve-btn" style="margin-top:22px" onclick="confirmWizardReserve('${tableId}','${eventId}')">Confirmar y pagar</button>
@@ -688,7 +818,9 @@
           const r = await api("/reservations", { method: "POST", body: JSON.stringify({
             eventId, tableId, hostId: state.user.id, paymentOption: _reserveSel, mode: "STANDARD",
           }) });
-          const paid = await api("/reservations/" + r.id + "/pay", { method: "POST", body: JSON.stringify({ provider: "demo" }) });
+          const payBody = { provider: "demo" };
+          if (_wizardLoyalty?.pointsToUse > 0) payBody.loyaltyPointsToRedeem = _wizardLoyalty.pointsToUse;
+          const paid = await api("/reservations/" + r.id + "/pay", { method: "POST", body: JSON.stringify(payBody) });
           _alertsCache = null;
           go("ticket", { id: paid.id });
         } catch (e) {
@@ -1072,8 +1204,7 @@
         const full = $("opt-full");
         if (dep) dep.classList.toggle("sel", opt === "DEPOSIT_ONLY");
         if (full) full.classList.toggle("sel", opt === "FULL_PAYMENT");
-        const preview = $("wizard-pay-preview");
-        if (preview && window._wizardTable) preview.innerHTML = wizardPayPreviewHtml(window._wizardTable);
+        refreshWizardLoyaltyUi();
       }
       function showTicket(r) {
         go("ticket", { id: r.id });
@@ -1518,9 +1649,12 @@
       }
 
       async function renderProfile(page) {
-        page.innerHTML = `<div class="k-page-head"><h1>Mi perfil</h1><p>Actualizá tu foto, nombre y teléfono.</p></div><div id="profile-form"><div class="empty">Cargando...</div></div>`;
+        page.innerHTML = `<div class="k-page-head"><h1>Mi perfil</h1><p>Tu cuenta, Kluby Points e invitaciones.</p></div><div id="profile-form"><div class="empty">Cargando...</div></div>`;
         try {
-          const user = await api("/users/" + state.user.id);
+          const [user, loyalty] = await Promise.all([
+            api("/users/" + state.user.id),
+            api("/loyalty/users/" + state.user.id).catch(() => null),
+          ]);
           if (!stillOn("profile")) return;
           const live = livePage("profile"); if (!live) return;
           state.user = user;
@@ -1529,6 +1663,31 @@
           const av = _profileImage
             ? `<img id="profile-av" class="profile-avatar" src="${esc(_profileImage)}" alt="Foto de perfil" />`
             : `<div id="profile-av" class="profile-avatar placeholder">${esc((user.fullName || "U").charAt(0).toUpperCase())}</div>`;
+          const rules = loyalty?.rules;
+          const clubsHtml = loyalty?.balanceByClub?.length
+            ? loyalty.balanceByClub.map((c) => `
+              <div class="k-loyalty-club">
+                <div><b>${esc(c.clubName)}</b><br/><small class="hint">≈ ${money(c.redeemValue)} para usar acá</small></div>
+                <b style="color:var(--accent)">${c.balance} pts</b>
+              </div>`).join("")
+            : `<p class="hint" style="margin:0">Todavía no tenés puntos. Cerrá una mesa en un boliche para empezar a sumar.</p>`;
+          const txnsHtml = loyalty?.transactions?.length
+            ? loyalty.transactions.slice(0, 12).map((t) => {
+              const earn = t.type === "EARNED";
+              const sign = earn ? "+" : "−";
+              return `<div class="k-loyalty-txn ${earn ? "earn" : "redeem"}">
+                <b>${sign}${t.points} pts</b> · ${esc(t.club?.name || "Boliche")}
+                <br/><small>${esc(t.description || (earn ? "Acreditación" : "Canje"))} · ${fdatetime(t.createdAt)}</small>
+              </div>`;
+            }).join("")
+            : "";
+          const loyaltyCard = `
+            <div class="card profile-card k-loyalty-card">
+              <h3 style="margin:0 0 8px">⭐ Kluby Points</h3>
+              <p class="hint" style="margin:0 0 14px">${rules ? `Ganás 1 punto cada $${rules.currencyPerPoint} pagados · canje mín. ${rules.minRedeemPoints} pts · tope ${rules.maxRedeemPercent}% por reserva` : "Programa de fidelidad por boliche."}</p>
+              ${clubsHtml}
+              ${txnsHtml ? `<div style="margin-top:16px"><label>Últimos movimientos</label>${txnsHtml}</div>` : ""}
+            </div>`;
           const form = live.querySelector("#profile-form");
           if (!form) return;
           form.innerHTML = `
@@ -1561,7 +1720,8 @@
                 <button type="button" class="btn-sm" onclick="redeemTeamCode(document.getElementById('pf-team-code').value).catch(e=>toast(e.message,'err'))">Canjear</button>
               </div>
               <div class="error" id="pf-err"></div>
-            </div>`;
+            </div>
+            ${loyaltyCard}`;
         } catch (e) {
           const live = livePage("profile");
           const form = live?.querySelector("#profile-form");

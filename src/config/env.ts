@@ -29,8 +29,12 @@ export const env = {
   // Autenticacion JWT.
   jwtSecret: process.env["JWT_SECRET"] ?? "kluby-dev-secret-change-me",
   jwtExpiresIn: process.env["JWT_EXPIRES_IN"] ?? "7d",
-  // Fidelizacion: puntos ganados por cada $X gastados (Kluby Points).
-  loyaltyCurrencyPerPoint: optionalNumber("LOYALTY_CURRENCY_PER_POINT", 100),
+  // Fidelizacion (Kluby Points) — defaults conservadores.
+  loyaltyCurrencyPerPoint: optionalNumber("LOYALTY_CURRENCY_PER_POINT", 150),
+  loyaltyMinRedeemPoints: optionalNumber("LOYALTY_MIN_REDEEM_POINTS", 100),
+  loyaltyMaxRedeemPercent: optionalNumber("LOYALTY_MAX_REDEEM_PERCENT", 25),
+  loyaltyFirstReservationBonus: optionalNumber("LOYALTY_FIRST_RESERVATION_BONUS", 25),
+  loyaltyCheckInBonus: optionalNumber("LOYALTY_CHECKIN_BONUS", 5),
 } as const;
 
 export const isProduction = env.nodeEnv === "production";

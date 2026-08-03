@@ -30,6 +30,8 @@ export type ReservationAvgAggregateOutputType = {
   totalAmount: runtime.Decimal | null
   depositAmount: runtime.Decimal | null
   amountPaid: runtime.Decimal | null
+  loyaltyPointsRedeemed: number | null
+  loyaltyDiscount: runtime.Decimal | null
   maxGuests: number | null
 }
 
@@ -37,6 +39,8 @@ export type ReservationSumAggregateOutputType = {
   totalAmount: runtime.Decimal | null
   depositAmount: runtime.Decimal | null
   amountPaid: runtime.Decimal | null
+  loyaltyPointsRedeemed: number | null
+  loyaltyDiscount: runtime.Decimal | null
   maxGuests: number | null
 }
 
@@ -53,6 +57,8 @@ export type ReservationMinAggregateOutputType = {
   totalAmount: runtime.Decimal | null
   depositAmount: runtime.Decimal | null
   amountPaid: runtime.Decimal | null
+  loyaltyPointsRedeemed: number | null
+  loyaltyDiscount: runtime.Decimal | null
   maxGuests: number | null
   expiresAt: Date | null
   confirmedAt: Date | null
@@ -76,6 +82,8 @@ export type ReservationMaxAggregateOutputType = {
   totalAmount: runtime.Decimal | null
   depositAmount: runtime.Decimal | null
   amountPaid: runtime.Decimal | null
+  loyaltyPointsRedeemed: number | null
+  loyaltyDiscount: runtime.Decimal | null
   maxGuests: number | null
   expiresAt: Date | null
   confirmedAt: Date | null
@@ -99,6 +107,8 @@ export type ReservationCountAggregateOutputType = {
   totalAmount: number
   depositAmount: number
   amountPaid: number
+  loyaltyPointsRedeemed: number
+  loyaltyDiscount: number
   maxGuests: number
   expiresAt: number
   confirmedAt: number
@@ -115,6 +125,8 @@ export type ReservationAvgAggregateInputType = {
   totalAmount?: true
   depositAmount?: true
   amountPaid?: true
+  loyaltyPointsRedeemed?: true
+  loyaltyDiscount?: true
   maxGuests?: true
 }
 
@@ -122,6 +134,8 @@ export type ReservationSumAggregateInputType = {
   totalAmount?: true
   depositAmount?: true
   amountPaid?: true
+  loyaltyPointsRedeemed?: true
+  loyaltyDiscount?: true
   maxGuests?: true
 }
 
@@ -138,6 +152,8 @@ export type ReservationMinAggregateInputType = {
   totalAmount?: true
   depositAmount?: true
   amountPaid?: true
+  loyaltyPointsRedeemed?: true
+  loyaltyDiscount?: true
   maxGuests?: true
   expiresAt?: true
   confirmedAt?: true
@@ -161,6 +177,8 @@ export type ReservationMaxAggregateInputType = {
   totalAmount?: true
   depositAmount?: true
   amountPaid?: true
+  loyaltyPointsRedeemed?: true
+  loyaltyDiscount?: true
   maxGuests?: true
   expiresAt?: true
   confirmedAt?: true
@@ -184,6 +202,8 @@ export type ReservationCountAggregateInputType = {
   totalAmount?: true
   depositAmount?: true
   amountPaid?: true
+  loyaltyPointsRedeemed?: true
+  loyaltyDiscount?: true
   maxGuests?: true
   expiresAt?: true
   confirmedAt?: true
@@ -294,6 +314,8 @@ export type ReservationGroupByOutputType = {
   totalAmount: runtime.Decimal
   depositAmount: runtime.Decimal
   amountPaid: runtime.Decimal
+  loyaltyPointsRedeemed: number
+  loyaltyDiscount: runtime.Decimal
   maxGuests: number | null
   expiresAt: Date
   confirmedAt: Date | null
@@ -340,6 +362,8 @@ export type ReservationWhereInput = {
   totalAmount?: Prisma.DecimalFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFilter<"Reservation"> | number
+  loyaltyDiscount?: Prisma.DecimalFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.IntNullableFilter<"Reservation"> | number | null
   expiresAt?: Prisma.DateTimeFilter<"Reservation"> | Date | string
   confirmedAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
@@ -372,6 +396,8 @@ export type ReservationOrderByWithRelationInput = {
   totalAmount?: Prisma.SortOrder
   depositAmount?: Prisma.SortOrder
   amountPaid?: Prisma.SortOrder
+  loyaltyPointsRedeemed?: Prisma.SortOrder
+  loyaltyDiscount?: Prisma.SortOrder
   maxGuests?: Prisma.SortOrderInput | Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   confirmedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -407,6 +433,8 @@ export type ReservationWhereUniqueInput = Prisma.AtLeast<{
   totalAmount?: Prisma.DecimalFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFilter<"Reservation"> | number
+  loyaltyDiscount?: Prisma.DecimalFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.IntNullableFilter<"Reservation"> | number | null
   expiresAt?: Prisma.DateTimeFilter<"Reservation"> | Date | string
   confirmedAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
@@ -439,6 +467,8 @@ export type ReservationOrderByWithAggregationInput = {
   totalAmount?: Prisma.SortOrder
   depositAmount?: Prisma.SortOrder
   amountPaid?: Prisma.SortOrder
+  loyaltyPointsRedeemed?: Prisma.SortOrder
+  loyaltyDiscount?: Prisma.SortOrder
   maxGuests?: Prisma.SortOrderInput | Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   confirmedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -470,6 +500,8 @@ export type ReservationScalarWhereWithAggregatesInput = {
   totalAmount?: Prisma.DecimalWithAggregatesFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalWithAggregatesFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalWithAggregatesFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntWithAggregatesFilter<"Reservation"> | number
+  loyaltyDiscount?: Prisma.DecimalWithAggregatesFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.IntNullableWithAggregatesFilter<"Reservation"> | number | null
   expiresAt?: Prisma.DateTimeWithAggregatesFilter<"Reservation"> | Date | string
   confirmedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Reservation"> | Date | string | null
@@ -489,6 +521,8 @@ export type ReservationCreateInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -521,6 +555,8 @@ export type ReservationUncheckedCreateInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -545,6 +581,8 @@ export type ReservationUpdateInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -577,6 +615,8 @@ export type ReservationUncheckedUpdateInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -605,6 +645,8 @@ export type ReservationCreateManyInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -624,6 +666,8 @@ export type ReservationUpdateManyMutationInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -647,6 +691,8 @@ export type ReservationUncheckedUpdateManyInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -680,6 +726,8 @@ export type ReservationCountOrderByAggregateInput = {
   totalAmount?: Prisma.SortOrder
   depositAmount?: Prisma.SortOrder
   amountPaid?: Prisma.SortOrder
+  loyaltyPointsRedeemed?: Prisma.SortOrder
+  loyaltyDiscount?: Prisma.SortOrder
   maxGuests?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   confirmedAt?: Prisma.SortOrder
@@ -694,6 +742,8 @@ export type ReservationAvgOrderByAggregateInput = {
   totalAmount?: Prisma.SortOrder
   depositAmount?: Prisma.SortOrder
   amountPaid?: Prisma.SortOrder
+  loyaltyPointsRedeemed?: Prisma.SortOrder
+  loyaltyDiscount?: Prisma.SortOrder
   maxGuests?: Prisma.SortOrder
 }
 
@@ -710,6 +760,8 @@ export type ReservationMaxOrderByAggregateInput = {
   totalAmount?: Prisma.SortOrder
   depositAmount?: Prisma.SortOrder
   amountPaid?: Prisma.SortOrder
+  loyaltyPointsRedeemed?: Prisma.SortOrder
+  loyaltyDiscount?: Prisma.SortOrder
   maxGuests?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   confirmedAt?: Prisma.SortOrder
@@ -733,6 +785,8 @@ export type ReservationMinOrderByAggregateInput = {
   totalAmount?: Prisma.SortOrder
   depositAmount?: Prisma.SortOrder
   amountPaid?: Prisma.SortOrder
+  loyaltyPointsRedeemed?: Prisma.SortOrder
+  loyaltyDiscount?: Prisma.SortOrder
   maxGuests?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
   confirmedAt?: Prisma.SortOrder
@@ -747,6 +801,8 @@ export type ReservationSumOrderByAggregateInput = {
   totalAmount?: Prisma.SortOrder
   depositAmount?: Prisma.SortOrder
   amountPaid?: Prisma.SortOrder
+  loyaltyPointsRedeemed?: Prisma.SortOrder
+  loyaltyDiscount?: Prisma.SortOrder
   maxGuests?: Prisma.SortOrder
 }
 
@@ -1029,6 +1085,8 @@ export type ReservationCreateWithoutHostInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1059,6 +1117,8 @@ export type ReservationUncheckedCreateWithoutHostInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1116,6 +1176,8 @@ export type ReservationScalarWhereInput = {
   totalAmount?: Prisma.DecimalFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFilter<"Reservation"> | number
+  loyaltyDiscount?: Prisma.DecimalFilter<"Reservation"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.IntNullableFilter<"Reservation"> | number | null
   expiresAt?: Prisma.DateTimeFilter<"Reservation"> | Date | string
   confirmedAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
@@ -1135,6 +1197,8 @@ export type ReservationCreateWithoutClubInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1165,6 +1229,8 @@ export type ReservationUncheckedCreateWithoutClubInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1215,6 +1281,8 @@ export type ReservationCreateWithoutTableInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1245,6 +1313,8 @@ export type ReservationUncheckedCreateWithoutTableInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1295,6 +1365,8 @@ export type ReservationCreateWithoutEventInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1325,6 +1397,8 @@ export type ReservationUncheckedCreateWithoutEventInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1375,6 +1449,8 @@ export type ReservationCreateWithoutGuestsInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1406,6 +1482,8 @@ export type ReservationUncheckedCreateWithoutGuestsInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1445,6 +1523,8 @@ export type ReservationUpdateWithoutGuestsInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1476,6 +1556,8 @@ export type ReservationUncheckedUpdateWithoutGuestsInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1499,6 +1581,8 @@ export type ReservationCreateWithoutPaymentsInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1530,6 +1614,8 @@ export type ReservationUncheckedCreateWithoutPaymentsInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1569,6 +1655,8 @@ export type ReservationUpdateWithoutPaymentsInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1600,6 +1688,8 @@ export type ReservationUncheckedUpdateWithoutPaymentsInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1623,6 +1713,8 @@ export type ReservationCreateWithoutOrdersInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1654,6 +1746,8 @@ export type ReservationUncheckedCreateWithoutOrdersInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1693,6 +1787,8 @@ export type ReservationUpdateWithoutOrdersInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1724,6 +1820,8 @@ export type ReservationUncheckedUpdateWithoutOrdersInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1747,6 +1845,8 @@ export type ReservationCreateWithoutLoyaltyTxnsInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1778,6 +1878,8 @@ export type ReservationUncheckedCreateWithoutLoyaltyTxnsInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1817,6 +1919,8 @@ export type ReservationUpdateWithoutLoyaltyTxnsInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1848,6 +1952,8 @@ export type ReservationUncheckedUpdateWithoutLoyaltyTxnsInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1871,6 +1977,8 @@ export type ReservationCreateWithoutChatMessagesInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1902,6 +2010,8 @@ export type ReservationUncheckedCreateWithoutChatMessagesInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -1941,6 +2051,8 @@ export type ReservationUpdateWithoutChatMessagesInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1972,6 +2084,8 @@ export type ReservationUncheckedUpdateWithoutChatMessagesInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1998,6 +2112,8 @@ export type ReservationCreateManyHostInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -2017,6 +2133,8 @@ export type ReservationUpdateWithoutHostInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2047,6 +2165,8 @@ export type ReservationUncheckedUpdateWithoutHostInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2074,6 +2194,8 @@ export type ReservationUncheckedUpdateManyWithoutHostInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2096,6 +2218,8 @@ export type ReservationCreateManyClubInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -2115,6 +2239,8 @@ export type ReservationUpdateWithoutClubInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2145,6 +2271,8 @@ export type ReservationUncheckedUpdateWithoutClubInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2172,6 +2300,8 @@ export type ReservationUncheckedUpdateManyWithoutClubInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2194,6 +2324,8 @@ export type ReservationCreateManyTableInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -2213,6 +2345,8 @@ export type ReservationUpdateWithoutTableInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2243,6 +2377,8 @@ export type ReservationUncheckedUpdateWithoutTableInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2270,6 +2406,8 @@ export type ReservationUncheckedUpdateManyWithoutTableInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2292,6 +2430,8 @@ export type ReservationCreateManyEventInput = {
   totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: number
+  loyaltyDiscount?: runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: number | null
   expiresAt: Date | string
   confirmedAt?: Date | string | null
@@ -2311,6 +2451,8 @@ export type ReservationUpdateWithoutEventInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2341,6 +2483,8 @@ export type ReservationUncheckedUpdateWithoutEventInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2368,6 +2512,8 @@ export type ReservationUncheckedUpdateManyWithoutEventInput = {
   totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   depositAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   amountPaid?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  loyaltyPointsRedeemed?: Prisma.IntFieldUpdateOperationsInput | number
+  loyaltyDiscount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   maxGuests?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2458,6 +2604,8 @@ export type ReservationSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   totalAmount?: boolean
   depositAmount?: boolean
   amountPaid?: boolean
+  loyaltyPointsRedeemed?: boolean
+  loyaltyDiscount?: boolean
   maxGuests?: boolean
   expiresAt?: boolean
   confirmedAt?: boolean
@@ -2491,6 +2639,8 @@ export type ReservationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   totalAmount?: boolean
   depositAmount?: boolean
   amountPaid?: boolean
+  loyaltyPointsRedeemed?: boolean
+  loyaltyDiscount?: boolean
   maxGuests?: boolean
   expiresAt?: boolean
   confirmedAt?: boolean
@@ -2518,6 +2668,8 @@ export type ReservationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   totalAmount?: boolean
   depositAmount?: boolean
   amountPaid?: boolean
+  loyaltyPointsRedeemed?: boolean
+  loyaltyDiscount?: boolean
   maxGuests?: boolean
   expiresAt?: boolean
   confirmedAt?: boolean
@@ -2545,6 +2697,8 @@ export type ReservationSelectScalar = {
   totalAmount?: boolean
   depositAmount?: boolean
   amountPaid?: boolean
+  loyaltyPointsRedeemed?: boolean
+  loyaltyDiscount?: boolean
   maxGuests?: boolean
   expiresAt?: boolean
   confirmedAt?: boolean
@@ -2555,7 +2709,7 @@ export type ReservationSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ReservationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "clubId" | "eventId" | "tableId" | "hostId" | "mode" | "paymentOption" | "status" | "totalAmount" | "depositAmount" | "amountPaid" | "maxGuests" | "expiresAt" | "confirmedAt" | "checkedInAt" | "completedAt" | "cancelledAt" | "createdAt" | "updatedAt", ExtArgs["result"]["reservation"]>
+export type ReservationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "clubId" | "eventId" | "tableId" | "hostId" | "mode" | "paymentOption" | "status" | "totalAmount" | "depositAmount" | "amountPaid" | "loyaltyPointsRedeemed" | "loyaltyDiscount" | "maxGuests" | "expiresAt" | "confirmedAt" | "checkedInAt" | "completedAt" | "cancelledAt" | "createdAt" | "updatedAt", ExtArgs["result"]["reservation"]>
 export type ReservationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   event?: boolean | Prisma.EventNightDefaultArgs<ExtArgs>
@@ -2607,6 +2761,8 @@ export type $ReservationPayload<ExtArgs extends runtime.Types.Extensions.Interna
     totalAmount: runtime.Decimal
     depositAmount: runtime.Decimal
     amountPaid: runtime.Decimal
+    loyaltyPointsRedeemed: number
+    loyaltyDiscount: runtime.Decimal
     maxGuests: number | null
     expiresAt: Date
     confirmedAt: Date | null
@@ -3059,6 +3215,8 @@ export interface ReservationFieldRefs {
   readonly totalAmount: Prisma.FieldRef<"Reservation", 'Decimal'>
   readonly depositAmount: Prisma.FieldRef<"Reservation", 'Decimal'>
   readonly amountPaid: Prisma.FieldRef<"Reservation", 'Decimal'>
+  readonly loyaltyPointsRedeemed: Prisma.FieldRef<"Reservation", 'Int'>
+  readonly loyaltyDiscount: Prisma.FieldRef<"Reservation", 'Decimal'>
   readonly maxGuests: Prisma.FieldRef<"Reservation", 'Int'>
   readonly expiresAt: Prisma.FieldRef<"Reservation", 'DateTime'>
   readonly confirmedAt: Prisma.FieldRef<"Reservation", 'DateTime'>

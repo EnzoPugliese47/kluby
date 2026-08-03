@@ -18,8 +18,17 @@ import {
   occupyingReservationFilter,
 } from "../utils/reservation";
 import {
+  computeEarnedPoints,
+  computeDiscountValue,
+  computeBalances,
+  LOYALTY_DESC,
+  validateRedeemPoints,
+} from "../utils/loyalty";
+import { getAuthUser } from "../middlewares/auth";
+import {
   asRecord,
   optionalEnum,
+  optionalNumber,
   optionalString,
   requireEnum,
   requireParam,
@@ -167,11 +176,18 @@ export const payReservation = async (
     const body = asRecord(req.body);
     const provider = optionalString(body, "provider");
     const externalRef = optionalString(body, "externalRef");
+    const loyaltyPointsRaw = optionalNumber(body, "loyaltyPointsToRedeem");
+    const loyaltyPointsToRedeem =
+      loyaltyPointsRaw !== undefined ? Math.floor(loyaltyPointsRaw) : 0;
+    const auth = getAuthUser(req);
 
     const reservation = await prisma.$transaction(async (tx) => {
       const current = await tx.reservation.findUnique({ where: { id } });
       if (current === null) {
         throw new AppError("Reserva no encontrada", 404);
+      }
+      if (current.hostId !== auth.sub) {
+        throw new AppError("Solo el anfitrion puede pagar esta reserva", 403);
       }
       if (current.status !== ReservationStatus.PENDING_PAYMENT) {
         throw new AppError(
@@ -190,21 +206,64 @@ export const payReservation = async (
         );
       }
 
+      const club = await tx.club.findUnique({ where: { id: current.clubId } });
+      if (club === null) throw new AppError("Boliche no encontrado", 404);
+
       const isFull = current.paymentOption === PaymentOption.FULL_PAYMENT;
-      const amount = isFull ? current.totalAmount : current.depositAmount;
+      const baseAmount = isFull ? current.totalAmount : current.depositAmount;
+
+      let loyaltyDiscount = new Prisma.Decimal(0);
+      let pointsRedeemed = 0;
+
+      if (loyaltyPointsToRedeem > 0) {
+        const txns = await tx.loyaltyTransaction.findMany({
+          where: { userId: current.hostId, clubId: current.clubId },
+          select: { clubId: true, type: true, points: true },
+        });
+        const balance = computeBalances(txns).get(current.clubId) ?? 0;
+        validateRedeemPoints(
+          loyaltyPointsToRedeem,
+          balance,
+          baseAmount,
+          club.pointValue
+        );
+        loyaltyDiscount = computeDiscountValue(
+          loyaltyPointsToRedeem,
+          club.pointValue
+        );
+        pointsRedeemed = loyaltyPointsToRedeem;
+
+        await tx.loyaltyTransaction.create({
+          data: {
+            userId: current.hostId,
+            clubId: current.clubId,
+            reservationId: id,
+            type: LoyaltyTxType.REDEEMED,
+            points: pointsRedeemed,
+            description: LOYALTY_DESC.REDEEM,
+          },
+        });
+      }
+
+      const amount = Prisma.Decimal.max(
+        baseAmount.sub(loyaltyDiscount),
+        new Prisma.Decimal(0)
+      );
       const paymentType = isFull ? PaymentType.FULL : PaymentType.DEPOSIT;
 
-      await tx.payment.create({
-        data: {
-          reservationId: id,
-          userId: current.hostId,
-          type: paymentType,
-          amount,
-          status: PaymentStatus.APPROVED,
-          provider: provider ?? null,
-          externalRef: externalRef ?? null,
-        },
-      });
+      if (amount.greaterThan(0)) {
+        await tx.payment.create({
+          data: {
+            reservationId: id,
+            userId: current.hostId,
+            type: paymentType,
+            amount,
+            status: PaymentStatus.APPROVED,
+            provider: provider ?? null,
+            externalRef: externalRef ?? null,
+          },
+        });
+      }
 
       return tx.reservation.update({
         where: { id },
@@ -212,6 +271,8 @@ export const payReservation = async (
           status: ReservationStatus.CONFIRMED,
           confirmedAt: new Date(),
           amountPaid: amount,
+          loyaltyPointsRedeemed: pointsRedeemed,
+          loyaltyDiscount,
         },
         include: reservationInclude,
       });
@@ -306,13 +367,36 @@ export const checkInReservation = async (
         400
       );
     }
-    const reservation = await prisma.reservation.update({
-      where: { id },
-      data: {
-        status: ReservationStatus.CHECKED_IN,
-        checkedInAt: new Date(),
-      },
-      include: reservationInclude,
+    const reservation = await prisma.$transaction(async (tx) => {
+      const updated = await tx.reservation.update({
+        where: { id },
+        data: {
+          status: ReservationStatus.CHECKED_IN,
+          checkedInAt: new Date(),
+        },
+        include: reservationInclude,
+      });
+
+      const existingBonus = await tx.loyaltyTransaction.findFirst({
+        where: {
+          reservationId: id,
+          type: LoyaltyTxType.EARNED,
+          description: LOYALTY_DESC.CHECKIN,
+        },
+      });
+      if (existingBonus === null && env.loyaltyCheckInBonus > 0) {
+        await tx.loyaltyTransaction.create({
+          data: {
+            userId: updated.hostId,
+            clubId: updated.clubId,
+            reservationId: updated.id,
+            type: LoyaltyTxType.EARNED,
+            points: env.loyaltyCheckInBonus,
+            description: LOYALTY_DESC.CHECKIN,
+          },
+        });
+      }
+      return updated;
     });
     sendSuccess(res, reservation);
   } catch (error) {
@@ -345,20 +429,31 @@ export const checkoutReservation = async (
     }
 
     // RN17: acreditar Kluby Points al anfitrion al cerrar la mesa.
-    const earnedPoints = Math.floor(
-      Number(current.amountPaid) / env.loyaltyCurrencyPerPoint
-    );
-
     const reservation = await prisma.$transaction(async (tx) => {
+      const payments = await tx.payment.findMany({
+        where: {
+          reservationId: id,
+          status: PaymentStatus.APPROVED,
+          type: { not: PaymentType.REFUND },
+        },
+        select: { amount: true },
+      });
+      const totalSpend = payments.reduce(
+        (sum, p) => sum.add(p.amount),
+        new Prisma.Decimal(0)
+      );
+
       const updated = await tx.reservation.update({
         where: { id },
         data: {
           status: ReservationStatus.COMPLETED,
           completedAt: new Date(),
+          amountPaid: totalSpend,
         },
         include: reservationInclude,
       });
 
+      const earnedPoints = computeEarnedPoints(Number(totalSpend));
       if (earnedPoints > 0) {
         await tx.loyaltyTransaction.create({
           data: {
@@ -367,14 +462,53 @@ export const checkoutReservation = async (
             reservationId: updated.id,
             type: LoyaltyTxType.EARNED,
             points: earnedPoints,
-            description: "Acreditacion por cierre de mesa (check-out)",
+            description: LOYALTY_DESC.CHECKOUT,
           },
         });
       }
-      return updated;
+
+      const priorCompleted = await tx.reservation.count({
+        where: {
+          hostId: updated.hostId,
+          clubId: updated.clubId,
+          status: ReservationStatus.COMPLETED,
+          id: { not: updated.id },
+        },
+      });
+      if (
+        priorCompleted === 0 &&
+        env.loyaltyFirstReservationBonus > 0
+      ) {
+        const existingFirst = await tx.loyaltyTransaction.findFirst({
+          where: {
+            userId: updated.hostId,
+            clubId: updated.clubId,
+            type: LoyaltyTxType.EARNED,
+            description: LOYALTY_DESC.FIRST,
+          },
+        });
+        if (existingFirst === null) {
+          await tx.loyaltyTransaction.create({
+            data: {
+              userId: updated.hostId,
+              clubId: updated.clubId,
+              reservationId: updated.id,
+              type: LoyaltyTxType.EARNED,
+              points: env.loyaltyFirstReservationBonus,
+              description: LOYALTY_DESC.FIRST,
+            },
+          });
+        }
+      }
+
+      return { updated, earnedPoints, totalSpend };
     });
 
-    sendSuccess(res, { reservation, earnedPoints });
+    sendSuccess(res, {
+      reservation: reservation.updated,
+      earnedPoints: reservation.earnedPoints,
+      totalSpend: reservation.totalSpend,
+    });
   } catch (error) {
     next(error);
   }

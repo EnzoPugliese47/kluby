@@ -206,6 +206,7 @@ export const updateClub = async (
     const imageUrl = optionalString(body, "imageUrl");
     const floorMapUrl = optionalString(body, "floorMapUrl");
     const defaultConsumptionPercent = optionalNumber(body, "defaultConsumptionPercent");
+    const pointValueRaw = optionalNumber(body, "pointValue");
     const contactEmailRaw = optionalString(body, "contactEmail");
     const contactPhoneRaw = body["contactPhone"];
 
@@ -230,6 +231,15 @@ export const updateClub = async (
         );
       }
       data.defaultConsumptionPercent = Math.round(defaultConsumptionPercent);
+    }
+    if (pointValueRaw !== undefined) {
+      if (pointValueRaw < 1) {
+        throw new AppError(
+          "El valor de canje de 1 punto debe ser al menos $1 (RN18)",
+          400
+        );
+      }
+      data.pointValue = pointValueRaw;
     }
     if (contactEmailRaw !== undefined) {
       const email = normalizeEmail(contactEmailRaw);

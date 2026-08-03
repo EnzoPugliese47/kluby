@@ -247,6 +247,8 @@ export const ReservationScalarFieldEnum = {
   totalAmount: 'totalAmount',
   depositAmount: 'depositAmount',
   amountPaid: 'amountPaid',
+  loyaltyPointsRedeemed: 'loyaltyPointsRedeemed',
+  loyaltyDiscount: 'loyaltyDiscount',
   maxGuests: 'maxGuests',
   expiresAt: 'expiresAt',
   confirmedAt: 'confirmedAt',

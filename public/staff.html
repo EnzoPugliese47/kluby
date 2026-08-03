@@ -342,8 +342,12 @@
 
       async function act(id, action) {
         try {
-          await api("/reservations/" + id + "/" + action, { method: "POST" });
-          toast(action === "check-in" ? "Ingreso registrado" : "Mesa cerrada", "ok");
+          const res = await api("/reservations/" + id + "/" + action, { method: "POST" });
+          if (action === "check-in") toast("Ingreso registrado", "ok");
+          else if (action === "checkout") {
+            const pts = res.earnedPoints || 0;
+            toast(pts > 0 ? `Mesa cerrada · +${pts} Kluby Points al anfitrión` : "Mesa cerrada", "ok");
+          } else toast("Listo", "ok");
           lookup();
           loadCheckIns(true);
         } catch (e) { toast(e.message, "err"); }
