@@ -252,14 +252,36 @@ body.kluby-public .section-title {
 .k-filter-check input { flex: none; min-width: auto; width: auto; padding: 0; margin: 0; accent-color: var(--accent); }
 
 .k-explore-tabs {
-  display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+  display: inline-flex; gap: 6px; margin-bottom: 22px; flex-wrap: wrap;
+  padding: 6px; border-radius: 16px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 .k-explore-tabs button {
-  padding: 10px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(0,0,0,0.35); color: var(--muted); font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 12px 26px; border-radius: 12px; border: 1px solid transparent;
+  background: transparent; color: rgba(255, 255, 255, 0.45);
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+  letter-spacing: 0.02em;
+}
+.k-explore-tabs button:hover:not(.active) {
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.04);
 }
 .k-explore-tabs button.active {
-  background: rgba(124, 92, 255, 0.15); border-color: var(--neon-violet); color: var(--text);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.22);
+  background: linear-gradient(135deg, #7c5cff 0%, #a855f7 45%, #ff2d95 100%);
+  box-shadow:
+    0 0 0 1px rgba(124, 92, 255, 0.35),
+    0 8px 28px rgba(124, 92, 255, 0.45),
+    0 4px 16px rgba(255, 45, 149, 0.25);
+  transform: translateY(-1px);
+}
+.k-explore-tabs button:focus-visible {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 2px;
 }
 .k-explore-club-block { margin-bottom: 48px; }
 .k-explore-events-list { display: flex; flex-direction: column; gap: 10px; }
