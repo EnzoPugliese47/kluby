@@ -28,19 +28,4 @@ export const computeDeposit = (
   depositPercent: number
 ): Prisma.Decimal => price.mul(depositPercent).div(100);
 
-/**
- * Escala de devoluciones por cancelacion segun anticipacion al evento (RN16):
- *  - > 48 h: 100%
- *  - 24 a 48 h: 50%
- *  - < 24 h: 0%
- */
-export const computeRefundPercent = (
-  eventDate: Date,
-  now: Date = new Date()
-): number => {
-  const hoursUntilEvent =
-    (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-  if (hoursUntilEvent > 48) return 100;
-  if (hoursUntilEvent >= 24) return 50;
-  return 0;
-};
+export { computeRefundPercent } from "./refundPolicy";

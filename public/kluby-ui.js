@@ -160,6 +160,7 @@ window.KlubyUI = (function () {
           <a href="/app.html">App cliente</a>
           <a href="/#app-android">Descargar app</a>
           <a href="/panel.html">Panel dueños</a>
+          <a href="/cancelacion.html">Cancelaciones</a>
         </div>
       </footer>`;
   }

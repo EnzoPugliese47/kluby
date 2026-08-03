@@ -207,6 +207,21 @@
       .k-loyalty-txn b { color: var(--text); }
       .k-loyalty-txn.earn b { color: var(--accent); }
       .k-loyalty-txn.redeem b { color: var(--pink); }
+      .k-refund-policy {
+        margin-top: 18px; padding: 14px 16px; border-radius: 12px;
+        background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      }
+      .k-refund-policy h4 { font-size: 14px; margin-bottom: 10px; color: var(--muted); font-weight: 600; }
+      .k-refund-table { width: 100%; font-size: 13px; border-collapse: collapse; }
+      .k-refund-table td { padding: 6px 0; border-bottom: 1px solid var(--border); }
+      .k-refund-table tr:last-child td { border-bottom: none; }
+      .k-refund-table td:last-child { text-align: right; color: var(--accent); }
+      .k-refund-preview { font-size: 13px; margin-top: 10px; color: var(--text); }
+      .k-policy-check {
+        display: flex; align-items: flex-start; gap: 10px; margin-top: 14px;
+        font-size: 13px; line-height: 1.45; cursor: pointer;
+      }
+      .k-policy-check input { margin-top: 3px; accent-color: var(--accent); }
     </style>
   </head>
   <body class="kluby-public kluby-app">
@@ -290,6 +305,62 @@
 
       let _loyaltyRules = null;
       let _wizardLoyalty = null;
+      let _wizardEventDate = null;
+      let _wizardPolicyAccepted = false;
+
+      function wizardRefundPayAmount(t) {
+        const deposit = Math.round(Number(t.price) * (t.depositPercent / 100));
+        let base = _reserveSel === "FULL_PAYMENT" ? num(t.price) : deposit;
+        if (_wizardLoyalty?.pointsToUse > 0) {
+          base = Math.max(0, base - _wizardLoyalty.pointsToUse * (_wizardLoyalty.pointValue || 1));
+        }
+        return base;
+      }
+
+      function refundPolicyBlockHtml(policy) {
+        const tiers = (policy.tiers || []).map((tier) =>
+          `<tr><td>${esc(tier.label)}</td><td><b>${tier.percent}%</b></td></tr>`
+        ).join("");
+        const preview = policy.amountPreview || policy.preview;
+        let previewLine = "";
+        if (preview?.refundAmount !== undefined) {
+          previewLine = `<p class="k-refund-preview">Si cancelás ahora: <b>${preview.refundPercent}%</b> → ${money(preview.refundAmount)} de devolución estimada.</p>`;
+        } else if (preview?.refundPercent !== undefined) {
+          previewLine = `<p class="k-refund-preview">Franja actual: <b>${preview.refundPercent}%</b> (${esc(preview.tierLabel || "")})</p>`;
+        }
+        return `
+          <div class="k-refund-policy">
+            <h4>Política de cancelación</h4>
+            <table class="k-refund-table"><tbody>${tiers}</tbody></table>
+            ${previewLine}
+            <p class="hint" style="margin-top:8px"><a href="/cancelacion.html" target="_blank" rel="noopener">Ver política completa</a></p>
+          </div>
+          <label class="k-policy-check"><input type="checkbox" id="wizard-policy-accept" onchange="onWizardPolicyAccept()" /> Acepto la política de cancelación y devoluciones de Kluby</label>`;
+      }
+
+      function onWizardPolicyAccept() {
+        _wizardPolicyAccepted = !!document.getElementById("wizard-policy-accept")?.checked;
+        updateReserveBtnState();
+      }
+
+      function updateReserveBtnState() {
+        const btn = $("reserve-btn");
+        if (btn) btn.disabled = !_wizardPolicyAccepted;
+      }
+
+      async function refreshWizardRefundPolicy() {
+        if (!window._wizardTable || !_wizardEventDate || !stillOn("wizard")) return;
+        const amt = wizardRefundPayAmount(window._wizardTable);
+        const q = new URLSearchParams({ eventDate: _wizardEventDate, amountPaid: String(amt) });
+        try {
+          const policy = await api("/reservations/refund-policy?" + q);
+          const el = document.getElementById("wizard-refund-policy");
+          if (!el || !stillOn("wizard")) return;
+          el.innerHTML = refundPolicyBlockHtml(policy);
+          _wizardPolicyAccepted = false;
+          updateReserveBtnState();
+        } catch { /* opcional en wizard */ }
+      }
 
       async function loadLoyaltyRules() {
         if (!_loyaltyRules) _loyaltyRules = await api("/loyalty/config");
@@ -361,6 +432,7 @@
         }
         const preview = $("wizard-pay-preview");
         if (preview) preview.innerHTML = wizardPayPreviewHtml(t);
+        void refreshWizardRefundPolicy();
       }
 
       function toggleWizardLoyalty() {
@@ -387,6 +459,7 @@
         if (valEl) valEl.textContent = `${pts} pts (-${money(disc)})`;
         const preview = $("wizard-pay-preview");
         if (preview && window._wizardTable) preview.innerHTML = wizardPayPreviewHtml(window._wizardTable);
+        void refreshWizardRefundPolicy();
       }
 
       function guestFinanceHtml({ shareAmount, prepaid, minConsumption, status }) {
@@ -742,6 +815,7 @@
               const data = await api("/events/" + eventId + "/availability");
               if (!stillOn("wizard")) return;
               _wizardTables = data.tables;
+              _wizardEventDate = data.event?.date || null;
             }
             const t = (_wizardTables || []).find((x) => x.id === tableId);
             if (!t) { body.innerHTML = `<div class="empty">Mesa no encontrada.</div>`; return; }
@@ -750,6 +824,7 @@
             _reserveSel = "DEPOSIT_ONLY";
             window._wizardTable = t;
             _wizardLoyalty = null;
+            _wizardPolicyAccepted = false;
             let loyaltySection = "";
             try {
               const bal = await api("/loyalty/clubs/" + clubId + "/balance");
@@ -786,10 +861,12 @@
                 </div>
                 ${loyaltySection}
                 <div id="wizard-pay-preview">${wizardPayPreviewHtml(t)}</div>
+                <div id="wizard-refund-policy"><div class="hint">Cargando política de cancelación…</div></div>
                 <button type="button" class="ghost btn-sm" style="margin-top:12px" onclick="openConsumptionPlanner({ eventId: '${eventId}', minConsumption: ${minCons}, tablePrice: ${num(t.price)}, depositPercent: ${t.depositPercent} })">🍾 Planificá tu consumo antes de ir</button>
-                <button type="button" class="btn-full btn-accent" id="reserve-btn" style="margin-top:22px" onclick="confirmWizardReserve('${tableId}','${eventId}')">Confirmar y pagar</button>
+                <button type="button" class="btn-full btn-accent" id="reserve-btn" style="margin-top:22px" disabled onclick="confirmWizardReserve('${tableId}','${eventId}')">Confirmar y pagar</button>
                 <div class="error" id="reserve-err"></div>
               </div>`;
+            void refreshWizardRefundPolicy();
           }
         } catch (e) {
           if (stillOn("wizard") && body) body.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
@@ -814,6 +891,10 @@
       }
 
       async function confirmWizardReserve(tableId, eventId) {
+        if (!_wizardPolicyAccepted) {
+          toast("Aceptá la política de cancelación para continuar", "err");
+          return;
+        }
         const btn = $("reserve-btn");
         if (btn) { btn.disabled = true; btn.textContent = "Procesando..."; }
         try {
@@ -1280,9 +1361,40 @@
         } catch (e) { toast(e.message, "err"); }
       }
       async function cancelReservation(id) {
-        if (!confirm("¿Seguro que querés cancelar esta reserva?")) return;
-        try { const r = await api("/reservations/" + id + "/cancel", { method: "POST" }); toast("Reserva cancelada. Reembolso: " + r.refundPercent + "%", "ok"); renderMine($("page")); }
-        catch (e) { toast(e.message, "err"); }
+        openModal('<div class="empty">Calculando devolución…</div>');
+        try {
+          const p = await api("/reservations/" + id + "/cancel-preview");
+          const refundLine = p.status === "PENDING_PAYMENT"
+            ? `<p class="hint">Todavía no pagaste; no hay reembolso en efectivo.</p>`
+            : `<p>Devolución estimada: <b>${money(p.refundAmount)}</b> (${p.refundPercent}% de ${money(p.amountPaid)} pagado online).</p>`;
+          const ptsLine = p.pointsRestored > 0
+            ? `<p>Se te devolverán <b>${p.pointsRestored} Kluby Points</b>.</p>`
+            : "";
+          openModal(`
+            <h3>Cancelar reserva</h3>
+            <p class="hint">${esc(p.policy?.preview?.tierLabel || "Revisá el monto antes de confirmar.")}</p>
+            ${refundLine}
+            ${ptsLine}
+            <p class="hint" style="margin-top:12px"><a href="/cancelacion.html" target="_blank" rel="noopener">Política completa de cancelación</a></p>
+            <div class="btn-row" style="margin-top:20px">
+              <button type="button" class="ghost" onclick="closeModal()">Volver</button>
+              <button type="button" class="btn-danger" style="flex:1" onclick="confirmCancelReservation('${id}')">Confirmar cancelación</button>
+            </div>`);
+        } catch (e) {
+          openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" style="margin-top:16px" onclick="closeModal()">Cerrar</button>`);
+        }
+      }
+      async function confirmCancelReservation(id) {
+        try {
+          const r = await api("/reservations/" + id + "/cancel", { method: "POST" });
+          closeModal();
+          let msg = "Reserva cancelada.";
+          if (r.refundPercent > 0) msg += " Reembolso: " + r.refundPercent + "% (" + money(r.refundAmount) + ").";
+          if (r.pointsRestored > 0) msg += " " + r.pointsRestored + " pts devueltos.";
+          toast(msg, "ok");
+          _alertsCache = null;
+          renderMine($("page"));
+        } catch (e) { toast(e.message, "err"); }
       }
       async function showTicketById(id) {
         go("ticket", { id });

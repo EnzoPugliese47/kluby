@@ -14,7 +14,6 @@ import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
 import {
   computeDeposit,
-  computeRefundPercent,
   occupyingReservationFilter,
 } from "../utils/reservation";
 import {
@@ -35,6 +34,10 @@ import {
   requireString,
 } from "../utils/validation";
 import { assertClubStaffCanAccessClub } from "../utils/clubAccess";
+import {
+  computeRefundAmount,
+  refundPolicyPayload,
+} from "../utils/refundPolicy";
 
 const PAYMENT_OPTION_VALUES = Object.values(PaymentOption);
 const RESERVATION_MODE_VALUES = Object.values(ReservationMode);
@@ -285,6 +288,116 @@ export const payReservation = async (
 };
 
 /**
+ * GET /api/reservations/refund-policy — reglas publicas de cancelacion y devolucion.
+ * Query opcional: eventDate (ISO), amountPaid (numero) para vista previa.
+ */
+export const getRefundPolicy = (
+  req: Request,
+  res: Response
+): void => {
+  const eventDateRaw =
+    typeof req.query.eventDate === "string"
+      ? req.query.eventDate.trim()
+      : "";
+  const amountRaw =
+    typeof req.query.amountPaid === "string"
+      ? req.query.amountPaid.trim()
+      : "";
+
+  let eventDate: Date | undefined;
+  if (eventDateRaw !== "") {
+    eventDate = new Date(eventDateRaw);
+    if (Number.isNaN(eventDate.getTime())) {
+      res.status(400).json({
+        success: false,
+        error: "Parametro eventDate invalido",
+      });
+      return;
+    }
+  }
+
+  const payload = refundPolicyPayload(eventDate);
+
+  if (eventDate !== undefined && amountRaw !== "") {
+    const amount = Number(amountRaw);
+    if (Number.isFinite(amount) && amount >= 0) {
+      const { refundPercent, refundAmount } = computeRefundAmount(
+        amount,
+        eventDate
+      );
+      sendSuccess(res, {
+        ...payload,
+        amountPreview: {
+          amountPaid: amount,
+          refundPercent,
+          refundAmount: Number(refundAmount),
+        },
+      });
+      return;
+    }
+  }
+
+  sendSuccess(res, payload);
+};
+
+/** GET /api/reservations/:id/cancel-preview — estimacion antes de cancelar. */
+export const getCancelPreview = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = requireParam(req.params, "id");
+    const auth = getAuthUser(req);
+
+    const reservation = await prisma.reservation.findUnique({
+      where: { id },
+      include: { event: true },
+    });
+    if (reservation === null) {
+      throw new AppError("Reserva no encontrada", 404);
+    }
+    if (
+      reservation.hostId !== auth.sub &&
+      auth.role !== "SUPER_ADMIN" &&
+      auth.role !== "CLUB_ADMIN"
+    ) {
+      throw new AppError("No autorizado para cancelar esta reserva", 403);
+    }
+
+    const cancellable: ReservationStatus[] = [
+      ReservationStatus.PENDING_PAYMENT,
+      ReservationStatus.CONFIRMED,
+    ];
+    if (!cancellable.includes(reservation.status)) {
+      throw new AppError(
+        `La reserva no puede cancelarse (estado: ${reservation.status})`,
+        400
+      );
+    }
+
+    const { refundPercent, refundAmount } = computeRefundAmount(
+      reservation.status === ReservationStatus.PENDING_PAYMENT
+        ? 0
+        : reservation.amountPaid,
+      reservation.event.date
+    );
+
+    sendSuccess(res, {
+      reservationId: id,
+      status: reservation.status,
+      refundPercent,
+      refundAmount: Number(refundAmount),
+      amountPaid: Number(reservation.amountPaid),
+      pointsRestored: reservation.loyaltyPointsRedeemed,
+      policy: refundPolicyPayload(reservation.event.date),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * POST /api/reservations/:id/cancel
  * Cancela la reserva aplicando la escala de devoluciones (RN16).
  */
@@ -295,6 +408,7 @@ export const cancelReservation = async (
 ): Promise<void> => {
   try {
     const id = requireParam(req.params, "id");
+    const auth = getAuthUser(req);
 
     const result = await prisma.$transaction(async (tx) => {
       const current = await tx.reservation.findUnique({
@@ -303,6 +417,13 @@ export const cancelReservation = async (
       });
       if (current === null) {
         throw new AppError("Reserva no encontrada", 404);
+      }
+      if (
+        current.hostId !== auth.sub &&
+        auth.role !== "SUPER_ADMIN" &&
+        auth.role !== "CLUB_ADMIN"
+      ) {
+        throw new AppError("No autorizado para cancelar esta reserva", 403);
       }
       const cancellable: ReservationStatus[] = [
         ReservationStatus.PENDING_PAYMENT,
@@ -315,8 +436,14 @@ export const cancelReservation = async (
         );
       }
 
-      const refundPercent = computeRefundPercent(current.event.date);
-      const refundAmount = current.amountPaid.mul(refundPercent).div(100);
+      const paidForRefund =
+        current.status === ReservationStatus.PENDING_PAYMENT
+          ? new Prisma.Decimal(0)
+          : current.amountPaid;
+      const { refundPercent, refundAmount } = computeRefundAmount(
+        paidForRefund,
+        current.event.date
+      );
 
       if (refundAmount.greaterThan(0)) {
         await tx.payment.create({
@@ -330,6 +457,21 @@ export const cancelReservation = async (
         });
       }
 
+      let pointsRestored = 0;
+      if (current.loyaltyPointsRedeemed > 0) {
+        pointsRestored = current.loyaltyPointsRedeemed;
+        await tx.loyaltyTransaction.create({
+          data: {
+            userId: current.hostId,
+            clubId: current.clubId,
+            reservationId: id,
+            type: LoyaltyTxType.EARNED,
+            points: pointsRestored,
+            description: LOYALTY_DESC.RESTORE,
+          },
+        });
+      }
+
       const updated = await tx.reservation.update({
         where: { id },
         data: {
@@ -339,7 +481,7 @@ export const cancelReservation = async (
         include: reservationInclude,
       });
 
-      return { reservation: updated, refundPercent, refundAmount };
+      return { reservation: updated, refundPercent, refundAmount, pointsRestored };
     });
 
     sendSuccess(res, result);

@@ -7,6 +7,7 @@ export const LOYALTY_DESC = {
   CHECKIN: "Bonus por check-in",
   FIRST: "Bonus primera reserva en el boliche",
   REDEEM: "Canje por descuento en reserva",
+  RESTORE: "Devolucion de puntos por cancelacion",
 } as const;
 
 /** Saldo = sum(EARNED) - sum(REDEEMED) por boliche. */

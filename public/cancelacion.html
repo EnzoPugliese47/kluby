@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#050508" />
+    <title>Kluby · Cancelaciones y devoluciones</title>
+    <link rel="stylesheet" href="/kluby.css" />
+    <link rel="stylesheet" href="/kluby-public.css" />
+  </head>
+  <body>
+    <div id="k-bg"></div>
+    <div class="k-wrap">
+      <div id="k-nav"></div>
+      <main class="k-main k-page">
+        <div class="k-page-head">
+          <h1>Cancelaciones y devoluciones</h1>
+          <p>Cómo funciona si cancelás tu reserva, qué se reintegra y qué pasa con tus Kluby Points.</p>
+        </div>
+        <div class="k-legal-page" id="policy-content">
+          <div class="empty">Cargando política…</div>
+        </div>
+        <p style="text-align:center;margin-top:32px;font-size:13px">
+          <a href="/app.html" style="color:var(--muted)">← Volver a la app</a>
+        </p>
+      </main>
+      <div id="k-footer"></div>
+    </div>
+    <script src="/kluby-ui.js"></script>
+    <script>
+      KlubyUI.mountPublicPage("");
+      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+      async function loadPolicy() {
+        const el = document.getElementById("policy-content");
+        try {
+          const res = await fetch("/api/reservations/refund-policy");
+          const json = await res.json();
+          if (!json.success) throw new Error(json.error || "Error al cargar");
+          const p = json.data;
+          const tiers = (p.tiers || []).map((t) =>
+            `<tr><td>${esc(t.label)}</td><td><b>${t.percent}%</b></td></tr>`
+          ).join("");
+          const notes = (p.notes || []).map((n) => `<li>${esc(n)}</li>`).join("");
+          el.innerHTML = `
+            <div class="k-refund-policy-card">
+              <h2>Escala de reembolso</h2>
+              <p class="hint" style="margin-bottom:16px">El porcentaje se calcula según cuántas horas faltan para el inicio del evento al momento de cancelar.</p>
+              <table class="k-refund-table">
+                <thead><tr><th>Antelación</th><th>Devolución</th></tr></thead>
+                <tbody>${tiers}</tbody>
+              </table>
+            </div>
+            <div class="k-refund-policy-card">
+              <h2>Detalles importantes</h2>
+              <ul class="k-refund-notes">${notes}</ul>
+            </div>
+            <div class="k-refund-policy-card">
+              <h2>Kluby Points</h2>
+              <p style="color:var(--muted);font-size:14px;line-height:1.6">
+                Si canjeaste puntos al reservar, se te devuelven íntegramente al cancelar.
+                El reembolso en pesos aplica solo sobre lo que pagaste online (seña o total), no sobre el saldo en puerta.
+              </p>
+            </div>
+            <div class="k-refund-policy-card">
+              <h2>Cancelación por el boliche</h2>
+              <p style="color:var(--muted);font-size:14px;line-height:1.6">
+                Si el boliche cancela el evento o no puede honrar tu mesa, recibís reintegro del 100% de lo pagado online
+                y la devolución de puntos canjeados.
+              </p>
+            </div>`;
+        } catch (e) {
+          el.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+      loadPolicy();
+    </script>
+  </body>
+</html>

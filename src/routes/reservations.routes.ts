@@ -4,6 +4,8 @@ import {
   checkInReservation,
   checkoutReservation,
   createReservation,
+  getCancelPreview,
+  getRefundPolicy,
   getReservationByCode,
   getReservationById,
   payReservation,
@@ -28,11 +30,13 @@ const router = Router();
 
 // Muro de mesas abiertas (publico). Antes de "/:id" para no colisionar.
 router.get("/open", listOpenTables);
+router.get("/refund-policy", getRefundPolicy);
 
 router.post("/", authenticate, createReservation);
 // Operacion de puerta: escaneo QR, check-in y check-out.
 const doorOnly = [authenticate, authorize("PUERTA", "CLUB_ADMIN", "SUPER_ADMIN")];
 router.get("/by-code/:code", ...doorOnly, getReservationByCode);
+router.get("/:id/cancel-preview", authenticate, getCancelPreview);
 router.get("/:id", authenticate, getReservationById);
 router.post("/:id/pay", authenticate, payReservation);
 router.post("/:id/cancel", authenticate, cancelReservation);
