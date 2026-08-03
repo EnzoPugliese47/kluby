@@ -10,6 +10,7 @@ import {
   optionalString,
   requireParam,
 } from "../utils/validation";
+import { sortTablesBySectorAndNumber } from "../utils/tables";
 
 /** GET /api/clubs/:clubId/template — configuración base del boliche. */
 export const getClubTemplate = async (
@@ -51,7 +52,7 @@ export const getClubTemplate = async (
     sendSuccess(res, {
       ...club,
       products,
-      tables,
+      tables: sortTablesBySectorAndNumber(tables),
       productCount: products.length,
       tableCount: tables.length,
     });

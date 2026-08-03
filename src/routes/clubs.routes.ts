@@ -44,16 +44,7 @@ import { authenticate, authorize, optionalAuthenticate } from "../middlewares/au
 
 const router = Router();
 
-// Lecturas publicas.
-router.get("/", optionalAuthenticate, listClubs);
-router.get("/:id", getClubById);
-router.get("/:clubId/tables", listTablesByClub);
-router.get("/:clubId/events", listEventsByClub);
-router.get("/:clubId/products", listProductsByClub);
-
-// Gestion del boliche: solo administradores.
 const adminOnly = [authenticate, authorize("CLUB_ADMIN", "SUPER_ADMIN")];
-// Gestion de eventos: staff y administradores.
 const staffOrAdmin = [
   authenticate,
   authorize("CLUB_ADMIN", "SUPER_ADMIN"),
@@ -63,9 +54,16 @@ const doorOrAdmin = [
   authorize("PUERTA", "CLUB_ADMIN", "SUPER_ADMIN"),
 ];
 
+// Lecturas publicas.
+router.get("/", optionalAuthenticate, listClubs);
 router.get("/:clubId/template", ...adminOnly, getClubTemplate);
 router.patch("/:clubId/template", ...adminOnly, updateClubTemplate);
 router.post("/:clubId/template/tables/bulk", ...staffOrAdmin, bulkCreateTemplateTables);
+router.get("/:id", getClubById);
+router.get("/:clubId/tables", listTablesByClub);
+router.get("/:clubId/events", listEventsByClub);
+router.get("/:clubId/products", listProductsByClub);
+
 router.post("/", ...adminOnly, createClub);
 router.patch("/:id", ...adminOnly, updateClub);
 router.delete("/:id", ...adminOnly, deleteClub);

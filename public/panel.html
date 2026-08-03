@@ -297,7 +297,9 @@
       /* Modal ancho + diseñador de mesas */
       .modal.wide { max-width: 640px; }
       .designer-map { position: relative; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #0c0c14; user-select: none; }
+      .designer-map.has-image img { display: block; width: 100%; height: auto; -webkit-user-drag: none; position: relative; z-index: 1; }
       .designer-map img { display: block; width: 100%; height: auto; -webkit-user-drag: none; }
+      .designer-map .dpin { z-index: 3; }
       .dpin {
         position: absolute; transform: translate(-50%, -50%);
         min-width: 26px; height: 26px; padding: 0 5px; border-radius: 7px;
@@ -314,8 +316,10 @@
         margin: 0 auto;
         background: linear-gradient(180deg, #14141f, #0c0c14);
         border: 2px dashed var(--border);
-        min-height: 120px;
+        min-height: 200px;
       }
+      .designer-map.tpl-preview { max-height: 320px; margin-top: 8px; }
+      .designer-map.tpl-preview.default-canvas { max-width: 100%; }
       .canvas-label {
         position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
         font-size: 11px; color: var(--muted); pointer-events: none; z-index: 1;
@@ -1524,6 +1528,28 @@
       // ---------- CONFIG BASE DEL BOLICHE ----------
       let _clubTemplate = { clubId: null, name: "" };
       let _clubTemplateBg = null;
+      let _clubTemplateTables = [];
+
+      function templateMapHtml(bg, tables, extraClass) {
+        const list = Array.isArray(tables) ? tables : [];
+        const pins = list.map((t) => dpin({ ...t, status: "AVAILABLE" })).join("");
+        const mapClass = bg
+          ? `designer-map has-image${extraClass ? " " + extraClass : ""}`
+          : `designer-map default-canvas${extraClass ? " " + extraClass : ""}`;
+        const inner = bg
+          ? `<img src="${esc(bg)}" alt="Plano base" onerror="this.style.display='none'" />${pins}`
+          : `<span class="canvas-label">Lienzo 1725 × 2490</span>${pins}`;
+        return `<div class="${mapClass}" id="tpl-tables-map">${inner}</div>`;
+      }
+
+      function refreshTemplateMapPreview() {
+        const el = document.getElementById("tpl-tables-map");
+        if (!el) return;
+        const tmp = document.createElement("div");
+        tmp.innerHTML = templateMapHtml(_clubTemplateBg, _clubTemplateTables, "tpl-preview");
+        const next = tmp.firstElementChild;
+        if (next) el.replaceWith(next);
+      }
 
       function openClubTemplateFromEvents() {
         const clubId = document.getElementById("event-club-select")?.value;
@@ -1538,19 +1564,23 @@
         try {
           const tpl = await api("/clubs/" + clubId + "/template");
           _clubTemplateBg = tpl.floorMapUrl || null;
+          _clubTemplateTables = tpl.tables || [];
           openModal(`
             <h3>Configuración base · ${esc(clubName)}</h3>
             <p class="sub">Plano, carta y mesas que se aplican al crear eventos nuevos (opción por defecto). Los eventos ya creados no se modifican.</p>
             <label style="margin-top:0">Plano del salón (imagen de fondo)</label>
             <input id="tpl-map" type="file" accept="image/*" onchange="onClubTemplateMap(event)" />
-            <div id="tpl-map-preview" style="margin-top:10px">${_clubTemplateBg ? `<img src="${esc(_clubTemplateBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>` : '<span class="role-pill">Sin plano base. El diseñador usará la grilla por defecto.</span>'}</div>
+            <div id="tpl-map-preview" style="margin-top:10px">${_clubTemplateBg ? `<img src="${esc(_clubTemplateBg)}" style="max-width:100%;max-height:120px;border-radius:8px;border:1px solid var(--border)"/>` : '<span class="role-pill">Sin plano base. El diseñador usará la grilla por defecto.</span>'}</div>
+            <label style="margin-top:14px">Mesas en el plano (${_clubTemplateTables.length})</label>
+            ${templateMapHtml(_clubTemplateBg, _clubTemplateTables, "tpl-preview")}
+            <p class="hint" style="margin-top:8px;text-align:left">${_clubTemplateTables.length ? "Vista previa de las mesas base. Editá posiciones en el diseñador." : "Todavía no hay mesas base. Agregalas con el botón de abajo."}</p>
             <label>Género musical default</label>
             <input id="tpl-genre" value="${tpl.musicGenre ? attr(tpl.musicGenre) : ""}" placeholder="Ej. Electrónica" />
             <label>% consumición default (mesas nuevas)</label>
             <input id="tpl-cons-pct" type="number" min="1" max="100" value="${tpl.defaultConsumptionPercent ?? 100}" />
             <div class="btn-row" style="margin-top:16px;flex-wrap:wrap">
+              <button type="button" class="btn-sm btn-accent" onclick="openClubTemplateDesigner()">Editar mesas en plano</button>
               <button type="button" class="btn-sm btn-accent" onclick="openClubTemplateBottles()">Carta · ${tpl.productCount || 0} productos</button>
-              <button type="button" class="btn-sm btn-accent" onclick="openClubTemplateDesigner()">Mesas · ${tpl.tableCount || 0} en plano</button>
             </div>
             <div class="btn-row" style="margin-top:20px">
               <button type="button" class="ghost" onclick="closeModal()">Cerrar</button>
@@ -1576,7 +1606,8 @@
           });
           const res = await api("/uploads/map", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
           _clubTemplateBg = res.url;
-          prev.innerHTML = `<img src="${esc(_clubTemplateBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>`;
+          prev.innerHTML = `<img src="${esc(_clubTemplateBg)}" style="max-width:100%;max-height:120px;border-radius:8px;border:1px solid var(--border)"/>`;
+          refreshTemplateMapPreview();
           toast("Plano cargado (guardá para confirmar)", "ok");
         } catch (err) { prev.innerHTML = `<span style="color:var(--pink)">${esc(err.message)}</span>`; }
       }
@@ -2081,10 +2112,10 @@
 
       function renderDesigner() {
         const d = _designer;
+        const mapClass = d.bg ? "designer-map has-image" : "designer-map default-canvas";
         const pins = d.tables.map(dpin).join("");
-        const mapClass = d.bg ? "designer-map" : "designer-map default-canvas";
         const mapInner = d.bg
-          ? `<img id="dmap-img" src="${esc(d.bg)}" alt="plano" />${pins}`
+          ? `<img id="dmap-img" src="${esc(d.bg)}" alt="plano" onerror="this.style.display='none'" />${pins}`
           : `<span class="canvas-label">Lienzo 1725 × 2490</span>${pins}`;
         openModal(`
           <h3>${d.isTemplate ? "Mesas base" : "Diseñar mesas"} · ${esc(d.name)}</h3>
@@ -2101,8 +2132,12 @@
       }
       function dpin(t) {
         const taken = t.status === "RESERVED";
-        return `<div class="dpin ${taken ? "taken" : ""}" data-id="${t.id}" data-x="${t.posX}" data-y="${t.posY}"
-             style="left:${t.posX}%;top:${t.posY}%" title="${esc(t.label)}">${esc(shortLabel(t.label))}</div>`;
+        const x = Number(t.posX);
+        const y = Number(t.posY);
+        const posX = Number.isFinite(x) ? x : 50;
+        const posY = Number.isFinite(y) ? y : 50;
+        return `<div class="dpin ${taken ? "taken" : ""}" data-id="${t.id}" data-x="${posX}" data-y="${posY}"
+             style="left:${posX}%;top:${posY}%" title="${esc(t.label)}">${esc(shortLabel(t.label))}</div>`;
       }
       function attachDragHandlers() {
         document.querySelectorAll("#dmap .dpin").forEach((pin) => {
