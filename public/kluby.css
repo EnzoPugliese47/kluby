@@ -40,10 +40,11 @@ a { color: var(--primary); text-decoration: none; }
 
 /* Topbar */
 .topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 24px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px)) 12px calc(16px + env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--border);
   position: sticky; top: 0; backdrop-filter: blur(8px);
-  background: rgba(10,10,15,0.72); z-index: 50;
+  background: rgba(10,10,15,0.92); z-index: 50;
 }
 .topbar .nav { display: flex; gap: 6px; align-items: center; }
 .navlink {

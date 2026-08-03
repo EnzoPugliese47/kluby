@@ -1,5 +1,22 @@
-/* Kluby · pantallas operativas (puerta / publi) — mobile-first */
-.ops-shell { max-width: 480px; margin: 0 auto; padding: 16px 16px 32px; }
+/* Kluby · pantallas operativas (puerta / publi / panel) — mobile-first */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+html.cap-native {
+  --safe-top: max(env(safe-area-inset-top, 0px), 32px);
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+}
+html.mobile-ui:not(.cap-native) {
+  --safe-top: max(env(safe-area-inset-top, 0px), 20px);
+}
+html, body { overflow-x: hidden; max-width: 100%; }
+
+.ops-shell {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 16px calc(32px + var(--safe-bottom));
+}
 .ops-tabs {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
   margin-bottom: 16px; padding: 4px; border-radius: 12px;
@@ -74,12 +91,25 @@
 .ops-event-head b { font-size: 17px; display: block; }
 .ops-event-head small { color: var(--muted); font-size: 13px; }
 
-.topbar.ops-topbar { padding: 12px 16px; }
-.topbar.ops-topbar .brand h1 { font-size: 16px; }
+.topbar.ops-topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: calc(10px + var(--safe-top)) 14px 12px;
+}
+.topbar.ops-topbar .brand { min-width: 0; }
+.topbar.ops-topbar .brand h1 { font-size: 16px; line-height: 1.1; }
+.topbar.ops-topbar .brand span { font-size: 10px; }
+.topbar.ops-topbar .logo { width: 36px; height: 36px; font-size: 17px; border-radius: 10px; }
 .topbar.ops-topbar .who { display: none; }
-.topbar.ops-topbar .right { gap: 8px; }
+.topbar.ops-topbar .right { gap: 8px; flex-wrap: nowrap; justify-self: end; }
 
 @media (min-width: 640px) {
   .topbar.ops-topbar .who { display: block; }
-  .ops-shell { max-width: 560px; padding: 24px; }
+  .ops-shell { max-width: 560px; padding: 24px 24px calc(32px + var(--safe-bottom)); }
+}
+
+@media (max-width: 900px) {
+  .topbar.ops-topbar .ops-link-panel { display: none; }
 }

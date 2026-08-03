@@ -2,7 +2,8 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0f" />
     <title>Kluby · Panel de Estadísticas</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
@@ -18,7 +19,14 @@
         --accent: #2de2c6;
         --pink: #ff4d8d;
         --amber: #ffb454;
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-left: env(safe-area-inset-left, 0px);
+        --safe-right: env(safe-area-inset-right, 0px);
       }
+      html.cap-native { --safe-top: max(env(safe-area-inset-top, 0px), 32px); --safe-bottom: max(env(safe-area-inset-bottom, 0px), 12px); }
+      html.mobile-ui:not(.cap-native) { --safe-top: max(env(safe-area-inset-top, 0px), 20px); }
+      html, body { overflow-x: hidden; max-width: 100%; }
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
         font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -41,7 +49,8 @@
 
       /* Login */
       #login-view {
-        min-height: 100vh; display: grid; place-items: center; padding: 20px;
+        min-height: 100vh; display: grid; place-items: center;
+        padding: calc(20px + var(--safe-top)) 20px calc(20px + var(--safe-bottom));
       }
       .card {
         background: linear-gradient(180deg, var(--surface), var(--surface-2));
@@ -72,9 +81,10 @@
       /* Dashboard */
       #app-view { display: none; }
       .topbar {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 16px 28px; border-bottom: 1px solid var(--border);
-        position: sticky; top: 0; backdrop-filter: blur(8px); background: rgba(10,10,15,0.7); z-index: 5;
+        display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+        padding: calc(14px + var(--safe-top)) calc(24px + var(--safe-right)) 14px calc(24px + var(--safe-left));
+        border-bottom: 1px solid var(--border);
+        position: sticky; top: 0; backdrop-filter: blur(8px); background: rgba(10,10,15,0.92); z-index: 50;
       }
       .topbar .right { display: flex; align-items: center; gap: 14px; }
       .who { text-align: right; font-size: 13px; }
@@ -183,10 +193,10 @@
       .empty { color: var(--muted); font-size: 13px; text-align: center; padding: 40px 0; }
 
       /* Tabs de navegacion */
-      .tabs { display: flex; gap: 8px; }
+      .tabs { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
       .tab {
         background: transparent; border: 1px solid var(--border); color: var(--muted);
-        padding: 9px 16px; border-radius: 10px; font-size: 13px;
+        padding: 9px 16px; border-radius: 10px; font-size: 13px; flex-shrink: 0; white-space: nowrap;
       }
       .tab.active { background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; border-color: transparent; }
       .view { display: none; }
@@ -212,9 +222,18 @@
       .role-pill { font-size: 11px; color: var(--muted); }
 
       /* Modal */
-      .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; place-items: center; z-index: 50; padding: 20px; }
-      .overlay.show { display: grid; }
-      .modal { width: 100%; max-width: 460px; padding: 26px; max-height: 88vh; overflow: auto; }
+      .overlay {
+        position: fixed; inset: 0; z-index: 200;
+        background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+        padding: calc(12px + var(--safe-top)) 16px calc(12px + var(--safe-bottom));
+        overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch;
+        display: none; align-items: center; justify-content: center;
+      }
+      .overlay.show { display: flex; }
+      .modal {
+        width: 100%; max-width: 460px; padding: 22px 20px; max-height: none;
+        overflow: visible; margin: auto; flex-shrink: 0;
+      }
       .modal h3 { margin-bottom: 6px; }
       .modal .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
 
@@ -310,6 +329,52 @@
       .club-admin-card .info small { display: block; color: var(--muted); font-size: 12px; line-height: 1.45; margin-top: 4px; }
       .stats-club-pick { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
       .stats-club-pick .field { flex: 1; min-width: 220px; }
+
+      @media (max-width: 900px) {
+        .topbar {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          grid-template-areas: "brand right" "tabs tabs";
+          gap: 10px 8px;
+          padding: calc(10px + var(--safe-top)) 14px 12px;
+          align-items: center;
+        }
+        .topbar > .brand { grid-area: brand; min-width: 0; }
+        .topbar > .tabs {
+          grid-area: tabs; width: 100%; flex-wrap: nowrap; overflow-x: auto;
+          -webkit-overflow-scrolling: touch; scrollbar-width: none;
+          mask-image: linear-gradient(90deg, #000 94%, transparent);
+        }
+        .topbar > .tabs::-webkit-scrollbar { display: none; }
+        .topbar > .right { grid-area: right; justify-self: end; gap: 6px; flex-wrap: nowrap; }
+        .topbar .brand h1 { font-size: 16px; line-height: 1.1; }
+        .topbar .brand span { font-size: 10px; }
+        .topbar .logo { width: 36px; height: 36px; font-size: 17px; border-radius: 10px; }
+        .topbar .right .who { display: none; }
+        .topbar .topbar-extra { display: none !important; }
+        .topbar .right button.ghost { padding: 8px 12px; font-size: 12px; }
+        .tab { font-size: 12px; padding: 8px 12px; }
+        .container { padding: 16px; padding-bottom: calc(24px + var(--safe-bottom)); }
+        .controls { flex-direction: column; align-items: stretch; gap: 10px; }
+        .controls .field { min-width: 0 !important; width: 100%; }
+        .controls button { width: 100%; }
+        .onboard-banner { margin: 0 16px 12px; flex-direction: column; align-items: stretch; }
+        .filter-chips {
+          flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+          -webkit-overflow-scrolling: touch; padding-bottom: 4px;
+        }
+        .filter-chips::-webkit-scrollbar { display: none; }
+        .filter-chips button { flex-shrink: 0; }
+        .export-row, .stats-range, .btn-row { gap: 8px; }
+        .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .ops-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .clubs-grid { grid-template-columns: 1fr; }
+        table.data { font-size: 12px; }
+        table.data th, table.data td { padding: 10px 8px; }
+        .modal { padding: 20px 16px; border-radius: 14px; }
+        .modal.wide { max-width: 100%; }
+        .img-crop-viewport { width: min(280px, 100%); height: auto; aspect-ratio: 1; }
+      }
     </style>
   </head>
   <body>
@@ -336,8 +401,8 @@
             <b id="who-name">—</b>
             <small id="who-role">—</small>
           </div>
-          <a class="ghost" href="/app.html" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">App cliente</a>
-          <a class="ghost" href="/staff.html" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">Puerta</a>
+          <a class="ghost topbar-extra" href="/app.html" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">App cliente</a>
+          <a class="ghost topbar-extra" href="/staff.html" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">Puerta</a>
           <button class="ghost" onclick="logout()">Salir</button>
         </div>
       </div>
@@ -546,6 +611,7 @@
     </div>
     <div class="toast" id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:12px 20px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60"></div>
 
+    <script src="/ops-native.js"></script>
     <script>
       const API = "/api";
       let token = localStorage.getItem("kluby_token") || "";
