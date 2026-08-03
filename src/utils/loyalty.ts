@@ -41,7 +41,8 @@ export const computeMaxRedeemPoints = (
   if (pv <= 0) return 0;
   const maxDiscount = paymentAmount.mul(env.loyaltyMaxRedeemPercent).div(100);
   const maxByPercent = Math.floor(Number(maxDiscount) / pv);
-  return Math.min(balance, Math.max(0, maxByPercent));
+  const maxByCap = env.loyaltyMaxRedeemPointsCap;
+  return Math.min(balance, Math.max(0, maxByPercent), maxByCap);
 };
 
 export const validateRedeemPoints = (
@@ -69,7 +70,7 @@ export const validateRedeemPoints = (
   const maxAllowed = computeMaxRedeemPoints(balance, paymentAmount, pointValue);
   if (pointsToRedeem > maxAllowed) {
     throw new AppError(
-      `Maximo ${maxAllowed} puntos en este pago (${env.loyaltyMaxRedeemPercent}% del monto)`,
+      `Maximo ${maxAllowed} puntos en este pago (${env.loyaltyMaxRedeemPercent}% del monto, tope ${env.loyaltyMaxRedeemPointsCap} pts)`,
       400
     );
   }
@@ -79,6 +80,7 @@ export const loyaltyRulesPayload = () => ({
   currencyPerPoint: env.loyaltyCurrencyPerPoint,
   minRedeemPoints: env.loyaltyMinRedeemPoints,
   maxRedeemPercent: env.loyaltyMaxRedeemPercent,
+  maxRedeemPointsCap: env.loyaltyMaxRedeemPointsCap,
   firstReservationBonus: env.loyaltyFirstReservationBonus,
   checkInBonus: env.loyaltyCheckInBonus,
 });

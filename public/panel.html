@@ -127,6 +127,25 @@
       .compare-row .field { min-width: 260px; flex: 1; }
       .compare-row.hidden { display: none; }
 
+      .loyalty-owner-box {
+        margin: 18px 0; padding: 16px; border-radius: 12px;
+        border: 1px solid rgba(124, 92, 255, 0.35);
+        background: rgba(124, 92, 255, 0.06); text-align: left;
+      }
+      .loyalty-owner-box h4 { margin: 0 0 8px; font-size: 15px; }
+      .loyalty-owner-intro { margin: 0 0 14px !important; }
+      .loyalty-owner-fixed, .loyalty-owner-setting {
+        padding: 12px; border-radius: 10px; background: var(--surface-2); margin-bottom: 12px;
+      }
+      .loyalty-owner-setting { margin-bottom: 0; }
+      .loyalty-owner-label-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+      .loyalty-owner-label-row b { font-size: 13px; }
+      .loyalty-point-value-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+      .loyalty-point-value-row input { flex: 1; min-width: 0; }
+      .loyalty-currency { color: var(--muted); font-weight: 700; }
+      .loyalty-per-pt { margin: 0 !important; white-space: nowrap; }
+      .loyalty-owner-limits { margin-top: 10px !important; font-size: 11px !important; }
+
       /* Noche en vivo — operaciones sobrias */
       .onboard-banner {
         margin: 0 28px 0; padding: 16px 20px; border-radius: 12px;
@@ -531,7 +550,7 @@
 
         <div class="card panel col-12" id="loyalty-stats-panel" style="margin-bottom:18px;display:none">
           <h3>⭐ Kluby Points</h3>
-          <p class="sub">Puntos emitidos, canjeados y saldo activo en este boliche</p>
+          <p class="sub">Puntos emitidos y canjeados · el descuento por punto lo configurás en Editar boliche</p>
           <div class="kpis" id="loyalty-kpis"></div>
         </div>
 
@@ -991,6 +1010,53 @@
         };
       }
 
+      let _loyaltyRulesForForm = null;
+
+      function loyaltyPreviewText(pointValue, rules) {
+        const pv = Number(pointValue) || 1;
+        const pts = 100;
+        const spend = pts * rules.currencyPerPoint;
+        return `Ejemplo: si un cliente junta ${pts} puntos (pagó ~${fmtMoney(spend)} en tu boliche), puede descontar ${fmtMoney(pts * pv)} en su próxima reserva.`;
+      }
+
+      function updateLoyaltyPreview() {
+        const el = document.getElementById("loyalty-preview");
+        const raw = document.getElementById("c-point-value")?.value;
+        const pv = Number(raw);
+        if (el && _loyaltyRulesForForm && Number.isFinite(pv) && pv >= 1) {
+          el.textContent = loyaltyPreviewText(pv, _loyaltyRulesForForm);
+        }
+      }
+
+      function clubLoyaltyConfigHtml(pointValue, rules) {
+        return `
+          <div class="loyalty-owner-box">
+            <h4>⭐ Kluby Points</h4>
+            <p class="hint loyalty-owner-intro">Fidelización solo en tu boliche. Acá configurás cuánto descuenta cada punto; cómo se ganan los puntos lo define Kluby.</p>
+            <div class="loyalty-owner-fixed">
+              <div class="loyalty-owner-label-row">
+                <b>Cómo ganan puntos tus clientes</b>
+                <span class="role-pill">Kluby</span>
+              </div>
+              <p class="hint">Por cada <b>${fmtMoney(rules.currencyPerPoint)}</b> que pagan en tu boliche (seña, mesa, botellas), ganan <b>1 punto</b>. Se acreditan al cerrar la mesa.</p>
+            </div>
+            <div class="loyalty-owner-setting">
+              <div class="loyalty-owner-label-row">
+                <b>Cuánto vale canjear 1 punto</b>
+                <span class="role-pill">Tu boliche</span>
+              </div>
+              <label>Descuento en pesos por cada punto que use el cliente</label>
+              <div class="loyalty-point-value-row">
+                <span class="loyalty-currency">$</span>
+                <input id="c-point-value" type="number" min="1" step="1" value="${pointValue}" oninput="updateLoyaltyPreview()" />
+                <span class="hint loyalty-per-pt">por punto canjeado</span>
+              </div>
+              <p class="hint" id="loyalty-preview">${loyaltyPreviewText(pointValue, rules)}</p>
+              <p class="hint loyalty-owner-limits">Canje: mínimo ${rules.minRedeemPoints} pts · hasta ${rules.maxRedeemPercent}% del pago · máximo ${rules.maxRedeemPointsCap} pts por reserva. Mínimo $1 por punto.</p>
+            </div>
+          </div>`;
+      }
+
       async function openClubForm(club, draft) {
         const editingId = draft?.clubId ?? (club?.id ?? null);
         const editing = !!editingId;
@@ -1023,6 +1089,14 @@
             return;
           }
         }
+        let loyaltyRules = { currencyPerPoint: 150, minRedeemPoints: 100, maxRedeemPercent: 25, maxRedeemPointsCap: 500 };
+        if (editing) {
+          try {
+            loyaltyRules = await api("/loyalty/config");
+          } catch { /* defaults */ }
+        }
+        _loyaltyRulesForForm = loyaltyRules;
+        const loyaltyBlock = editing ? clubLoyaltyConfigHtml(pointValue, loyaltyRules) : "";
         openModal(`
           <h3>${editing ? "Editar boliche" : "Nuevo boliche"}</h3>
           <p class="sub">${editing ? "Modificá los datos del boliche." : "Completá los datos y subí un logo (podés recortarlo)."}</p>
@@ -1045,10 +1119,7 @@
           <input id="c-email" type="email" value="${attr(contactEmail)}" placeholder="contacto@boliche.com" />
           <label>Teléfono de contacto (opcional)</label>
           <input id="c-phone" type="tel" value="${attr(contactPhone)}" placeholder="Ej. +54 11 1234-5678" />
-          ${editing ? `
-          <label>Valor de canje Kluby Points ($ por 1 punto)</label>
-          <input id="c-point-value" type="number" min="1" step="0.01" value="${pointValue}" />
-          <p class="hint" style="margin-top:-6px;text-align:left">Default $1. Los clientes ganan 1 pt cada $150 pagados; pueden canjear hasta 25% de una reserva (mín. 100 pts).</p>` : ""}
+          ${loyaltyBlock}
           <label>Logo</label>
           <input id="c-logo" type="file" accept="image/png,image/jpeg,image/webp" onchange="onClubLogo(event)" />
           <div id="c-logo-preview" style="margin-top:10px">${clubLogoPreviewHtml()}</div>
@@ -2972,7 +3043,7 @@
             { label: "Puntos emitidos", value: fmtNum(s.totalEarned), color: "#2de2c6", sub: "Por consumo y bonos" },
             { label: "Puntos canjeados", value: fmtNum(s.totalRedeemed), color: "#ff5c6c", sub: "Descuentos aplicados" },
             { label: "Saldo activo", value: fmtNum(s.activeBalance), color: "#7c5cff", sub: `${fmtNum(s.membersWithPoints)} clientes con puntos` },
-            { label: "Pasivo estimado", value: fmtMoney(s.liabilityEstimate), color: "#ffb454", sub: `$${Number(s.pointValue)} por punto · editá en Editar boliche` },
+            { label: "Pasivo estimado", value: fmtMoney(s.liabilityEstimate), color: "#ffb454", sub: `$${Number(s.pointValue)} de descuento por punto canjeado · editá en Editar boliche` },
           ].map((item) => `
             <div class="kpi">
               <small>${esc(item.label)}</small>
