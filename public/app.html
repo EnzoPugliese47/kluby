@@ -305,8 +305,14 @@
 
       let _loyaltyRules = null;
       let _wizardLoyalty = null;
-      let _wizardEventDate = null;
       let _wizardPolicyAccepted = false;
+
+      const DEFAULT_REFUND_TIERS = [
+        { minHours: 72, percent: 100, label: "Más de 72 horas antes del evento" },
+        { minHours: 48, percent: 75, label: "Entre 48 y 72 horas" },
+        { minHours: 24, percent: 50, label: "Entre 24 y 48 horas" },
+        { minHours: 0, percent: 0, label: "Menos de 24 horas" },
+      ];
 
       function wizardRefundPayAmount(t) {
         const deposit = Math.round(Number(t.price) * (t.depositPercent / 100));
@@ -345,22 +351,35 @@
 
       function updateReserveBtnState() {
         const btn = $("reserve-btn");
-        if (btn) btn.disabled = !_wizardPolicyAccepted;
+        if (btn) {
+          btn.disabled = false;
+          btn.title = _wizardPolicyAccepted ? "" : "Marcá la casilla de política de cancelación antes de confirmar";
+        }
+      }
+
+      function renderWizardRefundPolicyEl(policy) {
+        const el = document.getElementById("wizard-refund-policy");
+        if (!el || !stillOn("wizard")) return;
+        el.innerHTML = refundPolicyBlockHtml(policy || { tiers: DEFAULT_REFUND_TIERS });
+        _wizardPolicyAccepted = false;
+        updateReserveBtnState();
       }
 
       async function refreshWizardRefundPolicy() {
-        if (!window._wizardTable || !_wizardEventDate || !stillOn("wizard")) return;
+        if (!window._wizardTable || !stillOn("wizard")) return;
+        if (!_wizardEventDate) {
+          renderWizardRefundPolicyEl(null);
+          return;
+        }
         const amt = wizardRefundPayAmount(window._wizardTable);
         const q = new URLSearchParams({ eventDate: _wizardEventDate, amountPaid: String(amt) });
         if (state.params.clubId) q.set("clubId", state.params.clubId);
         try {
           const policy = await api("/reservations/refund-policy?" + q);
-          const el = document.getElementById("wizard-refund-policy");
-          if (!el || !stillOn("wizard")) return;
-          el.innerHTML = refundPolicyBlockHtml(policy);
-          _wizardPolicyAccepted = false;
-          updateReserveBtnState();
-        } catch { /* opcional en wizard */ }
+          renderWizardRefundPolicyEl(policy);
+        } catch {
+          renderWizardRefundPolicyEl(null);
+        }
       }
 
       async function loadLoyaltyRules() {
@@ -399,7 +418,14 @@
           </div>`;
       }
 
-      function wizardLoyaltyHtml(balance, maxPts, rules) {
+      function wizardLoyaltyHtml(balance, maxPts, rules, canRedeem) {
+        if (!canRedeem) {
+          return `
+          <div class="k-loyalty-block" id="wizard-loyalty">
+            <div class="k-loyalty-head"><span>⭐ Kluby Points en este boliche</span><b>${balance} pts</b></div>
+            <p class="hint" style="margin:0">Necesitás al menos <b>${rules.minRedeemPoints} pts</b> para canjear en esta reserva${balance > 0 ? ` (tenés ${balance})` : ""}. Sumás 1 pt cada $${rules.currencyPerPoint} pagados en el boliche.</p>
+          </div>`;
+        }
         return `
           <div class="k-loyalty-block" id="wizard-loyalty">
             <div class="k-loyalty-head"><span>⭐ Kluby Points en este boliche</span><b>${balance} pts</b></div>
@@ -636,12 +662,19 @@
       // ---------- Fase 2: wizard, QR, timeline, alertas ----------
       const WIZARD_LABELS = ["Boliche", "Fecha", "Mesa", "Pago"];
       let _wizardTables = null;
+      let _wizardEventDate = null;
+      let _wizardEventId = null;
       let _alertsCache = null;
       let _alertsAt = 0;
       let _reserveSel = "DEPOSIT_ONLY";
 
       function wizardGo(step, extra = {}) {
         const p = { ...state.params, ...extra, step: Number(step) || 1 };
+        if (p.eventId && p.eventId !== state.params.eventId) {
+          _wizardTables = null;
+          _wizardEventDate = null;
+          _wizardEventId = null;
+        }
         const clean = { step: p.step };
         if (p.step >= 2 && p.clubId) clean.clubId = p.clubId;
         if (p.step >= 3 && p.eventId) clean.eventId = p.eventId;
@@ -681,6 +714,10 @@
       function buildEventMapHtml(event, tables, onPick) {
         window._tables = tables;
         _wizardTables = tables;
+        if (event?.date) {
+          _wizardEventDate = event.date;
+          _wizardEventId = event.id || state.params.eventId || null;
+        }
         const pinHtml = (t) => {
           const short = String(t.label).split(" ").pop();
           const av = t.status === "AVAILABLE";
@@ -814,11 +851,12 @@
           if (step === 4) {
             const { clubId, eventId, tableId } = state.params;
             if (!clubId || !eventId || !tableId) { wizardGo(3, { clubId, eventId }); return; }
-            if (!_wizardTables) {
+            if (!_wizardTables || _wizardEventId !== eventId || !_wizardEventDate) {
               const data = await api("/events/" + eventId + "/availability");
               if (!stillOn("wizard")) return;
               _wizardTables = data.tables;
               _wizardEventDate = data.event?.date || null;
+              _wizardEventId = eventId;
             }
             const t = (_wizardTables || []).find((x) => x.id === tableId);
             if (!t) { body.innerHTML = `<div class="empty">Mesa no encontrada.</div>`; return; }
@@ -835,6 +873,7 @@
               const rules = bal.rules || await loadLoyaltyRules();
               const payBase = deposit;
               const maxPts = maxRedeemPoints(bal.balance, payBase, bal.pointValue, rules);
+              const canRedeem = maxPts >= rules.minRedeemPoints;
               _wizardLoyalty = {
                 balance: bal.balance,
                 pointValue: Number(bal.pointValue) || 1,
@@ -842,10 +881,11 @@
                 pointsToUse: 0,
                 payBase,
               };
-              if (maxPts >= rules.minRedeemPoints) {
-                loyaltySection = wizardLoyaltyHtml(bal.balance, maxPts, rules);
-              }
-            } catch { _wizardLoyalty = null; }
+              loyaltySection = wizardLoyaltyHtml(bal.balance, maxPts, rules, canRedeem);
+            } catch {
+              _wizardLoyalty = null;
+              loyaltySection = `<div class="k-loyalty-block"><p class="hint" style="margin:0">No pudimos cargar tu saldo de Kluby Points. Podés reservar igual.</p></div>`;
+            }
             body.innerHTML = `
               <button type="button" class="ghost btn-sm k-back" onclick="wizardGo(3,{clubId:'${clubId}',eventId:'${eventId}'})">← Cambiar mesa</button>
               <div class="k-page-head"><h1>Confirmá tu reserva</h1><p>Paso 4 de 4 · ${esc(t.label)} · ${esc(t.sector || "")}</p></div>
@@ -864,11 +904,12 @@
                 </div>
                 ${loyaltySection}
                 <div id="wizard-pay-preview">${wizardPayPreviewHtml(t)}</div>
-                <div id="wizard-refund-policy"><div class="hint">Cargando política de cancelación…</div></div>
+                <div id="wizard-refund-policy"></div>
                 <button type="button" class="ghost btn-sm" style="margin-top:12px" onclick="openConsumptionPlanner({ eventId: '${eventId}', minConsumption: ${minCons}, tablePrice: ${num(t.price)}, depositPercent: ${t.depositPercent} })">🍾 Planificá tu consumo antes de ir</button>
-                <button type="button" class="btn-full btn-accent" id="reserve-btn" style="margin-top:22px" disabled onclick="confirmWizardReserve('${tableId}','${eventId}')">Confirmar y pagar</button>
+                <button type="button" class="btn-full btn-accent" id="reserve-btn" style="margin-top:22px" onclick="confirmWizardReserve('${tableId}','${eventId}')">Confirmar y pagar</button>
                 <div class="error" id="reserve-err"></div>
               </div>`;
+            renderWizardRefundPolicyEl(null);
             void refreshWizardRefundPolicy();
           }
         } catch (e) {
