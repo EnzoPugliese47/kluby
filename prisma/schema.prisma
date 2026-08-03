@@ -232,12 +232,21 @@ model PasswordResetToken {
   @@index([userId])
 }
 
+enum ClubZone {
+  CABA
+  ZONA_NORTE
+  ZONA_SUR
+  ZONA_OESTE
+  ZONA_ESTE
+}
+
 model Club {
   id          String   @id @default(uuid())
   name        String
   description String?
   address     String
-  city        String
+  city        String // Localidad o barrio visible (ej. Recoleta, Tigre)
+  zone        ClubZone @default(CABA) // Zona amplia para filtros del cliente
   musicGenre  String? // Para filtrado por genero musical
   imageUrl       String?
   floorMapUrl    String? // Plano/mapa de planta cargado por el admin
@@ -263,6 +272,7 @@ model Club {
 
   @@index([name])
   @@index([musicGenre])
+  @@index([zone])
   @@index([isActive])
 }
 

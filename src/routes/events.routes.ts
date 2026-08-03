@@ -3,6 +3,7 @@ import {
   assignTableToUser,
   deleteEvent,
   getEventAvailability,
+  listExploreEvents,
   releaseTable,
   updateEvent,
 } from "../controllers/events.controller";
@@ -29,6 +30,7 @@ const promoOrAdmin = [
   authorize("STAFF", "CLUB_ADMIN", "SUPER_ADMIN"),
 ];
 
+router.get("/explore", listExploreEvents);
 router.get("/:eventId/availability", getEventAvailability);
 router.get("/:eventId/products", listProductsByEvent);
 

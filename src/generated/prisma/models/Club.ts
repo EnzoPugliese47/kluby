@@ -42,6 +42,7 @@ export type ClubMinAggregateOutputType = {
   description: string | null
   address: string | null
   city: string | null
+  zone: $Enums.ClubZone | null
   musicGenre: string | null
   imageUrl: string | null
   floorMapUrl: string | null
@@ -61,6 +62,7 @@ export type ClubMaxAggregateOutputType = {
   description: string | null
   address: string | null
   city: string | null
+  zone: $Enums.ClubZone | null
   musicGenre: string | null
   imageUrl: string | null
   floorMapUrl: string | null
@@ -80,6 +82,7 @@ export type ClubCountAggregateOutputType = {
   description: number
   address: number
   city: number
+  zone: number
   musicGenre: number
   imageUrl: number
   floorMapUrl: number
@@ -111,6 +114,7 @@ export type ClubMinAggregateInputType = {
   description?: true
   address?: true
   city?: true
+  zone?: true
   musicGenre?: true
   imageUrl?: true
   floorMapUrl?: true
@@ -130,6 +134,7 @@ export type ClubMaxAggregateInputType = {
   description?: true
   address?: true
   city?: true
+  zone?: true
   musicGenre?: true
   imageUrl?: true
   floorMapUrl?: true
@@ -149,6 +154,7 @@ export type ClubCountAggregateInputType = {
   description?: true
   address?: true
   city?: true
+  zone?: true
   musicGenre?: true
   imageUrl?: true
   floorMapUrl?: true
@@ -255,6 +261,7 @@ export type ClubGroupByOutputType = {
   description: string | null
   address: string
   city: string
+  zone: $Enums.ClubZone
   musicGenre: string | null
   imageUrl: string | null
   floorMapUrl: string | null
@@ -297,6 +304,7 @@ export type ClubWhereInput = {
   description?: Prisma.StringNullableFilter<"Club"> | string | null
   address?: Prisma.StringFilter<"Club"> | string
   city?: Prisma.StringFilter<"Club"> | string
+  zone?: Prisma.EnumClubZoneFilter<"Club"> | $Enums.ClubZone
   musicGenre?: Prisma.StringNullableFilter<"Club"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Club"> | string | null
   floorMapUrl?: Prisma.StringNullableFilter<"Club"> | string | null
@@ -325,6 +333,7 @@ export type ClubOrderByWithRelationInput = {
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrder
   city?: Prisma.SortOrder
+  zone?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -356,6 +365,7 @@ export type ClubWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringNullableFilter<"Club"> | string | null
   address?: Prisma.StringFilter<"Club"> | string
   city?: Prisma.StringFilter<"Club"> | string
+  zone?: Prisma.EnumClubZoneFilter<"Club"> | $Enums.ClubZone
   musicGenre?: Prisma.StringNullableFilter<"Club"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Club"> | string | null
   floorMapUrl?: Prisma.StringNullableFilter<"Club"> | string | null
@@ -384,6 +394,7 @@ export type ClubOrderByWithAggregationInput = {
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrder
   city?: Prisma.SortOrder
+  zone?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -411,6 +422,7 @@ export type ClubScalarWhereWithAggregatesInput = {
   description?: Prisma.StringNullableWithAggregatesFilter<"Club"> | string | null
   address?: Prisma.StringWithAggregatesFilter<"Club"> | string
   city?: Prisma.StringWithAggregatesFilter<"Club"> | string
+  zone?: Prisma.EnumClubZoneWithAggregatesFilter<"Club"> | $Enums.ClubZone
   musicGenre?: Prisma.StringNullableWithAggregatesFilter<"Club"> | string | null
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Club"> | string | null
   floorMapUrl?: Prisma.StringNullableWithAggregatesFilter<"Club"> | string | null
@@ -430,6 +442,7 @@ export type ClubCreateInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -457,6 +470,7 @@ export type ClubUncheckedCreateInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -484,6 +498,7 @@ export type ClubUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -511,6 +526,7 @@ export type ClubUncheckedUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -538,6 +554,7 @@ export type ClubCreateManyInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -557,6 +574,7 @@ export type ClubUpdateManyMutationInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -575,6 +593,7 @@ export type ClubUncheckedUpdateManyInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -609,6 +628,7 @@ export type ClubCountOrderByAggregateInput = {
   description?: Prisma.SortOrder
   address?: Prisma.SortOrder
   city?: Prisma.SortOrder
+  zone?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrder
@@ -633,6 +653,7 @@ export type ClubMaxOrderByAggregateInput = {
   description?: Prisma.SortOrder
   address?: Prisma.SortOrder
   city?: Prisma.SortOrder
+  zone?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrder
@@ -652,6 +673,7 @@ export type ClubMinOrderByAggregateInput = {
   description?: Prisma.SortOrder
   address?: Prisma.SortOrder
   city?: Prisma.SortOrder
+  zone?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrder
@@ -754,6 +776,10 @@ export type ClubUpdateOneRequiredWithoutEventInvitesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClubUpdateToOneWithWhereWithoutEventInvitesInput, Prisma.ClubUpdateWithoutEventInvitesInput>, Prisma.ClubUncheckedUpdateWithoutEventInvitesInput>
 }
 
+export type EnumClubZoneFieldUpdateOperationsInput = {
+  set?: $Enums.ClubZone
+}
+
 export type DecimalFieldUpdateOperationsInput = {
   set?: runtime.Decimal | runtime.DecimalJsLike | number | string
   increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -838,6 +864,7 @@ export type ClubCreateWithoutOwnerInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -864,6 +891,7 @@ export type ClubUncheckedCreateWithoutOwnerInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -919,6 +947,7 @@ export type ClubScalarWhereInput = {
   description?: Prisma.StringNullableFilter<"Club"> | string | null
   address?: Prisma.StringFilter<"Club"> | string
   city?: Prisma.StringFilter<"Club"> | string
+  zone?: Prisma.EnumClubZoneFilter<"Club"> | $Enums.ClubZone
   musicGenre?: Prisma.StringNullableFilter<"Club"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Club"> | string | null
   floorMapUrl?: Prisma.StringNullableFilter<"Club"> | string | null
@@ -938,6 +967,7 @@ export type ClubCreateWithoutMembersInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -964,6 +994,7 @@ export type ClubUncheckedCreateWithoutMembersInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1006,6 +1037,7 @@ export type ClubUpdateWithoutMembersInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1032,6 +1064,7 @@ export type ClubUncheckedUpdateWithoutMembersInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1058,6 +1091,7 @@ export type ClubCreateWithoutJoinInvitesInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1084,6 +1118,7 @@ export type ClubUncheckedCreateWithoutJoinInvitesInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1126,6 +1161,7 @@ export type ClubUpdateWithoutJoinInvitesInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1152,6 +1188,7 @@ export type ClubUncheckedUpdateWithoutJoinInvitesInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1178,6 +1215,7 @@ export type ClubCreateWithoutEventInvitesInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1204,6 +1242,7 @@ export type ClubUncheckedCreateWithoutEventInvitesInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1246,6 +1285,7 @@ export type ClubUpdateWithoutEventInvitesInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1272,6 +1312,7 @@ export type ClubUncheckedUpdateWithoutEventInvitesInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1298,6 +1339,7 @@ export type ClubCreateWithoutTablesInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1324,6 +1366,7 @@ export type ClubUncheckedCreateWithoutTablesInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1366,6 +1409,7 @@ export type ClubUpdateWithoutTablesInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1392,6 +1436,7 @@ export type ClubUncheckedUpdateWithoutTablesInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1418,6 +1463,7 @@ export type ClubCreateWithoutEventsInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1444,6 +1490,7 @@ export type ClubUncheckedCreateWithoutEventsInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1486,6 +1533,7 @@ export type ClubUpdateWithoutEventsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1512,6 +1560,7 @@ export type ClubUncheckedUpdateWithoutEventsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1538,6 +1587,7 @@ export type ClubCreateWithoutReservationsInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1564,6 +1614,7 @@ export type ClubUncheckedCreateWithoutReservationsInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1606,6 +1657,7 @@ export type ClubUpdateWithoutReservationsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1632,6 +1684,7 @@ export type ClubUncheckedUpdateWithoutReservationsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1658,6 +1711,7 @@ export type ClubCreateWithoutProductsInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1684,6 +1738,7 @@ export type ClubUncheckedCreateWithoutProductsInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1726,6 +1781,7 @@ export type ClubUpdateWithoutProductsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1752,6 +1808,7 @@ export type ClubUncheckedUpdateWithoutProductsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1778,6 +1835,7 @@ export type ClubCreateWithoutLoyaltyTxnsInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1804,6 +1862,7 @@ export type ClubUncheckedCreateWithoutLoyaltyTxnsInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1846,6 +1905,7 @@ export type ClubUpdateWithoutLoyaltyTxnsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1872,6 +1932,7 @@ export type ClubUncheckedUpdateWithoutLoyaltyTxnsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1898,6 +1959,7 @@ export type ClubCreateManyOwnerInput = {
   description?: string | null
   address: string
   city: string
+  zone?: $Enums.ClubZone
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
@@ -1916,6 +1978,7 @@ export type ClubUpdateWithoutOwnerInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1942,6 +2005,7 @@ export type ClubUncheckedUpdateWithoutOwnerInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1968,6 +2032,7 @@ export type ClubUncheckedUpdateManyWithoutOwnerInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
+  zone?: Prisma.EnumClubZoneFieldUpdateOperationsInput | $Enums.ClubZone
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2080,6 +2145,7 @@ export type ClubSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   description?: boolean
   address?: boolean
   city?: boolean
+  zone?: boolean
   musicGenre?: boolean
   imageUrl?: boolean
   floorMapUrl?: boolean
@@ -2109,6 +2175,7 @@ export type ClubSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   description?: boolean
   address?: boolean
   city?: boolean
+  zone?: boolean
   musicGenre?: boolean
   imageUrl?: boolean
   floorMapUrl?: boolean
@@ -2129,6 +2196,7 @@ export type ClubSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   description?: boolean
   address?: boolean
   city?: boolean
+  zone?: boolean
   musicGenre?: boolean
   imageUrl?: boolean
   floorMapUrl?: boolean
@@ -2149,6 +2217,7 @@ export type ClubSelectScalar = {
   description?: boolean
   address?: boolean
   city?: boolean
+  zone?: boolean
   musicGenre?: boolean
   imageUrl?: boolean
   floorMapUrl?: boolean
@@ -2162,7 +2231,7 @@ export type ClubSelectScalar = {
   ownerId?: boolean
 }
 
-export type ClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "address" | "city" | "musicGenre" | "imageUrl" | "floorMapUrl" | "defaultConsumptionPercent" | "contactEmail" | "contactPhone" | "pointValue" | "isActive" | "createdAt" | "updatedAt" | "ownerId", ExtArgs["result"]["club"]>
+export type ClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "address" | "city" | "zone" | "musicGenre" | "imageUrl" | "floorMapUrl" | "defaultConsumptionPercent" | "contactEmail" | "contactPhone" | "pointValue" | "isActive" | "createdAt" | "updatedAt" | "ownerId", ExtArgs["result"]["club"]>
 export type ClubInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   tables?: boolean | Prisma.Club$tablesArgs<ExtArgs>
@@ -2201,6 +2270,7 @@ export type $ClubPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     description: string | null
     address: string
     city: string
+    zone: $Enums.ClubZone
     musicGenre: string | null
     imageUrl: string | null
     floorMapUrl: string | null
@@ -2649,6 +2719,7 @@ export interface ClubFieldRefs {
   readonly description: Prisma.FieldRef<"Club", 'String'>
   readonly address: Prisma.FieldRef<"Club", 'String'>
   readonly city: Prisma.FieldRef<"Club", 'String'>
+  readonly zone: Prisma.FieldRef<"Club", 'ClubZone'>
   readonly musicGenre: Prisma.FieldRef<"Club", 'String'>
   readonly imageUrl: Prisma.FieldRef<"Club", 'String'>
   readonly floorMapUrl: Prisma.FieldRef<"Club", 'String'>

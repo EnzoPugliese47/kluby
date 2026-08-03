@@ -27,6 +27,7 @@ import {
   parseDraftProducts,
   parseDraftTables,
 } from "../utils/eventDraft";
+import { parseClubZone } from "../utils/clubZones";
 
 const PAYMENT_OPTION_VALUES = Object.values(PaymentOption);
 
@@ -604,6 +605,108 @@ export const listEventReservationsAdmin = async (
         createdAt: r.createdAt,
       })),
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/** GET /api/events/explore — eventos proximos de todos los boliches (cliente). */
+export const listExploreEvents = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const search = req.query["search"];
+    const genre = req.query["genre"];
+    const zoneRaw = req.query["zone"];
+    const fromRaw = req.query["from"];
+    const toRaw = req.query["to"];
+
+    const cutoff = openTablesEventCutoff();
+    const dateFilter: Prisma.DateTimeFilter = { gte: cutoff };
+
+    if (typeof fromRaw === "string" && fromRaw.trim() !== "") {
+      const from = new Date(fromRaw);
+      if (Number.isNaN(from.getTime())) {
+        throw new AppError("Parametro 'from' no es una fecha valida", 400);
+      }
+      dateFilter.gte = from > cutoff ? from : cutoff;
+    }
+    if (typeof toRaw === "string" && toRaw.trim() !== "") {
+      const to = new Date(toRaw);
+      if (Number.isNaN(to.getTime())) {
+        throw new AppError("Parametro 'to' no es una fecha valida", 400);
+      }
+      dateFilter.lte = to;
+    }
+
+    const clubWhere: Prisma.ClubWhereInput = { isActive: true };
+    const zone = parseClubZone(
+      typeof zoneRaw === "string" ? zoneRaw : undefined
+    );
+    if (zone !== null) {
+      clubWhere.zone = zone;
+    }
+
+    const where: Prisma.EventNightWhereInput = {
+      isActive: true,
+      date: dateFilter,
+      club: clubWhere,
+    };
+
+    const and: Prisma.EventNightWhereInput[] = [];
+
+    if (typeof search === "string" && search.trim() !== "") {
+      const term = search.trim();
+      and.push({
+        OR: [
+          { name: { contains: term, mode: "insensitive" } },
+          { club: { name: { contains: term, mode: "insensitive" } } },
+        ],
+      });
+    }
+    if (typeof genre === "string" && genre.trim() !== "") {
+      const g = genre.trim();
+      and.push({
+        OR: [
+          { musicGenre: { contains: g, mode: "insensitive" } },
+          { club: { musicGenre: { contains: g, mode: "insensitive" } } },
+        ],
+      });
+    }
+    if (and.length > 0) {
+      where.AND = and;
+    }
+
+    const events = await prisma.eventNight.findMany({
+      where,
+      orderBy: { date: "asc" },
+      take: 80,
+      include: {
+        club: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            zone: true,
+            musicGenre: true,
+            imageUrl: true,
+          },
+        },
+      },
+    });
+
+    sendSuccess(
+      res,
+      events.map((e) => ({
+        id: e.id,
+        name: e.name,
+        date: e.date,
+        musicGenre: e.musicGenre,
+        club: e.club,
+      }))
+    );
   } catch (error) {
     next(error);
   }

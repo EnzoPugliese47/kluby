@@ -577,11 +577,12 @@
           if (step === 1) {
             body.innerHTML = `
               <div class="k-page-head"><h1>Elegí el boliche</h1><p>Paso 1 de 4 · Seleccioná dónde querés salir.</p></div>
-              <div class="k-filters">
-                <input id="wz-q" type="search" placeholder="Buscar..." autocomplete="off" oninput="debouncedWizardClubs()" />
-                <input id="wz-genre" type="search" placeholder="Género musical..." autocomplete="off" oninput="debouncedWizardClubs()" />
-              </div>
+              ${KlubyUI.exploreFiltersHtml("wz-", { tab: "clubs" })}
               <div class="k-clubs-grid" id="wz-clubs"><div class="empty">Cargando...</div></div>`;
+            body.querySelectorAll("#wz-q, #wz-genre, #wz-zone, #wz-upcoming").forEach((el) => {
+              el.addEventListener("input", debouncedWizardClubs);
+              el.addEventListener("change", debouncedWizardClubs);
+            });
             loadWizardClubs();
             return;
           }
@@ -666,11 +667,10 @@
       function debouncedWizardClubs() { clearTimeout(wzClubsTimer); wzClubsTimer = setTimeout(loadWizardClubs, 300); }
       async function loadWizardClubs() {
         if (!stillOn("wizard") || Number(state.params.step) !== 1) return;
-        const q = document.getElementById("wz-q")?.value.trim() || "";
-        const g = document.getElementById("wz-genre")?.value.trim() || "";
-        const qs = new URLSearchParams(); if (q) qs.set("search", q); if (g) qs.set("genre", g);
+        const f = KlubyUI.readExploreFilters("wz-");
+        const qs = KlubyUI.clubsQueryString(f);
         try {
-          const clubs = await api("/clubs" + (qs.toString() ? "?" + qs : ""));
+          const clubs = await api("/clubs" + (qs ? "?" + qs : ""));
           if (!stillOn("wizard")) return;
           const el = document.getElementById("wz-clubs"); if (!el) return;
           if (!clubs.length) { el.innerHTML = `<div class="empty">No se encontraron boliches.</div>`; return; }
@@ -785,39 +785,65 @@
       }
 
       // ---------- HOME (clubs) ----------
+      let homeTab = "clubs";
+      function setHomeTab(tab) {
+        homeTab = tab;
+        if (!stillOn("home")) return;
+        const page = livePage("home");
+        if (!page) return;
+        renderHome(page);
+      }
       async function renderHome(page) {
         page.innerHTML = `
           <div class="k-page-head">
             <h1>Explorá boliches</h1>
-            <p>Elegí un local, una fecha y reservá tu mesa desde el mapa.</p>
+            <p>Elegí un local o buscá por fecha. Reservá tu mesa desde el mapa.</p>
           </div>
           <div class="k-hero-cta-inline">
             <button type="button" class="k-btn-cyan" style="border:none;cursor:pointer;font-size:15px;padding:14px 28px" onclick="wizardGo(1)">Reservar mesa →</button>
             <span class="hint" style="align-self:center">Paso a paso: boliche · fecha · mesa · pago</span>
           </div>
-          <div class="k-filters">
-            <input id="q" type="search" placeholder="Buscar por nombre..." autocomplete="off" oninput="debouncedClubs()" />
-            <input id="genre" type="search" placeholder="Filtrar por género musical" autocomplete="off" oninput="debouncedClubs()" />
+          <div class="k-explore-tabs" role="tablist">
+            <button type="button" class="${homeTab === "clubs" ? "active" : ""}" onclick="setHomeTab('clubs')">Por boliche</button>
+            <button type="button" class="${homeTab === "events" ? "active" : ""}" onclick="setHomeTab('events')">Por evento</button>
           </div>
-          <div class="k-clubs-grid" id="clubs"><div class="empty">Cargando...</div></div>`;
-        loadClubs();
+          <div id="home-filters"></div>
+          <div id="home-list"><div class="empty">Cargando...</div></div>`;
+        const filtersEl = page.querySelector("#home-filters");
+        if (filtersEl) {
+          filtersEl.innerHTML = KlubyUI.exploreFiltersHtml("hm-", { tab: homeTab });
+          filtersEl.querySelectorAll("input, select").forEach((el) => {
+            el.addEventListener("input", debouncedHomeLoad);
+            el.addEventListener("change", debouncedHomeLoad);
+          });
+        }
+        loadHomeContent();
       }
-      let clubsTimer;
-      function debouncedClubs() { clearTimeout(clubsTimer); clubsTimer = setTimeout(loadClubs, 300); }
-      async function loadClubs() {
+      let homeTimer;
+      function debouncedHomeLoad() { clearTimeout(homeTimer); homeTimer = setTimeout(loadHomeContent, 300); }
+      async function loadHomeContent() {
         if (!stillOn("home")) return;
-        const q = document.getElementById("q")?.value.trim() || "";
-        const g = document.getElementById("genre")?.value.trim() || "";
-        const qs = new URLSearchParams(); if (q) qs.set("search", q); if (g) qs.set("genre", g);
+        const el = document.getElementById("home-list"); if (!el) return;
+        el.innerHTML = '<div class="empty">Cargando...</div>';
+        const f = KlubyUI.readExploreFilters("hm-");
         try {
-          const clubs = await api("/clubs" + (qs.toString() ? "?" + qs : ""));
-          if (!stillOn("home")) return;
-          const el = document.getElementById("clubs"); if (!el) return;
-          if (!clubs.length) { el.innerHTML = `<div class="empty">No se encontraron boliches.</div>`; return; }
-          el.className = "k-clubs-grid";
-          el.innerHTML = clubs.map((c) => KlubyUI.clubCardAppHtml(c, "wizard")).join("");
+          if (homeTab === "clubs") {
+            const qs = KlubyUI.clubsQueryString(f);
+            const clubs = await api("/clubs" + (qs ? "?" + qs : ""));
+            if (!stillOn("home")) return;
+            if (!clubs.length) { el.innerHTML = `<div class="empty">No se encontraron boliches.</div>`; return; }
+            el.className = "k-clubs-grid";
+            el.innerHTML = clubs.map((c) => KlubyUI.clubCardAppHtml(c, "browse")).join("");
+          } else {
+            const qs = KlubyUI.eventsQueryString(f);
+            const events = await api("/events/explore" + (qs ? "?" + qs : ""));
+            if (!stillOn("home")) return;
+            if (!events.length) { el.innerHTML = `<div class="empty">No hay eventos con esos filtros.</div>`; return; }
+            el.className = "k-events-list k-explore-events-list";
+            el.innerHTML = events.map((e) => KlubyUI.exploreEventRowHtml(e)).join("");
+          }
         } catch (e) {
-          if (stillOn("home")) toast(e.message, "err");
+          if (stillOn("home")) el.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
         }
       }
 
@@ -834,7 +860,7 @@
             <div class="k-club-hero-main" style="margin-top:14px;margin-bottom:28px">
               <div class="logo-big">${club.imageUrl ? `<img src="${esc(club.imageUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:18px" />` : esc((club.name || "K").charAt(0).toUpperCase())}</div>
               <h1>${esc(club.name)}</h1>
-              <p class="meta" style="margin-bottom:12px">📍 ${esc(club.address)}, ${esc(club.city)} ${club.musicGenre ? "· <span class='k-tag'>" + esc(club.musicGenre) + "</span>" : ""}</p>
+              <p class="meta" style="margin-bottom:12px">📍 ${esc(KlubyUI.clubLocationMeta(club))} ${club.musicGenre ? "· <span class='k-tag'>" + esc(club.musicGenre) + "</span>" : ""}${club.zone ? " · <span class='k-tag violet'>" + esc(KlubyUI.zoneShort(club.zone)) + "</span>" : ""}</p>
               ${club.description ? `<p class="desc">${esc(club.description)}</p>` : ""}
               ${club.contactEmail ? `
               <div class="contact" style="margin-top:16px">

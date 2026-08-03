@@ -1885,6 +1885,7 @@ export const ClubScalarFieldEnum = {
   description: 'description',
   address: 'address',
   city: 'city',
+  zone: 'zone',
   musicGenre: 'musicGenre',
   imageUrl: 'imageUrl',
   floorMapUrl: 'floorMapUrl',
@@ -2180,6 +2181,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ClubZone'
+ */
+export type EnumClubZoneFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClubZone'>
+    
+
+
+/**
+ * Reference to a field of type 'ClubZone[]'
+ */
+export type ListEnumClubZoneFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClubZone[]'>
     
 
 

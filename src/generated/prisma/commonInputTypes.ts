@@ -209,6 +209,13 @@ export type IntWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedIntFilter<$PrismaModel>
 }
 
+export type EnumClubZoneFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClubZone | Prisma.EnumClubZoneFieldRefInput<$PrismaModel>
+  in?: $Enums.ClubZone[] | Prisma.ListEnumClubZoneFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClubZone[] | Prisma.ListEnumClubZoneFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClubZoneFilter<$PrismaModel> | $Enums.ClubZone
+}
+
 export type DecimalFilter<$PrismaModel = never> = {
   equals?: runtime.Decimal | runtime.DecimalJsLike | number | string | Prisma.DecimalFieldRefInput<$PrismaModel>
   in?: runtime.Decimal[] | runtime.DecimalJsLike[] | number[] | string[] | Prisma.ListDecimalFieldRefInput<$PrismaModel>
@@ -218,6 +225,16 @@ export type DecimalFilter<$PrismaModel = never> = {
   gt?: runtime.Decimal | runtime.DecimalJsLike | number | string | Prisma.DecimalFieldRefInput<$PrismaModel>
   gte?: runtime.Decimal | runtime.DecimalJsLike | number | string | Prisma.DecimalFieldRefInput<$PrismaModel>
   not?: Prisma.NestedDecimalFilter<$PrismaModel> | runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type EnumClubZoneWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClubZone | Prisma.EnumClubZoneFieldRefInput<$PrismaModel>
+  in?: $Enums.ClubZone[] | Prisma.ListEnumClubZoneFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClubZone[] | Prisma.ListEnumClubZoneFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClubZoneWithAggregatesFilter<$PrismaModel> | $Enums.ClubZone
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClubZoneFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClubZoneFilter<$PrismaModel>
 }
 
 export type DecimalWithAggregatesFilter<$PrismaModel = never> = {
@@ -695,6 +712,13 @@ export type NestedFloatFilter<$PrismaModel = never> = {
   not?: Prisma.NestedFloatFilter<$PrismaModel> | number
 }
 
+export type NestedEnumClubZoneFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClubZone | Prisma.EnumClubZoneFieldRefInput<$PrismaModel>
+  in?: $Enums.ClubZone[] | Prisma.ListEnumClubZoneFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClubZone[] | Prisma.ListEnumClubZoneFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClubZoneFilter<$PrismaModel> | $Enums.ClubZone
+}
+
 export type NestedDecimalFilter<$PrismaModel = never> = {
   equals?: runtime.Decimal | runtime.DecimalJsLike | number | string | Prisma.DecimalFieldRefInput<$PrismaModel>
   in?: runtime.Decimal[] | runtime.DecimalJsLike[] | number[] | string[] | Prisma.ListDecimalFieldRefInput<$PrismaModel>
@@ -704,6 +728,16 @@ export type NestedDecimalFilter<$PrismaModel = never> = {
   gt?: runtime.Decimal | runtime.DecimalJsLike | number | string | Prisma.DecimalFieldRefInput<$PrismaModel>
   gte?: runtime.Decimal | runtime.DecimalJsLike | number | string | Prisma.DecimalFieldRefInput<$PrismaModel>
   not?: Prisma.NestedDecimalFilter<$PrismaModel> | runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type NestedEnumClubZoneWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClubZone | Prisma.EnumClubZoneFieldRefInput<$PrismaModel>
+  in?: $Enums.ClubZone[] | Prisma.ListEnumClubZoneFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClubZone[] | Prisma.ListEnumClubZoneFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClubZoneWithAggregatesFilter<$PrismaModel> | $Enums.ClubZone
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClubZoneFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClubZoneFilter<$PrismaModel>
 }
 
 export type NestedDecimalWithAggregatesFilter<$PrismaModel = never> = {

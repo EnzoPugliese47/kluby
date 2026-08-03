@@ -174,6 +174,136 @@ window.KlubyUI = (function () {
     if (foot) renderFooter(foot);
   }
 
+  const CLUB_ZONES = [
+    { id: "CABA", label: "CABA (Capital Federal)", short: "CABA" },
+    { id: "ZONA_NORTE", label: "Zona Norte (GBA)", short: "Zona Norte" },
+    { id: "ZONA_SUR", label: "Zona Sur (GBA)", short: "Zona Sur" },
+    { id: "ZONA_OESTE", label: "Zona Oeste (GBA)", short: "Zona Oeste" },
+    { id: "ZONA_ESTE", label: "Zona Este (GBA)", short: "Zona Este" },
+  ];
+
+  function zoneLabel(zone) {
+    return CLUB_ZONES.find((z) => z.id === zone)?.label || zone || "";
+  }
+
+  function zoneShort(zone) {
+    return CLUB_ZONES.find((z) => z.id === zone)?.short || zone || "";
+  }
+
+  function clubLocationMeta(club) {
+    const parts = [];
+    if (club.zone) parts.push(zoneShort(club.zone));
+    if (club.city) parts.push(club.city);
+    return parts.join(" · ") || club.address || "";
+  }
+
+  function zoneFilterOptions(selected) {
+    return `<option value="">Todas las zonas</option>${CLUB_ZONES.map(
+      (z) => `<option value="${z.id}"${selected === z.id ? " selected" : ""}>${z.label}</option>`
+    ).join("")}`;
+  }
+
+  function datePresetOptions(selected) {
+    const opts = [
+      ["", "Cualquier fecha"],
+      ["today", "Hoy"],
+      ["weekend", "Este finde"],
+      ["week", "Esta semana"],
+    ];
+    return opts
+      .map(([v, l]) => `<option value="${v}"${selected === v ? " selected" : ""}>${l}</option>`)
+      .join("");
+  }
+
+  function computeDateRange(preset) {
+    if (!preset) return {};
+    const now = new Date();
+    if (preset === "today") {
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      return { from: start.toISOString(), to: end.toISOString() };
+    }
+    if (preset === "week") {
+      const end = new Date(now);
+      end.setDate(end.getDate() + 7);
+      end.setHours(23, 59, 59, 999);
+      return { to: end.toISOString() };
+    }
+    if (preset === "weekend") {
+      const d = new Date(now);
+      d.setHours(0, 0, 0, 0);
+      const day = d.getDay();
+      let friOffset;
+      if (day === 0) friOffset = -2;
+      else if (day === 6) friOffset = -1;
+      else if (day === 5) friOffset = 0;
+      else friOffset = 5 - day;
+      const fri = new Date(d);
+      fri.setDate(fri.getDate() + friOffset);
+      const sun = new Date(fri);
+      sun.setDate(sun.getDate() + 2);
+      sun.setHours(23, 59, 59, 999);
+      return { from: fri.toISOString(), to: sun.toISOString() };
+    }
+    return {};
+  }
+
+  /** Filtros compartidos explorar / app. prefix evita colision de ids (ej. "ex-" o "wz-"). */
+  function exploreFiltersHtml(prefix, opts = {}) {
+    const tab = opts.tab || "clubs";
+    const showDate = tab === "events";
+    const showUpcoming = tab === "clubs";
+    return `
+      <div class="k-filters k-explore-filters">
+        <input id="${prefix}q" type="search" placeholder="Buscar..." autocomplete="off" />
+        <input id="${prefix}genre" type="search" placeholder="Género musical..." autocomplete="off" list="${prefix}genres" />
+        <datalist id="${prefix}genres">
+          <option value="Electrónica"></option><option value="Reggaetón"></option><option value="Cumbia"></option>
+          <option value="Pop"></option><option value="Rock"></option><option value="Techno"></option>
+        </datalist>
+        <select id="${prefix}zone" title="Zona">${zoneFilterOptions("")}</select>
+        ${
+          showDate
+            ? `<select id="${prefix}date" title="Fecha">${datePresetOptions("")}</select>`
+            : ""
+        }
+        ${
+          showUpcoming
+            ? `<label class="k-filter-check"><input type="checkbox" id="${prefix}upcoming" checked /> Solo con eventos próximos</label>`
+            : ""
+        }
+      </div>`;
+  }
+
+  function readExploreFilters(prefix) {
+    const q = document.getElementById(prefix + "q")?.value.trim() || "";
+    const genre = document.getElementById(prefix + "genre")?.value.trim() || "";
+    const zone = document.getElementById(prefix + "zone")?.value || "";
+    const datePreset = document.getElementById(prefix + "date")?.value || "";
+    const upcomingOnly = document.getElementById(prefix + "upcoming")?.checked;
+    const range = computeDateRange(datePreset);
+    return { q, genre, zone, upcomingOnly, ...range };
+  }
+
+  function clubsQueryString(filters) {
+    const qs = new URLSearchParams();
+    if (filters.q) qs.set("search", filters.q);
+    if (filters.genre) qs.set("genre", filters.genre);
+    if (filters.zone) qs.set("zone", filters.zone);
+    if (filters.upcomingOnly) qs.set("upcomingOnly", "1");
+    return qs.toString();
+  }
+
+  function eventsQueryString(filters) {
+    const qs = new URLSearchParams();
+    if (filters.q) qs.set("search", filters.q);
+    if (filters.genre) qs.set("genre", filters.genre);
+    if (filters.zone) qs.set("zone", filters.zone);
+    if (filters.from) qs.set("from", filters.from);
+    if (filters.to) qs.set("to", filters.to);
+    return qs.toString();
+  }
+
   function clubCoverHtml(club) {
     const initial = (club.name || "K").charAt(0).toUpperCase();
     if (club.imageUrl) {
@@ -189,8 +319,9 @@ window.KlubyUI = (function () {
         <div class="cover">${clubCoverHtml(club)}</div>
         <div class="body">
           <h3>${esc(club.name)}</h3>
-          <div class="meta">📍 ${esc(club.address)}, ${esc(club.city)}</div>
+          <div class="meta">📍 ${esc(clubLocationMeta(club))}</div>
           <div class="tags">
+            ${club.zone ? `<span class="tag violet">${esc(zoneShort(club.zone))}</span>` : ""}
             ${club.musicGenre ? `<span class="tag">${esc(club.musicGenre)}</span>` : ""}
             <span class="tag cyan">Ver boliche</span>
           </div>
@@ -209,8 +340,9 @@ window.KlubyUI = (function () {
         <div class="cover">${clubCoverHtml(club)}</div>
         <div class="body">
           <h3>${esc(club.name)}</h3>
-          <div class="meta">📍 ${esc(club.address)}, ${esc(club.city)}</div>
+          <div class="meta">📍 ${esc(clubLocationMeta(club))}</div>
           <div class="tags">
+            ${club.zone ? `<span class="tag violet">${esc(zoneShort(club.zone))}</span>` : ""}
             ${club.musicGenre ? `<span class="tag">${esc(club.musicGenre)}</span>` : ""}
             <span class="tag cyan">${mode === "wizard" ? "Elegir fecha" : "Ver fechas"}</span>
           </div>
@@ -242,6 +374,22 @@ window.KlubyUI = (function () {
     return `/login.html?next=${encodeURIComponent(dest)}`;
   }
 
+  function exploreEventRowHtml(item) {
+    const club = item.club || {};
+    const cid = esc(club.id);
+    const genre = item.musicGenre || club.musicGenre;
+    const loc = clubLocationMeta(club);
+    return `
+      <div class="k-event-row k-explore-event-row">
+        <div class="info">
+          <h4>${esc(item.name)}</h4>
+          <small>🗓 ${fdatetime(item.date)}${genre ? " · 🎵 " + esc(genre) : ""}</small>
+          <small class="k-event-club-line">🏢 ${esc(club.name || "")}${loc ? " · 📍 " + esc(loc) : ""}</small>
+        </div>
+        <a class="k-btn-cyan" href="${reserveUrl(club.id, item.id)}" style="padding:10px 20px;font-size:13px;white-space:nowrap">Reservar mesa</a>
+      </div>`;
+  }
+
   function eventRowHtml(event, clubId) {
     const isPast = new Date(event.date) < new Date();
     return `
@@ -267,10 +415,23 @@ window.KlubyUI = (function () {
 
   async function loadClubs(params = {}) {
     const qs = new URLSearchParams();
-    if (params.search) qs.set("search", params.search);
+    if (params.search || params.q) qs.set("search", params.search || params.q);
     if (params.genre) qs.set("genre", params.genre);
+    if (params.zone) qs.set("zone", params.zone);
+    if (params.upcomingOnly) qs.set("upcomingOnly", "1");
     const q = qs.toString();
     return fetchJson("/clubs" + (q ? "?" + q : ""));
+  }
+
+  async function loadExploreEvents(params = {}) {
+    const qs = new URLSearchParams();
+    if (params.search || params.q) qs.set("search", params.search || params.q);
+    if (params.genre) qs.set("genre", params.genre);
+    if (params.zone) qs.set("zone", params.zone);
+    if (params.from) qs.set("from", params.from);
+    if (params.to) qs.set("to", params.to);
+    const q = qs.toString();
+    return fetchJson("/events/explore" + (q ? "?" + q : ""));
   }
 
   async function loadClub(id) {
@@ -301,6 +462,18 @@ window.KlubyUI = (function () {
     renderNav,
     renderFooter,
     mountPublicPage,
+    CLUB_ZONES,
+    zoneLabel,
+    zoneShort,
+    clubLocationMeta,
+    zoneFilterOptions,
+    datePresetOptions,
+    computeDateRange,
+    exploreFiltersHtml,
+    readExploreFilters,
+    clubsQueryString,
+    eventsQueryString,
+    exploreEventRowHtml,
     clubCoverHtml,
     clubCardHtml,
     clubCardAppHtml,
@@ -309,6 +482,7 @@ window.KlubyUI = (function () {
     reserveUrl,
     fetchJson,
     loadClubs,
+    loadExploreEvents,
     loadClub,
     loadClubEvents,
   };

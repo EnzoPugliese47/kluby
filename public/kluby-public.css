@@ -233,13 +233,38 @@ body.kluby-public .section-title {
 .k-club-sidebar p { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 18px; }
 
 /* Filtros explorar */
-.k-filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+.k-filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; align-items: center; }
 .k-filters input {
-  flex: 1; min-width: 200px; max-width: 320px;
+  flex: 1; min-width: 160px; max-width: 320px;
   padding: 12px 16px; border-radius: 12px; background: rgba(0,0,0,0.35);
   border: 1px solid rgba(255,255,255,0.1); color: var(--text); font-size: 14px;
 }
-.k-filters input:focus { border-color: var(--neon-violet); outline: none; }
+.k-filters select {
+  min-width: 160px; padding: 12px 14px; border-radius: 12px; background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.1); color: var(--text); font-size: 14px;
+}
+.k-filters input:focus, .k-filters select:focus { border-color: var(--neon-violet); outline: none; }
+.k-filter-check {
+  display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted);
+  padding: 10px 14px; border-radius: 12px; background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.1); cursor: pointer; user-select: none;
+}
+.k-filter-check input { flex: none; min-width: auto; width: auto; padding: 0; margin: 0; accent-color: var(--accent); }
+
+.k-explore-tabs {
+  display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.k-explore-tabs button {
+  padding: 10px 20px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.35); color: var(--muted); font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.k-explore-tabs button.active {
+  background: rgba(124, 92, 255, 0.15); border-color: var(--neon-violet); color: var(--text);
+}
+.k-explore-club-block { margin-bottom: 48px; }
+.k-explore-events-list { display: flex; flex-direction: column; gap: 10px; }
+.k-explore-event-row .k-event-club-line { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+.tag.violet { background: rgba(124, 92, 255, 0.12); color: #c4b5ff; border: 1px solid rgba(124, 92, 255, 0.25); }
 
 /* CTA band */
 .k-cta-band {

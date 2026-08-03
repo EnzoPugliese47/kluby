@@ -13,6 +13,8 @@ import {
   requireParam,
   requireString,
 } from "../utils/validation";
+import { parseClubZone, requireClubZone } from "../utils/clubZones";
+import { openTablesEventCutoff } from "../utils/eventTiming";
 
 const normalizeEmail = (raw: string): string => raw.trim().toLowerCase();
 
@@ -53,6 +55,7 @@ export const createClub = async (
     const defaultConsumptionPercent = optionalNumber(body, "defaultConsumptionPercent");
     const contactEmail = requireContactEmail(body);
     const contactPhone = optionalContactPhone(body);
+    const zone = requireClubZone(body["zone"] ?? "CABA");
 
     if (
       defaultConsumptionPercent !== undefined &&
@@ -79,6 +82,7 @@ export const createClub = async (
         name,
         address,
         city,
+        zone,
         ownerId,
         description: description ?? null,
         musicGenre: musicGenre ?? null,
@@ -98,8 +102,8 @@ export const createClub = async (
 };
 
 /**
- * GET /api/clubs - Listado con busqueda por nombre (?search=) y filtro por
- * genero musical (?genre=). Solo devuelve boliches activos por defecto.
+ * GET /api/clubs - Listado con busqueda (?search= nombre/ciudad), genero (?genre=),
+ * zona (?zone=), y solo con eventos proximos (?upcomingOnly=1).
  */
 export const listClubs = async (
   req: Request,
@@ -109,13 +113,35 @@ export const listClubs = async (
   try {
     const search = req.query["search"];
     const genre = req.query["genre"];
+    const zoneRaw = req.query["zone"];
+    const upcomingOnly =
+      req.query["upcomingOnly"] === "1" ||
+      req.query["upcomingOnly"] === "true";
 
     const where: Prisma.ClubWhereInput = { isActive: true };
     if (typeof search === "string" && search.trim() !== "") {
-      where.name = { contains: search.trim(), mode: "insensitive" };
+      const term = search.trim();
+      where.OR = [
+        { name: { contains: term, mode: "insensitive" } },
+        { city: { contains: term, mode: "insensitive" } },
+      ];
     }
     if (typeof genre === "string" && genre.trim() !== "") {
-      where.musicGenre = { equals: genre.trim(), mode: "insensitive" };
+      where.musicGenre = { contains: genre.trim(), mode: "insensitive" };
+    }
+    const zone = parseClubZone(
+      typeof zoneRaw === "string" ? zoneRaw : undefined
+    );
+    if (zone !== null) {
+      where.zone = zone;
+    }
+    if (upcomingOnly) {
+      where.events = {
+        some: {
+          isActive: true,
+          date: { gte: openTablesEventCutoff() },
+        },
+      };
     }
 
     if (req.user?.role === UserRole.CLUB_ADMIN) {
@@ -176,6 +202,7 @@ export const updateClub = async (
     const address = optionalString(body, "address");
     const city = optionalString(body, "city");
     const musicGenre = optionalString(body, "musicGenre");
+    const zoneRaw = body["zone"];
     const imageUrl = optionalString(body, "imageUrl");
     const floorMapUrl = optionalString(body, "floorMapUrl");
     const defaultConsumptionPercent = optionalNumber(body, "defaultConsumptionPercent");
@@ -187,6 +214,9 @@ export const updateClub = async (
     if (address !== undefined) data.address = address;
     if (city !== undefined) data.city = city;
     if (musicGenre !== undefined) data.musicGenre = musicGenre;
+    if (zoneRaw !== undefined) {
+      data.zone = requireClubZone(zoneRaw);
+    }
     if (imageUrl !== undefined) data.imageUrl = imageUrl;
     if (floorMapUrl !== undefined) data.floorMapUrl = floorMapUrl;
     if (defaultConsumptionPercent !== undefined) {

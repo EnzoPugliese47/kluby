@@ -180,6 +180,7 @@ export const ClubScalarFieldEnum = {
   description: 'description',
   address: 'address',
   city: 'city',
+  zone: 'zone',
   musicGenre: 'musicGenre',
   imageUrl: 'imageUrl',
   floorMapUrl: 'floorMapUrl',

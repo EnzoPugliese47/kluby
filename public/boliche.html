@@ -52,11 +52,13 @@
                 <h1>${UI.esc(club.name)}</h1>
                 <div class="tags" style="display:flex;gap:8px;flex-wrap:wrap">
                   ${club.musicGenre ? `<span class="k-tag">${UI.esc(club.musicGenre)}</span>` : ""}
-                  <span class="k-tag cyan">${UI.esc(club.city)}</span>
+                  ${club.zone ? `<span class="k-tag violet">${UI.esc(UI.zoneShort(club.zone))}</span>` : ""}
+                  ${club.city ? `<span class="k-tag cyan">${UI.esc(club.city)}</span>` : ""}
                 </div>
                 ${club.description ? `<p class="desc">${UI.esc(club.description)}</p>` : ""}
                 <div class="contact">
-                  📍 ${UI.esc(club.address)}, ${UI.esc(club.city)}<br/>
+                  📍 ${UI.esc(UI.clubLocationMeta(club))}<br/>
+                  ${club.address ? `${UI.esc(club.address)}<br/>` : ""}
                   ${club.contactEmail ? `✉ <a href="mailto:${UI.esc(club.contactEmail)}">${UI.esc(club.contactEmail)}</a><br/>` : ""}
                   ${club.contactPhone ? `📞 <a href="tel:${UI.esc(club.contactPhone.replace(/\s/g, ""))}">${UI.esc(club.contactPhone)}</a>` : ""}
                 </div>

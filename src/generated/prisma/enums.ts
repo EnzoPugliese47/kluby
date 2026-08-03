@@ -115,3 +115,14 @@ export const ClubPersonnelInviteRole = {
 } as const
 
 export type ClubPersonnelInviteRole = (typeof ClubPersonnelInviteRole)[keyof typeof ClubPersonnelInviteRole]
+
+
+export const ClubZone = {
+  CABA: 'CABA',
+  ZONA_NORTE: 'ZONA_NORTE',
+  ZONA_SUR: 'ZONA_SUR',
+  ZONA_OESTE: 'ZONA_OESTE',
+  ZONA_ESTE: 'ZONA_ESTE'
+} as const
+
+export type ClubZone = (typeof ClubZone)[keyof typeof ClubZone]

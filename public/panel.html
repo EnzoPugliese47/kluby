@@ -875,7 +875,8 @@
               ${clubLogoHtml(c.imageUrl, c.name)}
               <div class="info">
                 <b>${esc(c.name)}</b>
-                <small>📍 ${esc(c.address)}, ${esc(c.city)}</small>
+                <small>📍 ${esc(clubZoneLabel(c.zone))}${c.city ? " · " + esc(c.city) : ""}</small>
+                <small>${esc(c.address)}</small>
                 ${c.musicGenre ? `<small>🎵 ${esc(c.musicGenre)}</small>` : ""}
               </div>
               <div class="btn-row">
@@ -944,6 +945,21 @@
       let _clubLogo = null;
       let _editingClubId = null;
       let _clubFormDraft = null;
+      const CLUB_ZONE_OPTIONS = [
+        ["CABA", "CABA (Capital Federal)"],
+        ["ZONA_NORTE", "Zona Norte (GBA)"],
+        ["ZONA_SUR", "Zona Sur (GBA)"],
+        ["ZONA_OESTE", "Zona Oeste (GBA)"],
+        ["ZONA_ESTE", "Zona Este (GBA)"],
+      ];
+      function clubZoneLabel(zone) {
+        return CLUB_ZONE_OPTIONS.find((z) => z[0] === zone)?.[1] || zone || "—";
+      }
+      function clubZoneOptionsHtml(selected) {
+        return CLUB_ZONE_OPTIONS.map(
+          ([id, label]) => `<option value="${id}"${selected === id ? " selected" : ""}>${label}</option>`
+        ).join("");
+      }
       const LOGO_CROP = { output: 500, frame: 248, zoomMin: 1, zoomMax: 3 };
       let _logoCrop = null;
 
@@ -958,6 +974,7 @@
           name: document.getElementById("c-name")?.value ?? "",
           address: document.getElementById("c-address")?.value ?? "",
           city: document.getElementById("c-city")?.value ?? "",
+          zone: document.getElementById("c-zone")?.value ?? "CABA",
           musicGenre: document.getElementById("c-genre")?.value ?? "",
           description: document.getElementById("c-desc")?.value ?? "",
           contactEmail: document.getElementById("c-email")?.value ?? "",
@@ -976,6 +993,7 @@
         const name = draft?.name ?? club?.name ?? "";
         const address = draft?.address ?? club?.address ?? "";
         const city = draft?.city ?? club?.city ?? "";
+        const zone = draft?.zone ?? club?.zone ?? "CABA";
         const musicGenre = draft?.musicGenre ?? club?.musicGenre ?? "";
         const description = draft?.description ?? club?.description ?? "";
         const contactEmail = draft?.contactEmail ?? club?.contactEmail ?? "";
@@ -1005,8 +1023,12 @@
           <input id="c-name" value="${attr(name)}" placeholder="Ej. Club VISA" />
           <label>Dirección</label>
           <input id="c-address" value="${attr(address)}" placeholder="Calle y número" />
-          <label>Ciudad</label>
-          <input id="c-city" value="${attr(city)}" placeholder="Ej. Buenos Aires" />
+          <label>Zona (para filtros del cliente)</label>
+          <select id="c-zone">${clubZoneOptionsHtml(zone)}</select>
+          <p class="hint" style="margin-top:-6px;text-align:left">Zona amplia: CABA o GBA. Los clientes filtran por esto.</p>
+          <label>Localidad / barrio</label>
+          <input id="c-city" value="${attr(city)}" placeholder="Ej. Recoleta, Tigre, San Isidro" />
+          <p class="hint" style="margin-top:-6px;text-align:left">Texto visible en la ficha. No hace falta ser exacto para filtrar.</p>
           <label>Género musical (opcional)</label>
           <input id="c-genre" value="${attr(musicGenre)}" placeholder="Ej. Electrónica" />
           <label>Descripción (opcional)</label>
@@ -1230,6 +1252,7 @@
         const name = nameEl.value.trim();
         const address = document.getElementById("c-address").value.trim();
         const city = document.getElementById("c-city").value.trim();
+        const zone = document.getElementById("c-zone").value;
         const musicGenre = document.getElementById("c-genre").value.trim();
         const description = document.getElementById("c-desc").value.trim();
         const contactEmail = document.getElementById("c-email").value.trim();
@@ -1237,7 +1260,7 @@
         if (!name || !address || !city) { errEl.textContent = "Nombre, dirección y ciudad son obligatorios."; return; }
         if (!contactEmail) { errEl.textContent = "El email de contacto es obligatorio."; return; }
         if (!contactEmail.includes("@")) { errEl.textContent = "El email de contacto no es válido."; return; }
-        const body = { name, address, city, musicGenre, description, contactEmail };
+        const body = { name, address, city, zone, musicGenre, description, contactEmail };
         if (clubId) body.contactPhone = contactPhone || null;
         else if (contactPhone) body.contactPhone = contactPhone;
         if (_clubLogo) body.imageUrl = _clubLogo;
@@ -1483,7 +1506,8 @@
               <div class="pick-row">
                 <div>
                   <b>${esc(c.name)}</b>
-                  <small>📍 ${esc(c.address)}, ${esc(c.city)}</small>
+                  <small>📍 ${esc(clubZoneLabel(c.zone))}${c.city ? " · " + esc(c.city) : ""}</small>
+                <small>${esc(c.address)}</small>
                   ${c.musicGenre ? `<small>🎵 ${esc(c.musicGenre)}</small>` : ""}
                 </div>
                 <span class="badge ${c.isActive ? "green" : "red"}">${c.isActive ? "Activo" : "Inactivo"}</span>
