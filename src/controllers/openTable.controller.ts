@@ -17,6 +17,10 @@ import {
   requireParam,
   requireString,
 } from "../utils/validation";
+import {
+  isEventOpenForOpenTables,
+  openTablesEventCutoff,
+} from "../utils/eventTiming";
 
 /** Estados de invitado que ocupan un cupo de la mesa abierta. */
 const ACTIVE_GUEST_STATUSES: GuestStatus[] = [
@@ -114,6 +118,7 @@ export const listOpenTables = async (
       where: {
         mode: ReservationMode.OPEN_TABLE,
         status: ReservationStatus.CONFIRMED,
+        event: { date: { gte: openTablesEventCutoff() } },
       },
       include: {
         table: true,
@@ -167,9 +172,13 @@ export const requestToJoin = async (
     const guest = await prisma.$transaction(async (tx) => {
       const reservation = await tx.reservation.findUnique({
         where: { id: reservationId },
+        include: { event: true },
       });
       if (reservation === null) {
         throw new AppError("Reserva no encontrada", 404);
+      }
+      if (!isEventOpenForOpenTables(reservation.event.date)) {
+        throw new AppError("El evento ya finalizó; esta mesa abierta no acepta más postulaciones", 400);
       }
       if (
         reservation.mode !== ReservationMode.OPEN_TABLE ||
@@ -238,7 +247,12 @@ export const listMyGuestEntries = async (
   try {
     const userId = requireParam(req.params, "id");
     const entries = await prisma.reservationGuest.findMany({
-      where: { userId },
+      where: {
+        userId,
+        reservation: {
+          event: { date: { gte: openTablesEventCutoff() } },
+        },
+      },
       include: {
         reservation: {
           include: {
