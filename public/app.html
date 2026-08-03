@@ -414,6 +414,7 @@
       }
       function doLogout() {
         state.token = ""; state.user = null;
+        KlubyUI.clearClientAppVisit();
         localStorage.removeItem("kluby_token"); localStorage.removeItem("kluby_user");
         location.href = "/login.html";
       }
@@ -423,7 +424,11 @@
           location.href = "/login.html?next=" + encodeURIComponent("/app.html" + location.search);
           return false;
         }
-        if (state.user.role === "PUERTA") { location.href = "/staff.html"; return false; }
+        const away = KlubyUI.resolveAppEntry(state.user);
+        if (away) {
+          location.href = away;
+          return false;
+        }
         return true;
       }
 
@@ -736,7 +741,9 @@
           ? `<a class="k-btn-ghost" href="/publi.html">Panel publi</a>`
           : state.user.role === "PUERTA"
             ? `<a class="k-btn-ghost" href="/staff.html">Puerta</a>`
-            : "";
+            : ["SUPER_ADMIN", "CLUB_ADMIN"].includes(state.user.role)
+              ? `<a class="k-btn-ghost" href="/panel.html">Panel</a>`
+              : "";
         $("root").innerHTML = `
           <div class="k-app-wrap">
             <header class="k-app-nav">
@@ -1613,6 +1620,10 @@
       if (!state.token || !state.user) {
         location.href = "/login.html?next=" + encodeURIComponent("/app.html" + location.search);
       } else {
+        const away = KlubyUI.resolveAppEntry(state.user);
+        if (away) {
+          location.href = away;
+        } else {
         const p = new URLSearchParams(location.search);
         const clubId = p.get("clubId");
         const eventId = p.get("eventId");
@@ -1624,6 +1635,7 @@
           go("wizard", { step: 2, clubId });
         } else {
           render();
+        }
         }
       }
     </script>

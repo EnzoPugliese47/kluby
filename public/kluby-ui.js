@@ -64,6 +64,41 @@ window.KlubyUI = (function () {
     }
   }
 
+  const ADMIN_CLIENT_KEY = "kluby_admin_as_client";
+
+  /** Admin/dueño eligió ver la app cliente desde el panel. */
+  function markClientAppVisit() {
+    sessionStorage.setItem(ADMIN_CLIENT_KEY, "1");
+  }
+
+  function clearClientAppVisit() {
+    sessionStorage.removeItem(ADMIN_CLIENT_KEY);
+  }
+
+  /** Si el usuario no debería estar en app.html, devuelve la URL correcta. */
+  function resolveAppEntry(user) {
+    if (!user) return "/login.html?next=" + encodeURIComponent("/app.html");
+    const home = appDest(user);
+    if (home === "/app.html") return null;
+    if (["SUPER_ADMIN", "CLUB_ADMIN"].includes(user.role) && sessionStorage.getItem(ADMIN_CLIENT_KEY)) {
+      return null;
+    }
+    return home;
+  }
+
+  /** Tras login: respeta ?next= solo si es válido para el rol. */
+  function redirectAfterAuth(user, nextUrl) {
+    const home = appDest(user);
+    if (nextUrl && nextUrl.startsWith("/")) {
+      const wantsClient = nextUrl.startsWith("/app.html");
+      const wantsPanel = nextUrl.startsWith("/panel.html");
+      if (wantsClient && home !== "/app.html") return home;
+      if (wantsPanel && !["SUPER_ADMIN", "CLUB_ADMIN"].includes(user.role)) return home;
+      return nextUrl;
+    }
+    return home;
+  }
+
   function captureInviteFromUrl() {
     const p = new URLSearchParams(location.search);
     const inv = p.get("invitacion");
@@ -257,6 +292,10 @@ window.KlubyUI = (function () {
     fdate,
     getSession,
     appDest,
+    markClientAppVisit,
+    clearClientAppVisit,
+    resolveAppEntry,
+    redirectAfterAuth,
     captureInviteFromUrl,
     renderBg,
     renderNav,

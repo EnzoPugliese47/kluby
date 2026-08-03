@@ -330,11 +330,13 @@
       .stats-club-pick { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
       .stats-club-pick .field { flex: 1; min-width: 220px; }
 
+      .topbar-quicklinks { display: none; }
+
       @media (max-width: 900px) {
         .topbar {
           display: grid;
           grid-template-columns: minmax(0, 1fr) auto;
-          grid-template-areas: "brand right" "tabs tabs";
+          grid-template-areas: "brand right" "tabs tabs" "quick quick";
           gap: 10px 8px;
           padding: calc(10px + var(--safe-top)) 14px 12px;
           align-items: center;
@@ -353,6 +355,25 @@
         .topbar .right .who { display: none; }
         .topbar .topbar-extra { display: none !important; }
         .topbar .right button.ghost { padding: 8px 12px; font-size: 12px; }
+        .topbar-quicklinks {
+          grid-area: quick;
+          display: flex;
+          gap: 8px;
+          width: 100%;
+        }
+        .topbar-quicklinks a {
+          flex: 1;
+          text-align: center;
+          padding: 9px 10px;
+          border-radius: 10px;
+          font-size: 12px;
+          font-weight: 600;
+          text-decoration: none;
+          color: var(--muted);
+          border: 1px solid var(--border);
+          background: rgba(255,255,255,0.03);
+        }
+        .topbar-quicklinks a:hover { color: var(--text); border-color: var(--accent); }
         .tab { font-size: 12px; padding: 8px 12px; }
         .container { padding: 16px; padding-bottom: calc(24px + var(--safe-bottom)); }
         .controls { flex-direction: column; align-items: stretch; gap: 10px; }
@@ -401,9 +422,13 @@
             <b id="who-name">—</b>
             <small id="who-role">—</small>
           </div>
-          <a class="ghost topbar-extra" href="/app.html" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">App cliente</a>
-          <a class="ghost topbar-extra" href="/staff.html" style="padding:10px 14px;border-radius:10px;font-size:13px;border:1px solid var(--border);">Puerta</a>
+          <a class="ghost topbar-extra" href="/app.html" onclick="sessionStorage.setItem('kluby_admin_as_client','1')">App cliente</a>
+          <a class="ghost topbar-extra" href="/staff.html">Puerta</a>
           <button class="ghost" onclick="logout()">Salir</button>
+        </div>
+        <div class="topbar-quicklinks">
+          <a href="/app.html" onclick="sessionStorage.setItem('kluby_admin_as_client','1')">App cliente</a>
+          <a href="/staff.html">Puerta</a>
         </div>
       </div>
 
@@ -645,6 +670,7 @@
       function logout() {
         token = "";
         currentUser = null;
+        sessionStorage.removeItem("kluby_admin_as_client");
         localStorage.removeItem("kluby_token");
         localStorage.removeItem("kluby_user");
         location.href = "/login.html?next=" + encodeURIComponent("/panel.html");
