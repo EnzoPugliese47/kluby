@@ -333,7 +333,7 @@
             <h4>Política de cancelación</h4>
             <table class="k-refund-table"><tbody>${tiers}</tbody></table>
             ${previewLine}
-            <p class="hint" style="margin-top:8px"><a href="/cancelacion.html" target="_blank" rel="noopener">Ver política completa</a></p>
+            <p class="hint" style="margin-top:8px"><a href="#" onclick="event.preventDefault();go('cancelacion')">Ver política completa</a></p>
           </div>
           <label class="k-policy-check"><input type="checkbox" id="wizard-policy-accept" onchange="onWizardPolicyAccept()" /> Acepto la política de cancelación y devoluciones de Kluby</label>`;
       }
@@ -931,6 +931,7 @@
               <p class="hint" style="margin-top:10px">Mostrá este código en puerta para ingresar.</p>
               <button type="button" class="ghost btn-sm" style="margin-top:12px" onclick="openConsumptionPlanner({ reservationId: '${r.id}' })">🍾 Calculadora de consumo</button>
               ${reservationTimelineHtml(r)}
+              <p class="hint" style="margin-top:16px;text-align:center"><a href="#" onclick="event.preventDefault();go('cancelacion')">Política de cancelación y devoluciones</a></p>
               <div class="btn-row" style="justify-content:center;margin-top:28px">
                 <button type="button" class="ghost" onclick="go('home')">Explorar más</button>
                 <button type="button" onclick="go('mine')">Mis reservas</button>
@@ -995,6 +996,7 @@
         else if (state.view === "open") renderOpen(page);
         else if (state.view === "joins") renderJoins(page);
         else if (state.view === "profile") renderProfile(page);
+        else if (state.view === "cancelacion") renderCancelacion(page);
         else if (state.view === "invites") renderInvites(page);
         else if (state.view === "detail") renderDetail(page);
         void refreshAlerts();
@@ -1295,7 +1297,7 @@
 
       // ---------- MY RESERVATIONS ----------
       async function renderMine(page) {
-        page.innerHTML = `<div class="k-page-head"><h1>Mis reservas</h1><p>Gestioná tus mesas, abrilas a la comunidad o mostrá tu QR.</p></div><div id="list"><div class="empty">Cargando...</div></div><div id="past-wrap"></div>`;
+        page.innerHTML = `<div class="k-page-head"><h1>Mis reservas</h1><p>Gestioná tus mesas, abrilas a la comunidad o mostrá tu QR. <a href="#" onclick="event.preventDefault();go('cancelacion')" style="color:var(--accent)">Política de cancelación</a></p></div><div id="list"><div class="empty">Cargando...</div></div><div id="past-wrap"></div>`;
         try {
           const rs = await api("/users/" + state.user.id + "/reservations");
           if (!stillOn("mine")) return;
@@ -1375,7 +1377,7 @@
             <p class="hint">${esc(p.policy?.preview?.tierLabel || "Revisá el monto antes de confirmar.")}</p>
             ${refundLine}
             ${ptsLine}
-            <p class="hint" style="margin-top:12px"><a href="/cancelacion.html" target="_blank" rel="noopener">Política completa de cancelación</a></p>
+            <p class="hint" style="margin-top:12px"><a href="#" onclick="event.preventDefault();go('cancelacion')">Política completa de cancelación</a></p>
             <div class="btn-row" style="margin-top:20px">
               <button type="button" class="ghost" onclick="closeModal()">Volver</button>
               <button type="button" class="btn-danger" style="flex:1" onclick="confirmCancelReservation('${id}')">Confirmar cancelación</button>
@@ -1762,6 +1764,56 @@
         }
       }
 
+      async function renderCancelacion(page) {
+        page.innerHTML = `
+          <button type="button" class="ghost btn-sm k-back" onclick="go('mine')">← Volver a mis reservas</button>
+          <div class="k-page-head">
+            <h1>Cancelaciones y devoluciones</h1>
+            <p>Cómo funciona si cancelás tu reserva, qué se reintegra y qué pasa con tus Kluby Points.</p>
+          </div>
+          <div class="k-legal-page" id="app-policy-content"><div class="empty">Cargando política…</div></div>`;
+        try {
+          const p = await api("/reservations/refund-policy");
+          if (!stillOn("cancelacion")) return;
+          const el = document.getElementById("app-policy-content");
+          if (!el) return;
+          const tiers = (p.tiers || []).map((t) =>
+            `<tr><td>${esc(t.label)}</td><td><b>${t.percent}%</b></td></tr>`
+          ).join("");
+          const notes = (p.notes || []).map((n) => `<li>${esc(n)}</li>`).join("");
+          el.innerHTML = `
+            <div class="k-refund-policy-card">
+              <h2>Escala de reembolso</h2>
+              <p class="hint" style="margin-bottom:16px">El porcentaje se calcula según cuántas horas faltan para el inicio del evento al momento de cancelar.</p>
+              <table class="k-refund-table">
+                <thead><tr><th>Antelación</th><th>Devolución</th></tr></thead>
+                <tbody>${tiers}</tbody>
+              </table>
+            </div>
+            <div class="k-refund-policy-card">
+              <h2>Detalles importantes</h2>
+              <ul class="k-refund-notes">${notes}</ul>
+            </div>
+            <div class="k-refund-policy-card">
+              <h2>Kluby Points</h2>
+              <p style="color:var(--muted);font-size:14px;line-height:1.6;margin:0">
+                Si canjeaste puntos al reservar, se te devuelven íntegramente al cancelar.
+                El reembolso en pesos aplica solo sobre lo que pagaste online (seña o total), no sobre el saldo en puerta.
+              </p>
+            </div>
+            <div class="k-refund-policy-card">
+              <h2>Cancelación por el boliche</h2>
+              <p style="color:var(--muted);font-size:14px;line-height:1.6;margin:0">
+                Si el boliche cancela el evento o no puede honrar tu mesa, recibís reintegro del 100% de lo pagado online
+                y la devolución de puntos canjeados.
+              </p>
+            </div>`;
+        } catch (e) {
+          const el = document.getElementById("app-policy-content");
+          if (el && stillOn("cancelacion")) el.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        }
+      }
+
       async function renderProfile(page) {
         page.innerHTML = `<div class="k-page-head"><h1>Mi perfil</h1><p>Tu cuenta, Kluby Points e invitaciones.</p></div><div id="profile-form"><div class="empty">Cargando...</div></div>`;
         try {
@@ -1834,6 +1886,11 @@
                 <button type="button" class="btn-sm" onclick="redeemTeamCode(document.getElementById('pf-team-code').value).catch(e=>toast(e.message,'err'))">Canjear</button>
               </div>
               <div class="error" id="pf-err"></div>
+            </div>
+            <div class="card profile-card">
+              <h3 style="margin:0 0 8px">Cancelaciones y devoluciones</h3>
+              <p class="hint" style="margin:0 0 14px">Antes de cancelar una reserva, revisá cuánto se reintegra según la antelación y qué pasa con tus Kluby Points.</p>
+              <button type="button" class="ghost btn-sm" onclick="go('cancelacion')">Ver política completa →</button>
             </div>
             ${loyaltyCard}`;
         } catch (e) {
