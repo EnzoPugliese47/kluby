@@ -1,6 +1,23 @@
 /**
  * Kluby — UI compartida del sitio público (nav, footer, helpers).
  */
+(function initKlubyMobileShell() {
+  const cap = window.Capacitor;
+  const isNative = cap?.isNativePlatform?.() === true;
+  if (isNative) document.documentElement.classList.add("cap-native");
+  if (isNative || window.matchMedia("(max-width: 768px)").matches) {
+    document.documentElement.classList.add("mobile-ui");
+  }
+  if (isNative && cap.Plugins?.StatusBar) {
+    const sb = cap.Plugins.StatusBar;
+    Promise.resolve()
+      .then(() => sb.setOverlaysWebView?.({ overlay: false }))
+      .then(() => sb.setBackgroundColor?.({ color: "#050508" }))
+      .then(() => sb.setStyle?.({ style: "DARK" }))
+      .catch(() => {});
+  }
+})();
+
 window.KlubyUI = (function () {
   const esc = (s) =>
     String(s ?? "").replace(/[&<>"']/g, (c) =>

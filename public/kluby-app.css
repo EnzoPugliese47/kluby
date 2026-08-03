@@ -35,7 +35,7 @@ body.kluby-app .section-title {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  padding: 14px 28px;
+  padding: calc(12px + var(--safe-top, 0px)) calc(20px + var(--safe-right, 0px)) 12px calc(20px + var(--safe-left, 0px));
   max-width: 1320px;
   margin: 0 auto;
   width: 100%;
@@ -292,21 +292,97 @@ body.kluby-app .k-back {
 
 @media (max-width: 960px) {
   .k-app-nav-inner {
-    padding: 12px 18px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand user"
+      "tabs tabs";
+    align-items: center;
+    gap: 10px 8px;
+    padding: calc(10px + var(--safe-top, 0px)) 14px 10px;
+  }
+
+  .k-app-nav .brand {
+    grid-area: brand;
+    min-width: 0;
+  }
+
+  .k-app-nav .brand h1 {
+    font-size: 17px;
+    letter-spacing: 1.5px;
+    line-height: 1.1;
+  }
+
+  .k-app-nav .brand span {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+  }
+
+  .k-app-nav .logo {
+    width: 36px;
+    height: 36px;
+    font-size: 17px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+
+  .k-app-user {
+    grid-area: user;
+    justify-self: end;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .k-app-user .k-link-inicio {
+    display: none;
   }
 
   .k-app-tabs {
-    order: 3;
+    grid-area: tabs;
+    order: unset;
     width: 100%;
     justify-content: flex-start;
     overflow-x: auto;
     flex-wrap: nowrap;
-    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+    mask-image: linear-gradient(90deg, #000 94%, transparent);
+  }
+
+  .k-app-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .k-app-tabs button {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 12px;
+    padding: 8px 12px;
   }
 
   .k-app-user .who {
     display: none;
   }
+
+  .k-app-user .ghost.btn-sm {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  body.kluby-app .k-page {
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: calc(48px + var(--safe-bottom, 0px));
+  }
+}
+
+html.cap-native .k-app-nav .brand span {
+  display: none;
+}
+
+html.cap-native .k-app-user .profile-link {
+  padding: 2px;
 }
 
 /* —— Fase 2: wizard, QR, timeline, alertas —— */
