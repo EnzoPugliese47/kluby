@@ -129,8 +129,8 @@ export const listProductsByClub = async (
   try {
     const clubId = requireParam(req.params, "clubId");
     const products = await prisma.product.findMany({
-      where: { clubId, isActive: true },
-      orderBy: { name: "asc" },
+      where: { clubId, eventId: null, isActive: true },
+      orderBy: [{ category: "asc" }, { name: "asc" }],
     });
     sendSuccess(res, products);
   } catch (error) {

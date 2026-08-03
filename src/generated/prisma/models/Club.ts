@@ -27,10 +27,12 @@ export type AggregateClub = {
 }
 
 export type ClubAvgAggregateOutputType = {
+  defaultConsumptionPercent: number | null
   pointValue: runtime.Decimal | null
 }
 
 export type ClubSumAggregateOutputType = {
+  defaultConsumptionPercent: number | null
   pointValue: runtime.Decimal | null
 }
 
@@ -43,6 +45,7 @@ export type ClubMinAggregateOutputType = {
   musicGenre: string | null
   imageUrl: string | null
   floorMapUrl: string | null
+  defaultConsumptionPercent: number | null
   contactEmail: string | null
   contactPhone: string | null
   pointValue: runtime.Decimal | null
@@ -61,6 +64,7 @@ export type ClubMaxAggregateOutputType = {
   musicGenre: string | null
   imageUrl: string | null
   floorMapUrl: string | null
+  defaultConsumptionPercent: number | null
   contactEmail: string | null
   contactPhone: string | null
   pointValue: runtime.Decimal | null
@@ -79,6 +83,7 @@ export type ClubCountAggregateOutputType = {
   musicGenre: number
   imageUrl: number
   floorMapUrl: number
+  defaultConsumptionPercent: number
   contactEmail: number
   contactPhone: number
   pointValue: number
@@ -91,10 +96,12 @@ export type ClubCountAggregateOutputType = {
 
 
 export type ClubAvgAggregateInputType = {
+  defaultConsumptionPercent?: true
   pointValue?: true
 }
 
 export type ClubSumAggregateInputType = {
+  defaultConsumptionPercent?: true
   pointValue?: true
 }
 
@@ -107,6 +114,7 @@ export type ClubMinAggregateInputType = {
   musicGenre?: true
   imageUrl?: true
   floorMapUrl?: true
+  defaultConsumptionPercent?: true
   contactEmail?: true
   contactPhone?: true
   pointValue?: true
@@ -125,6 +133,7 @@ export type ClubMaxAggregateInputType = {
   musicGenre?: true
   imageUrl?: true
   floorMapUrl?: true
+  defaultConsumptionPercent?: true
   contactEmail?: true
   contactPhone?: true
   pointValue?: true
@@ -143,6 +152,7 @@ export type ClubCountAggregateInputType = {
   musicGenre?: true
   imageUrl?: true
   floorMapUrl?: true
+  defaultConsumptionPercent?: true
   contactEmail?: true
   contactPhone?: true
   pointValue?: true
@@ -248,6 +258,7 @@ export type ClubGroupByOutputType = {
   musicGenre: string | null
   imageUrl: string | null
   floorMapUrl: string | null
+  defaultConsumptionPercent: number
   contactEmail: string
   contactPhone: string | null
   pointValue: runtime.Decimal
@@ -289,6 +300,7 @@ export type ClubWhereInput = {
   musicGenre?: Prisma.StringNullableFilter<"Club"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Club"> | string | null
   floorMapUrl?: Prisma.StringNullableFilter<"Club"> | string | null
+  defaultConsumptionPercent?: Prisma.IntFilter<"Club"> | number
   contactEmail?: Prisma.StringFilter<"Club"> | string
   contactPhone?: Prisma.StringNullableFilter<"Club"> | string | null
   pointValue?: Prisma.DecimalFilter<"Club"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -316,6 +328,7 @@ export type ClubOrderByWithRelationInput = {
   musicGenre?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultConsumptionPercent?: Prisma.SortOrder
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   pointValue?: Prisma.SortOrder
@@ -346,6 +359,7 @@ export type ClubWhereUniqueInput = Prisma.AtLeast<{
   musicGenre?: Prisma.StringNullableFilter<"Club"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Club"> | string | null
   floorMapUrl?: Prisma.StringNullableFilter<"Club"> | string | null
+  defaultConsumptionPercent?: Prisma.IntFilter<"Club"> | number
   contactEmail?: Prisma.StringFilter<"Club"> | string
   contactPhone?: Prisma.StringNullableFilter<"Club"> | string | null
   pointValue?: Prisma.DecimalFilter<"Club"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -373,6 +387,7 @@ export type ClubOrderByWithAggregationInput = {
   musicGenre?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultConsumptionPercent?: Prisma.SortOrder
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   pointValue?: Prisma.SortOrder
@@ -399,6 +414,7 @@ export type ClubScalarWhereWithAggregatesInput = {
   musicGenre?: Prisma.StringNullableWithAggregatesFilter<"Club"> | string | null
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Club"> | string | null
   floorMapUrl?: Prisma.StringNullableWithAggregatesFilter<"Club"> | string | null
+  defaultConsumptionPercent?: Prisma.IntWithAggregatesFilter<"Club"> | number
   contactEmail?: Prisma.StringWithAggregatesFilter<"Club"> | string
   contactPhone?: Prisma.StringNullableWithAggregatesFilter<"Club"> | string | null
   pointValue?: Prisma.DecimalWithAggregatesFilter<"Club"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -417,6 +433,7 @@ export type ClubCreateInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -443,6 +460,7 @@ export type ClubUncheckedCreateInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -469,6 +487,7 @@ export type ClubUpdateInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -495,6 +514,7 @@ export type ClubUncheckedUpdateInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -521,6 +541,7 @@ export type ClubCreateManyInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -539,6 +560,7 @@ export type ClubUpdateManyMutationInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -556,6 +578,7 @@ export type ClubUncheckedUpdateManyInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -589,6 +612,7 @@ export type ClubCountOrderByAggregateInput = {
   musicGenre?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrder
+  defaultConsumptionPercent?: Prisma.SortOrder
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
   pointValue?: Prisma.SortOrder
@@ -599,6 +623,7 @@ export type ClubCountOrderByAggregateInput = {
 }
 
 export type ClubAvgOrderByAggregateInput = {
+  defaultConsumptionPercent?: Prisma.SortOrder
   pointValue?: Prisma.SortOrder
 }
 
@@ -611,6 +636,7 @@ export type ClubMaxOrderByAggregateInput = {
   musicGenre?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrder
+  defaultConsumptionPercent?: Prisma.SortOrder
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
   pointValue?: Prisma.SortOrder
@@ -629,6 +655,7 @@ export type ClubMinOrderByAggregateInput = {
   musicGenre?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   floorMapUrl?: Prisma.SortOrder
+  defaultConsumptionPercent?: Prisma.SortOrder
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
   pointValue?: Prisma.SortOrder
@@ -639,6 +666,7 @@ export type ClubMinOrderByAggregateInput = {
 }
 
 export type ClubSumOrderByAggregateInput = {
+  defaultConsumptionPercent?: Prisma.SortOrder
   pointValue?: Prisma.SortOrder
 }
 
@@ -813,6 +841,7 @@ export type ClubCreateWithoutOwnerInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -838,6 +867,7 @@ export type ClubUncheckedCreateWithoutOwnerInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -892,6 +922,7 @@ export type ClubScalarWhereInput = {
   musicGenre?: Prisma.StringNullableFilter<"Club"> | string | null
   imageUrl?: Prisma.StringNullableFilter<"Club"> | string | null
   floorMapUrl?: Prisma.StringNullableFilter<"Club"> | string | null
+  defaultConsumptionPercent?: Prisma.IntFilter<"Club"> | number
   contactEmail?: Prisma.StringFilter<"Club"> | string
   contactPhone?: Prisma.StringNullableFilter<"Club"> | string | null
   pointValue?: Prisma.DecimalFilter<"Club"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -910,6 +941,7 @@ export type ClubCreateWithoutMembersInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -935,6 +967,7 @@ export type ClubUncheckedCreateWithoutMembersInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -976,6 +1009,7 @@ export type ClubUpdateWithoutMembersInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1001,6 +1035,7 @@ export type ClubUncheckedUpdateWithoutMembersInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1026,6 +1061,7 @@ export type ClubCreateWithoutJoinInvitesInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1051,6 +1087,7 @@ export type ClubUncheckedCreateWithoutJoinInvitesInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1092,6 +1129,7 @@ export type ClubUpdateWithoutJoinInvitesInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1117,6 +1155,7 @@ export type ClubUncheckedUpdateWithoutJoinInvitesInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1142,6 +1181,7 @@ export type ClubCreateWithoutEventInvitesInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1167,6 +1207,7 @@ export type ClubUncheckedCreateWithoutEventInvitesInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1208,6 +1249,7 @@ export type ClubUpdateWithoutEventInvitesInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1233,6 +1275,7 @@ export type ClubUncheckedUpdateWithoutEventInvitesInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1258,6 +1301,7 @@ export type ClubCreateWithoutTablesInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1283,6 +1327,7 @@ export type ClubUncheckedCreateWithoutTablesInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1324,6 +1369,7 @@ export type ClubUpdateWithoutTablesInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1349,6 +1395,7 @@ export type ClubUncheckedUpdateWithoutTablesInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1374,6 +1421,7 @@ export type ClubCreateWithoutEventsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1399,6 +1447,7 @@ export type ClubUncheckedCreateWithoutEventsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1440,6 +1489,7 @@ export type ClubUpdateWithoutEventsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1465,6 +1515,7 @@ export type ClubUncheckedUpdateWithoutEventsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1490,6 +1541,7 @@ export type ClubCreateWithoutReservationsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1515,6 +1567,7 @@ export type ClubUncheckedCreateWithoutReservationsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1556,6 +1609,7 @@ export type ClubUpdateWithoutReservationsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1581,6 +1635,7 @@ export type ClubUncheckedUpdateWithoutReservationsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1606,6 +1661,7 @@ export type ClubCreateWithoutProductsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1631,6 +1687,7 @@ export type ClubUncheckedCreateWithoutProductsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1672,6 +1729,7 @@ export type ClubUpdateWithoutProductsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1697,6 +1755,7 @@ export type ClubUncheckedUpdateWithoutProductsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1722,6 +1781,7 @@ export type ClubCreateWithoutLoyaltyTxnsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1747,6 +1807,7 @@ export type ClubUncheckedCreateWithoutLoyaltyTxnsInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1788,6 +1849,7 @@ export type ClubUpdateWithoutLoyaltyTxnsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1813,6 +1875,7 @@ export type ClubUncheckedUpdateWithoutLoyaltyTxnsInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1838,6 +1901,7 @@ export type ClubCreateManyOwnerInput = {
   musicGenre?: string | null
   imageUrl?: string | null
   floorMapUrl?: string | null
+  defaultConsumptionPercent?: number
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1855,6 +1919,7 @@ export type ClubUpdateWithoutOwnerInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1880,6 +1945,7 @@ export type ClubUncheckedUpdateWithoutOwnerInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1905,6 +1971,7 @@ export type ClubUncheckedUpdateManyWithoutOwnerInput = {
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   floorMapUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2016,6 +2083,7 @@ export type ClubSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   musicGenre?: boolean
   imageUrl?: boolean
   floorMapUrl?: boolean
+  defaultConsumptionPercent?: boolean
   contactEmail?: boolean
   contactPhone?: boolean
   pointValue?: boolean
@@ -2044,6 +2112,7 @@ export type ClubSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   musicGenre?: boolean
   imageUrl?: boolean
   floorMapUrl?: boolean
+  defaultConsumptionPercent?: boolean
   contactEmail?: boolean
   contactPhone?: boolean
   pointValue?: boolean
@@ -2063,6 +2132,7 @@ export type ClubSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   musicGenre?: boolean
   imageUrl?: boolean
   floorMapUrl?: boolean
+  defaultConsumptionPercent?: boolean
   contactEmail?: boolean
   contactPhone?: boolean
   pointValue?: boolean
@@ -2082,6 +2152,7 @@ export type ClubSelectScalar = {
   musicGenre?: boolean
   imageUrl?: boolean
   floorMapUrl?: boolean
+  defaultConsumptionPercent?: boolean
   contactEmail?: boolean
   contactPhone?: boolean
   pointValue?: boolean
@@ -2091,7 +2162,7 @@ export type ClubSelectScalar = {
   ownerId?: boolean
 }
 
-export type ClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "address" | "city" | "musicGenre" | "imageUrl" | "floorMapUrl" | "contactEmail" | "contactPhone" | "pointValue" | "isActive" | "createdAt" | "updatedAt" | "ownerId", ExtArgs["result"]["club"]>
+export type ClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "address" | "city" | "musicGenre" | "imageUrl" | "floorMapUrl" | "defaultConsumptionPercent" | "contactEmail" | "contactPhone" | "pointValue" | "isActive" | "createdAt" | "updatedAt" | "ownerId", ExtArgs["result"]["club"]>
 export type ClubInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   tables?: boolean | Prisma.Club$tablesArgs<ExtArgs>
@@ -2133,6 +2204,7 @@ export type $ClubPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     musicGenre: string | null
     imageUrl: string | null
     floorMapUrl: string | null
+    defaultConsumptionPercent: number
     contactEmail: string
     contactPhone: string | null
     pointValue: runtime.Decimal
@@ -2580,6 +2652,7 @@ export interface ClubFieldRefs {
   readonly musicGenre: Prisma.FieldRef<"Club", 'String'>
   readonly imageUrl: Prisma.FieldRef<"Club", 'String'>
   readonly floorMapUrl: Prisma.FieldRef<"Club", 'String'>
+  readonly defaultConsumptionPercent: Prisma.FieldRef<"Club", 'Int'>
   readonly contactEmail: Prisma.FieldRef<"Club", 'String'>
   readonly contactPhone: Prisma.FieldRef<"Club", 'String'>
   readonly pointValue: Prisma.FieldRef<"Club", 'Decimal'>

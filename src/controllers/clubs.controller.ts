@@ -8,6 +8,7 @@ import { getAuthUser } from "../middlewares/auth";
 import { assertUserCanAccessClub } from "../utils/clubAccess";
 import {
   asRecord,
+  optionalNumber,
   optionalString,
   requireParam,
   requireString,
@@ -49,8 +50,19 @@ export const createClub = async (
     const musicGenre = optionalString(body, "musicGenre");
     const imageUrl = optionalString(body, "imageUrl");
     const floorMapUrl = optionalString(body, "floorMapUrl");
+    const defaultConsumptionPercent = optionalNumber(body, "defaultConsumptionPercent");
     const contactEmail = requireContactEmail(body);
     const contactPhone = optionalContactPhone(body);
+
+    if (
+      defaultConsumptionPercent !== undefined &&
+      (defaultConsumptionPercent < 1 || defaultConsumptionPercent > 100)
+    ) {
+      throw new AppError(
+        "El porcentaje de consumicion default debe estar entre 1 y 100",
+        400
+      );
+    }
 
     const owner = await prisma.user.findUnique({ where: { id: ownerId } });
     if (owner === null) {
@@ -72,6 +84,9 @@ export const createClub = async (
         musicGenre: musicGenre ?? null,
         imageUrl: imageUrl ?? null,
         floorMapUrl: floorMapUrl ?? null,
+        ...(defaultConsumptionPercent !== undefined
+          ? { defaultConsumptionPercent: Math.round(defaultConsumptionPercent) }
+          : {}),
         contactEmail,
         contactPhone,
       },
@@ -163,6 +178,7 @@ export const updateClub = async (
     const musicGenre = optionalString(body, "musicGenre");
     const imageUrl = optionalString(body, "imageUrl");
     const floorMapUrl = optionalString(body, "floorMapUrl");
+    const defaultConsumptionPercent = optionalNumber(body, "defaultConsumptionPercent");
     const contactEmailRaw = optionalString(body, "contactEmail");
     const contactPhoneRaw = body["contactPhone"];
 
@@ -173,6 +189,18 @@ export const updateClub = async (
     if (musicGenre !== undefined) data.musicGenre = musicGenre;
     if (imageUrl !== undefined) data.imageUrl = imageUrl;
     if (floorMapUrl !== undefined) data.floorMapUrl = floorMapUrl;
+    if (defaultConsumptionPercent !== undefined) {
+      if (
+        defaultConsumptionPercent < 1 ||
+        defaultConsumptionPercent > 100
+      ) {
+        throw new AppError(
+          "El porcentaje de consumicion default debe estar entre 1 y 100",
+          400
+        );
+      }
+      data.defaultConsumptionPercent = Math.round(defaultConsumptionPercent);
+    }
     if (contactEmailRaw !== undefined) {
       const email = normalizeEmail(contactEmailRaw);
       if (!email.includes("@") || !email.includes(".")) {

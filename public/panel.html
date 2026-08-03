@@ -637,6 +637,7 @@
             <select id="event-club-select" onchange="onEventClubChange()"></select>
           </div>
           <button class="btn-sm" onclick="openEventForm()">+ Agregar evento</button>
+          <button class="btn-sm ghost" onclick="openClubTemplateFromEvents()">⚙ Config. base</button>
           <button class="ghost" onclick="loadEvents()">↻ Actualizar</button>
         </div>
         <div id="events-area"><div class="empty">Cargando...</div></div>
@@ -873,6 +874,7 @@
               </div>
               <div class="btn-row">
                 <button type="button" class="btn-sm ghost" onclick="editClub('${c.id}')">Editar</button>
+                <button type="button" class="btn-sm" onclick='openClubTemplateConfig(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Config. base</button>
                 <button type="button" class="btn-sm btn-accent" onclick='openTeamInvites(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Códigos equipo</button>
                 ${isSuperAdmin() ? `<button type="button" class="btn-sm btn-danger" onclick='deleteClub(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Eliminar</button>` : ""}
               </div>
@@ -1519,6 +1521,136 @@
       const GUEST_STATUS = { REQUESTED: ["amber", "Solicitado"], ACCEPTED_PENDING_PAYMENT: ["violet", "Aceptado"], CONFIRMED: ["green", "Confirmado"], REJECTED: ["red", "Rechazado"], CANCELLED: ["muted", "Cancelado"] };
       function guestBadge(s) { const [c, l] = GUEST_STATUS[s] || ["muted", s]; return `<span class="badge ${c}">${l}</span>`; }
 
+      // ---------- CONFIG BASE DEL BOLICHE ----------
+      let _clubTemplate = { clubId: null, name: "" };
+      let _clubTemplateBg = null;
+
+      function openClubTemplateFromEvents() {
+        const clubId = document.getElementById("event-club-select")?.value;
+        if (!clubId) { toast("Seleccioná un boliche primero", "err"); return; }
+        const club = _clubsCache.find((c) => c.id === clubId);
+        openClubTemplateConfig(clubId, club?.name || "Boliche");
+      }
+
+      async function openClubTemplateConfig(clubId, clubName) {
+        _clubTemplate = { clubId, name: clubName };
+        openModal('<div class="empty">Cargando configuración base...</div>');
+        try {
+          const tpl = await api("/clubs/" + clubId + "/template");
+          _clubTemplateBg = tpl.floorMapUrl || null;
+          openModal(`
+            <h3>Configuración base · ${esc(clubName)}</h3>
+            <p class="sub">Plano, carta y mesas que se aplican al crear eventos nuevos (opción por defecto). Los eventos ya creados no se modifican.</p>
+            <label style="margin-top:0">Plano del salón (imagen de fondo)</label>
+            <input id="tpl-map" type="file" accept="image/*" onchange="onClubTemplateMap(event)" />
+            <div id="tpl-map-preview" style="margin-top:10px">${_clubTemplateBg ? `<img src="${esc(_clubTemplateBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>` : '<span class="role-pill">Sin plano base. El diseñador usará la grilla por defecto.</span>'}</div>
+            <label>Género musical default</label>
+            <input id="tpl-genre" value="${tpl.musicGenre ? attr(tpl.musicGenre) : ""}" placeholder="Ej. Electrónica" />
+            <label>% consumición default (mesas nuevas)</label>
+            <input id="tpl-cons-pct" type="number" min="1" max="100" value="${tpl.defaultConsumptionPercent ?? 100}" />
+            <div class="btn-row" style="margin-top:16px;flex-wrap:wrap">
+              <button type="button" class="btn-sm btn-accent" onclick="openClubTemplateBottles()">Carta · ${tpl.productCount || 0} productos</button>
+              <button type="button" class="btn-sm btn-accent" onclick="openClubTemplateDesigner()">Mesas · ${tpl.tableCount || 0} en plano</button>
+            </div>
+            <div class="btn-row" style="margin-top:20px">
+              <button type="button" class="ghost" onclick="closeModal()">Cerrar</button>
+              <button type="button" style="flex:1" onclick="saveClubTemplateMeta()">Guardar datos base</button>
+            </div>
+            <div class="error" id="tpl-err"></div>`);
+        } catch (e) {
+          openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`);
+        }
+      }
+
+      async function onClubTemplateMap(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const prev = document.getElementById("tpl-map-preview");
+        prev.innerHTML = '<span class="role-pill">Subiendo imagen...</span>';
+        try {
+          const dataUrl = await new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result);
+            r.onerror = reject;
+            r.readAsDataURL(file);
+          });
+          const res = await api("/uploads/map", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
+          _clubTemplateBg = res.url;
+          prev.innerHTML = `<img src="${esc(_clubTemplateBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>`;
+          toast("Plano cargado (guardá para confirmar)", "ok");
+        } catch (err) { prev.innerHTML = `<span style="color:var(--pink)">${esc(err.message)}</span>`; }
+      }
+
+      async function saveClubTemplateMeta() {
+        const errEl = document.getElementById("tpl-err");
+        const musicGenre = document.getElementById("tpl-genre")?.value.trim() ?? "";
+        const consPct = parseInt(document.getElementById("tpl-cons-pct")?.value ?? "100", 10);
+        if (!(consPct >= 1 && consPct <= 100)) {
+          errEl.textContent = "El % de consumición debe ser entre 1 y 100.";
+          return;
+        }
+        const body = { musicGenre, defaultConsumptionPercent: consPct };
+        if (_clubTemplateBg) body.floorMapUrl = _clubTemplateBg;
+        try {
+          await api("/clubs/" + _clubTemplate.clubId + "/template", { method: "PATCH", body: JSON.stringify(body) });
+          toast("Configuración base guardada", "ok");
+          const club = _clubsCache.find((c) => c.id === _clubTemplate.clubId);
+          if (club) {
+            club.musicGenre = musicGenre;
+            club.floorMapUrl = _clubTemplateBg;
+            club.defaultConsumptionPercent = consPct;
+          }
+          closeModal();
+        } catch (e) {
+          errEl.textContent = e.message;
+        }
+      }
+
+      async function openClubTemplateBottles() {
+        const { clubId, name } = _clubTemplate;
+        _evtBottles = { id: null, name, clubId, isTemplate: true };
+        openModal('<div class="empty">Cargando carta base...</div>');
+        try {
+          const products = await api("/clubs/" + clubId + "/products");
+          const cards = products.length
+            ? renderBottleList(products)
+            : '<div class="empty">Todavía no hay botellas en la carta base. Agregá la primera con el botón de abajo.</div>';
+          openModal(`
+            <h3>Carta base · ${esc(name)}</h3>
+            <p class="sub">Bebidas que se copian a cada evento nuevo (salvo que elijas otra opción al crear).</p>
+            <div class="bottles-grid">${cards}</div>
+            <div class="btn-row" style="margin-top:16px">
+              <button class="btn-sm btn-accent" onclick="openBottleForm()">+ Agregar botella</button>
+              <button class="ghost" style="flex:1" onclick='openClubTemplateConfig(${JSON.stringify(clubId)}, ${JSON.stringify(name)})'>← Volver</button>
+            </div>`);
+        } catch (e) { openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`); }
+      }
+
+      async function openClubTemplateDesigner() {
+        const { clubId, name } = _clubTemplate;
+        openModal('<div class="empty">Cargando diseñador base...</div>');
+        document.getElementById("modal-content").classList.add("wide");
+        try {
+          const tpl = await api("/clubs/" + clubId + "/template");
+          _designer = {
+            isTemplate: true,
+            eventId: null,
+            name: name + " (base)",
+            clubId,
+            bg: tpl.floorMapUrl,
+            tables: tpl.tables.map((t) => ({ ...t, status: "AVAILABLE" })),
+          };
+          renderDesigner();
+        } catch (e) {
+          openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeClubTemplateDesigner()">Cerrar</button>`);
+        }
+      }
+
+      function closeClubTemplateDesigner() {
+        document.getElementById("modal-content").classList.remove("wide");
+        openClubTemplateConfig(_clubTemplate.clubId, _clubTemplate.name);
+      }
+
       // ---------- EVENTOS ----------
       function onEventClubChange() {
         localStorage.setItem("kluby_events_club", document.getElementById("event-club-select").value);
@@ -1604,22 +1736,31 @@
         const editing = ev && ev.id;
         _editingEventId = editing ? ev.id : null;
         _eventBg = editing && ev.backgroundImage ? ev.backgroundImage : null;
-        const copyBlock =
-          !editing && _eventsPastCache.length
-            ? `<label>Copiar plano y mesas de evento anterior</label>
-          <select id="ev-copy-from">
-            <option value="">Empezar vacío</option>
-            ${_eventsPastCache
-              .map(
-                (e) =>
-                  `<option value="${e.id}">${esc(e.name)} · ${fdt(e.date)}${
-                    e._count?.tables ? ` (${e._count.tables} mesas)` : ""
-                  }</option>`
-              )
-              .join("")}
+        const copyBlock = !editing
+          ? `<label>Configuración inicial</label>
+          <select id="ev-setup" onchange="onEventSetupChange()">
+            <option value="club" selected>Usar configuración base del boliche</option>
+            <option value="past"${_eventsPastCache.length ? "" : " disabled"}>Copiar evento pasado</option>
+            <option value="empty">Empezar vacío</option>
           </select>
-          <p class="hint" style="margin-top:-6px;text-align:left">Duplica la imagen del plano y todas las mesas del evento elegido.</p>`
-            : "";
+          <div id="ev-past-wrap" style="display:none;margin-top:10px">
+            <label>Evento pasado a copiar</label>
+            <select id="ev-copy-from">
+              <option value="">Elegí un evento...</option>
+              ${_eventsPastCache
+                .map(
+                  (e) =>
+                    `<option value="${e.id}">${esc(e.name)} · ${fdt(e.date)}${
+                      e._count?.tables || e._count?.products
+                        ? ` (${e._count?.tables || 0} mesas · ${e._count?.products || 0} productos)`
+                        : ""
+                    }</option>`
+                )
+                .join("")}
+            </select>
+          </div>
+          <p class="hint" style="margin-top:-6px;text-align:left" id="ev-setup-hint">Se copiarán plano, mesas y carta base del boliche. Solo definís nombre y fecha abajo.</p>`
+          : "";
         openModal(`
           <h3>${editing ? "Editar evento" : "Nuevo evento"}</h3>
           <p class="sub">${editing ? "Modificá los datos de la fecha." : "Creá una nueva fecha para el boliche seleccionado."}</p>
@@ -1641,6 +1782,20 @@
             <button type="button" style="flex:1" id="ev-save" onclick="saveEvent()">${editing ? "Guardar cambios" : "Crear evento"}</button>
           </div>
           <div class="error" id="ev-err"></div>`);
+      }
+      function onEventSetupChange() {
+        const setup = document.getElementById("ev-setup")?.value || "club";
+        const pastWrap = document.getElementById("ev-past-wrap");
+        const hint = document.getElementById("ev-setup-hint");
+        if (pastWrap) pastWrap.style.display = setup === "past" ? "block" : "none";
+        if (hint) {
+          hint.textContent =
+            setup === "past"
+              ? "Se copia todo del evento pasado excepto nombre y fecha."
+              : setup === "empty"
+                ? "El evento arranca sin plano, mesas ni carta."
+                : "Se copiarán plano, mesas y carta base del boliche. Solo definís nombre y fecha abajo.";
+        }
       }
       async function onEventImage(e) {
         const file = e.target.files[0];
@@ -1681,16 +1836,24 @@
             toast("Evento actualizado", "ok");
           } else {
             const clubId = document.getElementById("event-club-select").value;
-            const copyFrom = document.getElementById("ev-copy-from")?.value;
-            if (copyFrom) body.copyFromEventId = copyFrom;
+            const setup = document.getElementById("ev-setup")?.value || "club";
+            body.setupMode = setup;
+            if (setup === "past") {
+              const copyFrom = document.getElementById("ev-copy-from")?.value;
+              if (!copyFrom) {
+                errEl.textContent = "Elegí un evento pasado para copiar.";
+                if (btn) { btn.disabled = false; btn.textContent = "Crear evento"; }
+                return;
+              }
+              body.copyFromEventId = copyFrom;
+            }
             const created = await api("/clubs/" + clubId + "/events", { method: "POST", body: JSON.stringify(body) });
             const lc = created.layoutCopy;
-            toast(
-              lc
-                ? `Evento creado · ${lc.tablesCopied} mesa${lc.tablesCopied === 1 ? "" : "s"} copiada${lc.tablesCopied === 1 ? "" : "s"}${lc.backgroundCopied ? " · plano copiado" : ""}`
-                : "Evento creado",
-              "ok"
-            );
+            const parts = [];
+            if (lc?.tablesCopied) parts.push(`${lc.tablesCopied} mesa${lc.tablesCopied === 1 ? "" : "s"}`);
+            if (lc?.productsCopied) parts.push(`${lc.productsCopied} producto${lc.productsCopied === 1 ? "" : "s"}`);
+            if (lc?.backgroundCopied) parts.push("plano copiado");
+            toast(parts.length ? `Evento creado · ${parts.join(" · ")}` : "Evento creado", "ok");
           }
           _editingEventId = null;
           closeModal();
@@ -1704,9 +1867,9 @@
       }
 
       // Botellas del evento (carta de bebidas)
-      let _evtBottles = { id: null, name: "" };
+      let _evtBottles = { id: null, name: "", clubId: null, isTemplate: false };
       async function openEventBottles(eventId, eventName) {
-        _evtBottles = { id: eventId, name: eventName };
+        _evtBottles = { id: eventId, name: eventName, clubId: null, isTemplate: false };
         openModal('<div class="empty">Cargando carta...</div>');
         try {
           const products = await api("/events/" + eventId + "/products");
@@ -1763,7 +1926,7 @@
           <label>Descripción (opcional)</label>
           <input id="b-desc" value="${editing && product.description ? esc(product.description) : ""}" placeholder="Ej. Incluye hielo y 4 energéticas" />
           <div class="btn-row" style="margin-top:20px">
-            <button class="ghost" onclick='openEventBottles(${JSON.stringify(_evtBottles.id)}, ${JSON.stringify(_evtBottles.name)})'>← Volver</button>
+            <button class="ghost" onclick="${_evtBottles.isTemplate ? `openClubTemplateBottles()` : `openEventBottles(${JSON.stringify(_evtBottles.id)}, ${JSON.stringify(_evtBottles.name)})`}">← Volver</button>
             <button style="flex:1" onclick='saveBottle(${editing ? JSON.stringify(product.id) : "null"})'>${editing ? "Guardar" : "Agregar"}</button>
           </div>
           <div class="error" id="b-err"></div>`);
@@ -1783,11 +1946,15 @@
           if (productId) {
             await api("/products/" + productId, { method: "PATCH", body: JSON.stringify(body) });
             toast("Botella actualizada", "ok");
+          } else if (_evtBottles.isTemplate) {
+            await api("/clubs/" + _evtBottles.clubId + "/products", { method: "POST", body: JSON.stringify(body) });
+            toast("Botella agregada a la carta base", "ok");
           } else {
             await api("/events/" + _evtBottles.id + "/products", { method: "POST", body: JSON.stringify(body) });
             toast("Botella agregada", "ok");
           }
-          openEventBottles(_evtBottles.id, _evtBottles.name);
+          if (_evtBottles.isTemplate) openClubTemplateBottles();
+          else openEventBottles(_evtBottles.id, _evtBottles.name);
         } catch (e) { document.getElementById("b-err").textContent = e.message; }
       }
       async function deleteBottle(id, name) {
@@ -1795,7 +1962,8 @@
         try {
           await api("/products/" + id, { method: "DELETE" });
           toast("Botella eliminada", "ok");
-          openEventBottles(_evtBottles.id, _evtBottles.name);
+          if (_evtBottles.isTemplate) openClubTemplateBottles();
+          else openEventBottles(_evtBottles.id, _evtBottles.name);
         } catch (e) { toast(e.message, "err"); }
       }
 
@@ -1893,7 +2061,7 @@
       }
 
       // ---------- DISEÑADOR DE MESAS ----------
-      let _designer = { eventId: null, name: "", clubId: null, bg: null, tables: [] };
+      let _designer = { isTemplate: false, eventId: null, name: "", clubId: null, bg: null, tables: [] };
       function shortLabel(l) { return String(l).split(" ").pop(); }
 
       async function openDesigner(eventId, eventName) {
@@ -1901,11 +2069,15 @@
         document.getElementById("modal-content").classList.add("wide");
         try {
           const d = await api("/events/" + eventId + "/availability");
-          _designer = { eventId, name: eventName, clubId: d.event.clubId, bg: d.event.backgroundImage, tables: d.tables };
+          _designer = { isTemplate: false, eventId, name: eventName, clubId: d.event.clubId, bg: d.event.backgroundImage, tables: d.tables };
           renderDesigner();
         } catch (e) { openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeDesigner()">Cerrar</button>`); }
       }
-      function closeDesigner() { document.getElementById("modal-content").classList.remove("wide"); closeModal(); loadEvents(); }
+      function closeDesigner() {
+        document.getElementById("modal-content").classList.remove("wide");
+        if (_designer.isTemplate) closeClubTemplateDesigner();
+        else { closeModal(); loadEvents(); }
+      }
 
       function renderDesigner() {
         const d = _designer;
@@ -1915,8 +2087,8 @@
           ? `<img id="dmap-img" src="${esc(d.bg)}" alt="plano" />${pins}`
           : `<span class="canvas-label">Lienzo 1725 × 2490</span>${pins}`;
         openModal(`
-          <h3>Diseñar mesas · ${esc(d.name)}</h3>
-          <p class="sub">${d.bg ? "Arrastrá las mesas sobre el plano." : "Sin imagen de fondo: usá el lienzo predeterminado. Arrastrá o agregá mesas."}</p>
+          <h3>${d.isTemplate ? "Mesas base" : "Diseñar mesas"} · ${esc(d.name)}</h3>
+          <p class="sub">${d.isTemplate ? "Layout de mesas que se copia a eventos nuevos." : d.bg ? "Arrastrá las mesas sobre el plano." : "Sin imagen de fondo: usá el lienzo predeterminado. Arrastrá o agregá mesas."}</p>
           <div class="btn-row" style="margin-bottom:12px;flex-wrap:wrap">
             <button class="btn-sm btn-accent" onclick="openBulkSectorForm()">+ Agregar sector</button>
             <button class="btn-sm" onclick="openSingleTableForm()">+ Agregar mesa</button>
@@ -2028,7 +2200,10 @@
           return;
         }
         try {
-          const res = await api("/events/" + _designer.eventId + "/tables/bulk", {
+          const bulkUrl = _designer.isTemplate
+            ? "/clubs/" + _designer.clubId + "/template/tables/bulk"
+            : "/events/" + _designer.eventId + "/tables/bulk";
+          const res = await api(bulkUrl, {
             method: "POST",
             body: JSON.stringify({ sector, count, price, capacity, consumptionPercent, depositPercent }),
           });
@@ -2086,7 +2261,8 @@
             method: "POST",
             body: JSON.stringify({
               label, sector, capacity, price, consumptionPercent, depositPercent,
-              posX: 50, posY: 50, eventId: _designer.eventId,
+              posX: 50, posY: 50,
+              ...(_designer.isTemplate ? {} : { eventId: _designer.eventId }),
             }),
           });
           t.status = "AVAILABLE";

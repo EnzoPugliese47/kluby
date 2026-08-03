@@ -9,7 +9,12 @@ import {
 import {
   createTable,
   listTablesByClub,
+  bulkCreateTemplateTables,
 } from "../controllers/tables.controller";
+import {
+  getClubTemplate,
+  updateClubTemplate,
+} from "../controllers/clubTemplate.controller";
 import {
   createEvent,
   listEventsByClub,
@@ -58,6 +63,9 @@ const doorOrAdmin = [
   authorize("PUERTA", "CLUB_ADMIN", "SUPER_ADMIN"),
 ];
 
+router.get("/:clubId/template", ...adminOnly, getClubTemplate);
+router.patch("/:clubId/template", ...adminOnly, updateClubTemplate);
+router.post("/:clubId/template/tables/bulk", ...staffOrAdmin, bulkCreateTemplateTables);
 router.post("/", ...adminOnly, createClub);
 router.patch("/:id", ...adminOnly, updateClub);
 router.delete("/:id", ...adminOnly, deleteClub);

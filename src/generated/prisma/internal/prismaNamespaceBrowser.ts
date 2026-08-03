@@ -183,6 +183,7 @@ export const ClubScalarFieldEnum = {
   musicGenre: 'musicGenre',
   imageUrl: 'imageUrl',
   floorMapUrl: 'floorMapUrl',
+  defaultConsumptionPercent: 'defaultConsumptionPercent',
   contactEmail: 'contactEmail',
   contactPhone: 'contactPhone',
   pointValue: 'pointValue',

@@ -1,52 +1,43 @@
 import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/appError";
+import type { EventLayoutCopyResult } from "./eventLayout";
 
-export interface EventLayoutCopyResult {
-  tablesCopied: number;
-  productsCopied: number;
-  backgroundCopied: boolean;
-}
-
-/** Copia plano, mesas y carta de un evento pasado a uno recién creado (no nombre ni fecha). */
-export async function copyEventLayoutFrom(
-  sourceEventId: string,
-  targetEventId: string,
-  targetClubId: string
+/** Copia plano, mesas y carta maestra del boliche a un evento recién creado. */
+export async function applyClubDefaultsToEvent(
+  clubId: string,
+  targetEventId: string
 ): Promise<EventLayoutCopyResult> {
-  const source = await prisma.eventNight.findUnique({
-    where: { id: sourceEventId },
+  const club = await prisma.club.findUnique({
+    where: { id: clubId },
     include: {
-      tables: { where: { isActive: true } },
-      products: { where: { isActive: true } },
+      products: { where: { isActive: true, eventId: null } },
+      tables: { where: { isActive: true, eventId: null } },
     },
   });
-  if (source === null || source.clubId !== targetClubId) {
-    throw new AppError(
-      "El evento origen no existe o no pertenece al mismo boliche",
-      400
-    );
+  if (club === null) {
+    throw new AppError("Boliche no encontrado", 404);
   }
 
   const target = await prisma.eventNight.findUnique({
     where: { id: targetEventId },
   });
-  if (target === null || target.clubId !== targetClubId) {
+  if (target === null || target.clubId !== clubId) {
     throw new AppError("Evento destino no encontrado", 404);
   }
 
   let backgroundCopied = false;
-  if (source.backgroundImage && !target.backgroundImage) {
+  if (club.floorMapUrl && !target.backgroundImage) {
     await prisma.eventNight.update({
       where: { id: targetEventId },
-      data: { backgroundImage: source.backgroundImage },
+      data: { backgroundImage: club.floorMapUrl },
     });
     backgroundCopied = true;
   }
 
-  if (source.tables.length > 0) {
+  if (club.tables.length > 0) {
     await prisma.clubTable.createMany({
-      data: source.tables.map((t) => ({
-        clubId: targetClubId,
+      data: club.tables.map((t) => ({
+        clubId,
         eventId: targetEventId,
         label: t.label,
         sector: t.sector,
@@ -62,10 +53,10 @@ export async function copyEventLayoutFrom(
     });
   }
 
-  if (source.products.length > 0) {
+  if (club.products.length > 0) {
     await prisma.product.createMany({
-      data: source.products.map((p) => ({
-        clubId: targetClubId,
+      data: club.products.map((p) => ({
+        clubId,
         eventId: targetEventId,
         name: p.name,
         description: p.description,
@@ -79,8 +70,8 @@ export async function copyEventLayoutFrom(
   }
 
   return {
-    tablesCopied: source.tables.length,
-    productsCopied: source.products.length,
+    tablesCopied: club.tables.length,
+    productsCopied: club.products.length,
     backgroundCopied,
   };
 }

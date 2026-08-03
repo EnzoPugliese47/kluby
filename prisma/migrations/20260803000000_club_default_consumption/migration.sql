@@ -1,0 +1,1 @@
+ALTER TABLE "Club" ADD COLUMN "defaultConsumptionPercent" INTEGER NOT NULL DEFAULT 100;

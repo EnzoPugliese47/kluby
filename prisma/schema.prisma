@@ -241,6 +241,7 @@ model Club {
   musicGenre  String? // Para filtrado por genero musical
   imageUrl       String?
   floorMapUrl    String? // Plano/mapa de planta cargado por el admin
+  defaultConsumptionPercent Int @default(100) // Default para mesas nuevas al crear eventos desde la plantilla
   contactEmail   String  // Email de contacto del boliche (tarjeta visible al cliente)
   contactPhone   String? // Telefono de contacto (opcional)
   pointValue     Decimal  @default(1) @db.Decimal(12, 2) // Valor de canje de 1 punto (RN18, min $1)

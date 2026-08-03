@@ -82,6 +82,8 @@ export const createTable = async (
     if (eventId !== undefined) {
       const defs = await resolveEventDefaults(eventId, clubId);
       eventDefault = defs.defaultConsumptionPercent;
+    } else {
+      eventDefault = club.defaultConsumptionPercent;
     }
 
     const consumptionPercent = parseConsumptionPercent(
@@ -207,7 +209,101 @@ export const bulkCreateTablesForEvent = async (
   }
 };
 
-/** GET /api/clubs/:clubId/tables */
+/** POST /api/clubs/:clubId/template/tables/bulk — mesas base del boliche. */
+export const bulkCreateTemplateTables = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const clubId = requireParam(req.params, "clubId");
+    const body = asRecord(req.body);
+
+    const sector = requireString(body, "sector");
+    const count = requireNumber(body, "count");
+    const capacity = requireNumber(body, "capacity");
+    const price = requireNumber(body, "price");
+    const depositPercent = optionalNumber(body, "depositPercent") ?? 10;
+    const consumptionPercentRaw = optionalNumber(body, "consumptionPercent");
+
+    if (count < 1 || count > 50) {
+      throw new AppError("La cantidad de mesas debe estar entre 1 y 50", 400);
+    }
+    if (capacity <= 0) {
+      throw new AppError("La capacidad debe ser mayor a cero", 400);
+    }
+    if (price < 0) {
+      throw new AppError("El precio no puede ser negativo", 400);
+    }
+    if (depositPercent <= 0 || depositPercent > 100) {
+      throw new AppError("El porcentaje de sena debe estar entre 1 y 100", 400);
+    }
+
+    const club = await prisma.club.findUnique({ where: { id: clubId } });
+    if (club === null) {
+      throw new AppError("Boliche no encontrado", 404);
+    }
+
+    const consumptionPercent = parseConsumptionPercent(
+      consumptionPercentRaw,
+      club.defaultConsumptionPercent
+    );
+    const minConsumption = minConsumptionFromPercent(price, consumptionPercent);
+
+    const existing = await prisma.clubTable.findMany({
+      where: { clubId, eventId: null, isActive: true },
+      select: { label: true, sector: true },
+    });
+
+    let nextNum = existing.reduce(
+      (max, t) => Math.max(max, tableNumberFromLabel(t.label)),
+      0
+    );
+
+    const sectors = [
+      ...new Set(existing.map((t) => t.sector).filter(Boolean) as string[]),
+    ];
+    const sectorIndex = sectors.includes(sector)
+      ? sectors.indexOf(sector)
+      : sectors.length;
+
+    const cols = Math.min(5, count);
+    const baseY = 12 + (sectorIndex % 4) * 18;
+    const baseX = 14;
+
+    const tables = await prisma.$transaction(async (tx) => {
+      const created = [];
+      for (let i = 0; i < count; i++) {
+        nextNum += 1;
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const table = await tx.clubTable.create({
+          data: {
+            clubId,
+            eventId: null,
+            label: `Mesa ${nextNum}`,
+            sector,
+            capacity,
+            price: new Prisma.Decimal(price),
+            consumptionPercent,
+            minConsumption,
+            depositPercent,
+            posX: Math.min(92, baseX + col * 14),
+            posY: Math.min(92, baseY + row * 9),
+          },
+        });
+        created.push(table);
+      }
+      return created;
+    });
+
+    sendSuccess(res, { sector, count: tables.length, tables }, 201);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/** GET /api/clubs/:clubId/tables — ?template=1 solo mesas base (sin evento). */
 export const listTablesByClub = async (
   req: Request,
   res: Response,
@@ -215,8 +311,14 @@ export const listTablesByClub = async (
 ): Promise<void> => {
   try {
     const clubId = requireParam(req.params, "clubId");
+    const templateOnly =
+      req.query.template === "1" || req.query.template === "true";
     const tables = await prisma.clubTable.findMany({
-      where: { clubId, isActive: true },
+      where: {
+        clubId,
+        isActive: true,
+        ...(templateOnly ? { eventId: null } : {}),
+      },
       orderBy: { label: "asc" },
     });
     sendSuccess(res, tables);

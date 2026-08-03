@@ -20,7 +20,8 @@ import {
   requireString,
 } from "../utils/validation";
 import { openTablesEventCutoff, isEventPast } from "../utils/eventTiming";
-import { copyEventLayoutFrom } from "../utils/eventLayout";
+import { copyEventLayoutFrom, type EventLayoutCopyResult } from "../utils/eventLayout";
+import { applyClubDefaultsToEvent } from "../utils/clubDefaults";
 
 const PAYMENT_OPTION_VALUES = Object.values(PaymentOption);
 
@@ -39,6 +40,7 @@ export const createEvent = async (
     const backgroundImage = optionalString(body, "backgroundImage");
     const defaultConsumptionPercent = optionalNumber(body, "defaultConsumptionPercent");
     const copyFromEventId = optionalString(body, "copyFromEventId");
+    const setupMode = optionalString(body, "setupMode");
 
     const date = new Date(dateRaw);
     if (Number.isNaN(date.getTime())) {
@@ -59,23 +61,20 @@ export const createEvent = async (
       throw new AppError("Boliche no encontrado", 404);
     }
 
-    const event = await prisma.eventNight.create({
-      data: {
-        clubId,
-        name,
-        date,
-        musicGenre: musicGenre ?? null,
-        backgroundImage: backgroundImage ?? null,
-        ...(defaultConsumptionPercent !== undefined
-          ? { defaultConsumptionPercent: Math.round(defaultConsumptionPercent) }
-          : {}),
-      },
-    });
+    const usePast = Boolean(copyFromEventId) || setupMode === "past";
+    const startEmpty = setupMode === "empty";
 
-    let layoutCopy: { tablesCopied: number; backgroundCopied: boolean } | null =
-      null;
-    if (copyFromEventId) {
-      const sourceEvent = await prisma.eventNight.findUnique({
+    let sourceEvent: Awaited<
+      ReturnType<typeof prisma.eventNight.findUnique>
+    > = null;
+    if (usePast) {
+      if (!copyFromEventId) {
+        throw new AppError(
+          "Elegí un evento pasado para copiar o usá otra opción de configuración",
+          400
+        );
+      }
+      sourceEvent = await prisma.eventNight.findUnique({
         where: { id: copyFromEventId },
       });
       if (
@@ -90,23 +89,78 @@ export const createEvent = async (
       }
       if (!isEventPast(sourceEvent.date)) {
         throw new AppError(
-          "Solo podés copiar el plano de eventos ya finalizados",
+          "Solo podés copiar de eventos ya finalizados",
           400
         );
       }
-      layoutCopy = await copyEventLayoutFrom(copyFromEventId, event.id, clubId);
-      if (layoutCopy.backgroundCopied && !backgroundImage) {
-        const refreshed = await prisma.eventNight.findUnique({
-          where: { id: event.id },
-        });
-        if (refreshed) {
-          sendSuccess(res, { ...refreshed, layoutCopy }, 201);
-          return;
-        }
-      }
     }
 
-    sendSuccess(res, layoutCopy ? { ...event, layoutCopy } : event, 201);
+    const resolvedBackground =
+      backgroundImage ??
+      (usePast && sourceEvent ? sourceEvent.backgroundImage : null) ??
+      (startEmpty ? null : club.floorMapUrl) ??
+      null;
+    const backgroundCopiedAtCreate =
+      Boolean(resolvedBackground) &&
+      !backgroundImage &&
+      Boolean(usePast ? sourceEvent?.backgroundImage : club.floorMapUrl);
+
+    const resolvedGenre =
+      usePast && sourceEvent
+        ? sourceEvent.musicGenre
+        : startEmpty
+          ? (musicGenre ?? null)
+          : (musicGenre ?? club.musicGenre ?? null);
+
+    const resolvedConsPct =
+      usePast && sourceEvent
+        ? sourceEvent.defaultConsumptionPercent
+        : startEmpty
+          ? defaultConsumptionPercent !== undefined
+            ? Math.round(defaultConsumptionPercent)
+            : 100
+          : defaultConsumptionPercent !== undefined
+            ? Math.round(defaultConsumptionPercent)
+            : club.defaultConsumptionPercent;
+
+    const event = await prisma.eventNight.create({
+      data: {
+        clubId,
+        name,
+        date,
+        musicGenre: resolvedGenre,
+        backgroundImage: resolvedBackground,
+        defaultConsumptionPercent: resolvedConsPct,
+      },
+    });
+
+    let layoutCopy: EventLayoutCopyResult | null = null;
+    if (usePast && copyFromEventId) {
+      layoutCopy = await copyEventLayoutFrom(copyFromEventId, event.id, clubId);
+    } else if (!startEmpty) {
+      layoutCopy = await applyClubDefaultsToEvent(clubId, event.id);
+    }
+
+    if (layoutCopy !== null) {
+      if (backgroundCopiedAtCreate) {
+        layoutCopy.backgroundCopied = true;
+      }
+      const refreshed = await prisma.eventNight.findUnique({
+        where: { id: event.id },
+      });
+      sendSuccess(
+        res,
+        {
+          ...(refreshed ?? event),
+          layoutCopy,
+          setupSource: usePast ? "past" : "club",
+        },
+        201
+      );
+      return;
+    }
+
+    sendSuccess(res, event, 201);
   } catch (error) {
     next(error);
   }
@@ -340,7 +394,7 @@ export const listEventsByClub = async (
 
     const events = await prisma.eventNight.findMany({
       where: { clubId, isActive: true },
-      include: { _count: { select: { tables: true } } },
+      include: { _count: { select: { tables: true, products: true } } },
       orderBy: { date: "desc" },
     });
 
