@@ -127,6 +127,7 @@
       function setLandingExploreTab(tab) {
         exploreCtrl.setTab(tab);
       }
+      window.setLandingExploreTab = setLandingExploreTab;
 
       UI.loadExploreEvents({})
         .then((events) => {

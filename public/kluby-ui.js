@@ -460,7 +460,20 @@ window.KlubyUI = (function () {
     let exploreTab = options.initialTab || "clubs";
     let timer = null;
 
-    const $(id) => document.getElementById(id);
+    const $ = (id) => document.getElementById(id);
+
+    function syncTabUi() {
+      const tc = $(tabClubsId);
+      const te = $(tabEventsId);
+      if (tc) {
+        tc.classList.toggle("active", exploreTab === "clubs");
+        tc.setAttribute("aria-selected", exploreTab === "clubs");
+      }
+      if (te) {
+        te.classList.toggle("active", exploreTab === "events");
+        te.setAttribute("aria-selected", exploreTab === "events");
+      }
+    }
 
     function renderFilters() {
       const wrap = $(filtersId);
@@ -474,16 +487,7 @@ window.KlubyUI = (function () {
 
     function setTab(tab) {
       exploreTab = tab;
-      const tc = $(tabClubsId);
-      const te = $(tabEventsId);
-      if (tc) {
-        tc.classList.toggle("active", tab === "clubs");
-        tc.setAttribute("aria-selected", tab === "clubs");
-      }
-      if (te) {
-        te.classList.toggle("active", tab === "events");
-        te.setAttribute("aria-selected", tab === "events");
-      }
+      syncTabUi();
       renderFilters();
       void load();
     }
@@ -561,6 +565,7 @@ window.KlubyUI = (function () {
       timer = setTimeout(load, 300);
     }
 
+    syncTabUi();
     renderFilters();
     void load();
 
