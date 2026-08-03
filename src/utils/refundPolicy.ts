@@ -6,7 +6,7 @@ export interface RefundTier {
   label: string;
 }
 
-/** Escala RN16 ampliada: más de 72h → 100%, 48–72h → 75%, 24–48h → 50%, &lt;24h → 0%. */
+/** Escala Kluby por defecto: más de 72h → 100%, 48–72h → 75%, 24–48h → 50%, &lt;24h → 0%. */
 export const REFUND_TIERS: RefundTier[] = [
   { minHours: 72, percent: 100, label: "Más de 72 horas antes del evento" },
   { minHours: 48, percent: 75, label: "Entre 48 y 72 horas" },
@@ -21,33 +21,42 @@ export const hoursUntilEvent = (
 
 export const computeRefundPercent = (
   eventDate: Date,
-  now: Date = new Date()
+  now: Date = new Date(),
+  tiers: RefundTier[] = REFUND_TIERS
 ): number => {
   const hours = hoursUntilEvent(eventDate, now);
   if (hours <= 0) return 0;
-  if (hours > 72) return 100;
-  if (hours > 48) return 75;
-  if (hours >= 24) return 50;
-  return 0;
+  const sorted = [...tiers].sort((a, b) => b.minHours - a.minHours);
+  for (const tier of sorted) {
+    if (hours > tier.minHours) return tier.percent;
+  }
+  return sorted[sorted.length - 1]?.percent ?? 0;
 };
 
 export const computeRefundAmount = (
   amountPaid: Prisma.Decimal | number,
   eventDate: Date,
-  now: Date = new Date()
+  now: Date = new Date(),
+  tiers: RefundTier[] = REFUND_TIERS
 ): { refundPercent: number; refundAmount: Prisma.Decimal } => {
   const paid =
     amountPaid instanceof Prisma.Decimal
       ? amountPaid
       : new Prisma.Decimal(amountPaid);
-  const refundPercent = computeRefundPercent(eventDate, now);
+  const refundPercent = computeRefundPercent(eventDate, now, tiers);
   const refundAmount = paid.mul(refundPercent).div(100);
   return { refundPercent, refundAmount };
 };
 
-export const refundPolicyPayload = (eventDate?: Date) => {
+export const refundPolicyPayload = (
+  eventDate?: Date,
+  tiers: RefundTier[] = REFUND_TIERS,
+  opts?: { isCustom?: boolean; clubName?: string }
+) => {
   const base = {
-    tiers: REFUND_TIERS,
+    tiers,
+    isCustom: opts?.isCustom ?? false,
+    clubName: opts?.clubName ?? null,
     notes: [
       "El reembolso aplica sobre lo pagado online (seña o total). El saldo en el boliche no se incluye.",
       "Si usaste Kluby Points, se te devuelven al cancelar; la plata sigue la escala de la tabla.",
@@ -58,14 +67,14 @@ export const refundPolicyPayload = (eventDate?: Date) => {
   };
   if (eventDate === undefined) return base;
   const hours = hoursUntilEvent(eventDate);
-  const refundPercent = computeRefundPercent(eventDate);
+  const refundPercent = computeRefundPercent(eventDate, new Date(), tiers);
   return {
     ...base,
     preview: {
       hoursUntilEvent: Math.max(0, Math.round(hours * 10) / 10),
       refundPercent,
       tierLabel:
-        REFUND_TIERS.find((t) => t.percent === refundPercent)?.label ?? "",
+        tiers.find((t) => t.percent === refundPercent)?.label ?? "",
     },
   };
 };

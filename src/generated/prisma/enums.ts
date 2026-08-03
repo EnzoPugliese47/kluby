@@ -42,7 +42,8 @@ export const ReservationStatus = {
   CHECKED_IN: 'CHECKED_IN',
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED',
-  EXPIRED: 'EXPIRED'
+  EXPIRED: 'EXPIRED',
+  NO_SHOW: 'NO_SHOW'
 } as const
 
 export type ReservationStatus = (typeof ReservationStatus)[keyof typeof ReservationStatus]

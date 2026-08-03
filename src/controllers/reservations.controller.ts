@@ -38,6 +38,7 @@ import {
   computeRefundAmount,
   refundPolicyPayload,
 } from "../utils/refundPolicy";
+import { parseClubRefundTiers } from "../utils/clubRefundPolicy";
 
 const PAYMENT_OPTION_VALUES = Object.values(PaymentOption);
 const RESERVATION_MODE_VALUES = Object.values(ReservationMode);
@@ -289,55 +290,85 @@ export const payReservation = async (
 
 /**
  * GET /api/reservations/refund-policy — reglas publicas de cancelacion y devolucion.
- * Query opcional: eventDate (ISO), amountPaid (numero) para vista previa.
+ * Query opcional: eventDate (ISO), amountPaid (numero), clubId (politica del boliche).
  */
-export const getRefundPolicy = (
+export const getRefundPolicy = async (
   req: Request,
-  res: Response
-): void => {
-  const eventDateRaw =
-    typeof req.query.eventDate === "string"
-      ? req.query.eventDate.trim()
-      : "";
-  const amountRaw =
-    typeof req.query.amountPaid === "string"
-      ? req.query.amountPaid.trim()
-      : "";
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const eventDateRaw =
+      typeof req.query.eventDate === "string"
+        ? req.query.eventDate.trim()
+        : "";
+    const amountRaw =
+      typeof req.query.amountPaid === "string"
+        ? req.query.amountPaid.trim()
+        : "";
+    const clubIdRaw =
+      typeof req.query.clubId === "string" ? req.query.clubId.trim() : "";
 
-  let eventDate: Date | undefined;
-  if (eventDateRaw !== "") {
-    eventDate = new Date(eventDateRaw);
-    if (Number.isNaN(eventDate.getTime())) {
-      res.status(400).json({
-        success: false,
-        error: "Parametro eventDate invalido",
-      });
-      return;
+    let eventDate: Date | undefined;
+    if (eventDateRaw !== "") {
+      eventDate = new Date(eventDateRaw);
+      if (Number.isNaN(eventDate.getTime())) {
+        res.status(400).json({
+          success: false,
+          error: "Parametro eventDate invalido",
+        });
+        return;
+      }
     }
-  }
 
-  const payload = refundPolicyPayload(eventDate);
-
-  if (eventDate !== undefined && amountRaw !== "") {
-    const amount = Number(amountRaw);
-    if (Number.isFinite(amount) && amount >= 0) {
-      const { refundPercent, refundAmount } = computeRefundAmount(
-        amount,
-        eventDate
-      );
-      sendSuccess(res, {
-        ...payload,
-        amountPreview: {
-          amountPaid: amount,
-          refundPercent,
-          refundAmount: Number(refundAmount),
+    let tiers = undefined as ReturnType<typeof parseClubRefundTiers> | undefined;
+    let policyOpts: { isCustom?: boolean; clubName?: string } | undefined;
+    if (clubIdRaw !== "") {
+      const club = await prisma.club.findUnique({
+        where: { id: clubIdRaw },
+        select: {
+          name: true,
+          useDefaultRefundPolicy: true,
+          refundPolicy: true,
         },
       });
-      return;
+      if (club !== null) {
+        tiers = parseClubRefundTiers(club);
+        policyOpts = {
+          isCustom: club.useDefaultRefundPolicy === false,
+          clubName: club.name,
+        };
+      }
     }
-  }
 
-  sendSuccess(res, payload);
+    const resolvedTiers = tiers;
+    const payload = refundPolicyPayload(eventDate, resolvedTiers, policyOpts);
+
+    if (eventDate !== undefined && amountRaw !== "") {
+      const amount = Number(amountRaw);
+      if (Number.isFinite(amount) && amount >= 0) {
+        const { refundPercent, refundAmount } = computeRefundAmount(
+          amount,
+          eventDate,
+          new Date(),
+          resolvedTiers
+        );
+        sendSuccess(res, {
+          ...payload,
+          amountPreview: {
+            amountPaid: amount,
+            refundPercent,
+            refundAmount: Number(refundAmount),
+          },
+        });
+        return;
+      }
+    }
+
+    sendSuccess(res, payload);
+  } catch (error) {
+    next(error);
+  }
 };
 
 /** GET /api/reservations/:id/cancel-preview — estimacion antes de cancelar. */
@@ -352,7 +383,16 @@ export const getCancelPreview = async (
 
     const reservation = await prisma.reservation.findUnique({
       where: { id },
-      include: { event: true },
+      include: {
+        event: true,
+        club: {
+          select: {
+            name: true,
+            useDefaultRefundPolicy: true,
+            refundPolicy: true,
+          },
+        },
+      },
     });
     if (reservation === null) {
       throw new AppError("Reserva no encontrada", 404);
@@ -376,11 +416,14 @@ export const getCancelPreview = async (
       );
     }
 
+    const tiers = parseClubRefundTiers(reservation.club);
     const { refundPercent, refundAmount } = computeRefundAmount(
       reservation.status === ReservationStatus.PENDING_PAYMENT
         ? 0
         : reservation.amountPaid,
-      reservation.event.date
+      reservation.event.date,
+      new Date(),
+      tiers
     );
 
     sendSuccess(res, {
@@ -390,7 +433,10 @@ export const getCancelPreview = async (
       refundAmount: Number(refundAmount),
       amountPaid: Number(reservation.amountPaid),
       pointsRestored: reservation.loyaltyPointsRedeemed,
-      policy: refundPolicyPayload(reservation.event.date),
+      policy: refundPolicyPayload(reservation.event.date, tiers, {
+        isCustom: reservation.club.useDefaultRefundPolicy === false,
+        clubName: reservation.club.name,
+      }),
     });
   } catch (error) {
     next(error);
@@ -413,7 +459,15 @@ export const cancelReservation = async (
     const result = await prisma.$transaction(async (tx) => {
       const current = await tx.reservation.findUnique({
         where: { id },
-        include: { event: true },
+        include: {
+          event: true,
+          club: {
+            select: {
+              useDefaultRefundPolicy: true,
+              refundPolicy: true,
+            },
+          },
+        },
       });
       if (current === null) {
         throw new AppError("Reserva no encontrada", 404);
@@ -440,9 +494,12 @@ export const cancelReservation = async (
         current.status === ReservationStatus.PENDING_PAYMENT
           ? new Prisma.Decimal(0)
           : current.amountPaid;
+      const tiers = parseClubRefundTiers(current.club);
       const { refundPercent, refundAmount } = computeRefundAmount(
         paidForRefund,
-        current.event.date
+        current.event.date,
+        new Date(),
+        tiers
       );
 
       if (refundAmount.greaterThan(0)) {

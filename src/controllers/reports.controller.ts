@@ -12,6 +12,7 @@ import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
 import { requireParam } from "../utils/validation";
 import { assertUserCanAccessClub } from "../utils/clubAccess";
+import { EVENT_OPEN_TABLE_ACTIVE_HOURS } from "../utils/eventTiming";
 
 const parseDate = (value: unknown): Date | undefined => {
   if (typeof value !== "string" || value.trim() === "") return undefined;
@@ -253,8 +254,13 @@ const computeEventMetrics = async (
       attendedCount += 1;
       continue;
     }
+    if (r.status === ReservationStatus.NO_SHOW) {
+      noShowCount += 1;
+      continue;
+    }
     if (r.status === ReservationStatus.CONFIRMED) {
-      const eventEnded = event.date.getTime() + 6 * 3_600_000 < now;
+      const eventEnded =
+        event.date.getTime() + EVENT_OPEN_TABLE_ACTIVE_HOURS * 3_600_000 < now;
       if (eventEnded && r.checkedInAt === null) noShowCount += 1;
     }
   }
@@ -817,8 +823,15 @@ export const getDashboard = async (
         attendedCount += 1;
         continue;
       }
+      if (reservation.status === "NO_SHOW") {
+        noShowCount += 1;
+        continue;
+      }
       if (reservation.status === "CONFIRMED") {
-        const eventEnded = reservation.event.date.getTime() + 6 * 3_600_000 < now;
+        const eventEnded =
+          reservation.event.date.getTime() +
+          EVENT_OPEN_TABLE_ACTIVE_HOURS * 3_600_000 <
+          now;
         if (eventEnded && reservation.checkedInAt === null) noShowCount += 1;
       }
     }
@@ -925,6 +938,33 @@ export const getDashboard = async (
         : { from: period.from, to: period.to }
     );
 
+    const cancelledCount = periodReservations.filter(
+      (r) => r.status === ReservationStatus.CANCELLED
+    ).length;
+    const countedForCancelRate = periodReservations.filter(
+      (r) =>
+        r.status !== ReservationStatus.EXPIRED &&
+        r.status !== ReservationStatus.PENDING_PAYMENT
+    ).length;
+    const cancellationRate =
+      countedForCancelRate > 0
+        ? Math.round((cancelledCount / countedForCancelRate) * 100)
+        : 0;
+
+    const refundAgg = await prisma.payment.aggregate({
+      where: {
+        type: PaymentType.REFUND,
+        reservation: reservationScope,
+        ...(isEventScope
+          ? {}
+          : { createdAt: { gte: period.from, lte: period.to } }),
+      },
+      _sum: { amount: true },
+      _count: true,
+    });
+    const refundedAmount = Number(refundAgg._sum.amount ?? 0);
+    const refundCount = refundAgg._count;
+
     const kpis = {
       totalRevenue,
       revenueChangePct: pctChange(totalRevenue, prevRevenue),
@@ -935,6 +975,10 @@ export const getDashboard = async (
       noShowRate,
       attendedCount,
       noShowCount,
+      cancelledCount,
+      cancellationRate,
+      refundedAmount,
+      refundCount,
       occupancyRate,
       occupiedTableSlots,
       totalTableSlots,

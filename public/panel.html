@@ -145,6 +145,10 @@
       .loyalty-currency { color: var(--muted); font-weight: 700; }
       .loyalty-per-pt { margin: 0 !important; white-space: nowrap; }
       .loyalty-owner-limits { margin-top: 10px !important; font-size: 11px !important; }
+      .refund-tier-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+      .refund-tier-grid label { font-size: 12px; margin: 0; }
+      .refund-tier-grid input { width: 100%; }
+      .refund-tier-grid.disabled { opacity: 0.55; pointer-events: none; }
 
       /* Noche en vivo — operaciones sobrias */
       .onboard-banner {
@@ -187,7 +191,7 @@
       .status-pill.CONFIRMED { background: rgba(45,226,198,0.12); color: var(--accent); }
       .status-pill.PENDING_PAYMENT { background: rgba(255,180,84,0.12); color: var(--amber); }
       .status-pill.CHECKED_IN { background: rgba(124,92,255,0.15); color: #b6a4ff; }
-      .status-pill.CANCELLED, .status-pill.EXPIRED { background: rgba(255,77,141,0.12); color: var(--pink); }
+      .status-pill.CANCELLED, .status-pill.EXPIRED, .status-pill.NO_SHOW { background: rgba(255,77,141,0.12); color: var(--pink); }
       .status-pill.COMPLETED { background: var(--surface-2); color: var(--muted); }
       .live-meta { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
       .live-meta b { color: var(--text); font-weight: 600; }
@@ -502,6 +506,7 @@
           <button type="button" data-status="PENDING_PAYMENT" onclick="setLiveFilter('PENDING_PAYMENT',this)">Pago pendiente</button>
           <button type="button" data-status="CHECKED_IN" onclick="setLiveFilter('CHECKED_IN',this)">Ingresadas</button>
           <button type="button" data-status="CANCELLED" onclick="setLiveFilter('CANCELLED',this)">Canceladas</button>
+          <button type="button" data-status="NO_SHOW" onclick="setLiveFilter('NO_SHOW',this)">No-show</button>
         </div>
         <div class="card panel" style="padding:0;overflow:hidden">
           <div class="data-table-wrap" id="live-table"><div class="empty" style="padding:40px">Elegí un evento para ver las reservas.</div></div>
@@ -904,6 +909,7 @@
                 <small>${esc(c.address)}</small>
                 ${c.musicGenre ? `<small>🎵 ${esc(c.musicGenre)}</small>` : ""}
                 <small>⭐ Kluby Points: $${Number(c.pointValue ?? 1)} de descuento por punto canjeado</small>
+                <small>↩️ Cancelaciones: ${c.useDefaultRefundPolicy !== false ? "Política Kluby" : "Personalizada"} · No-show ${Number(c.noShowGraceHours ?? 6)}h</small>
               </div>
               <div class="btn-row">
                 <button type="button" class="btn-sm ghost" onclick="editClub('${c.id}')">Editar</button>
@@ -1006,6 +1012,12 @@
           contactEmail: document.getElementById("c-email")?.value ?? "",
           contactPhone: document.getElementById("c-phone")?.value ?? "",
           pointValue: document.getElementById("c-point-value")?.value ?? "1",
+          useDefaultRefundPolicy: document.getElementById("c-refund-default")?.checked !== false,
+          refundH72: document.getElementById("c-refund-h72")?.value ?? "100",
+          refundH48: document.getElementById("c-refund-h48")?.value ?? "75",
+          refundH24: document.getElementById("c-refund-h24")?.value ?? "50",
+          refundH0: document.getElementById("c-refund-h0")?.value ?? "0",
+          noShowGraceHours: document.getElementById("c-noshow-hours")?.value ?? "6",
           ownerId: document.getElementById("c-owner")?.value ?? "",
           logo: _clubLogo,
         };
@@ -1027,6 +1039,62 @@
         if (el && _loyaltyRulesForForm && Number.isFinite(pv) && pv >= 1) {
           el.textContent = loyaltyPreviewText(pv, _loyaltyRulesForForm);
         }
+      }
+
+      function clubRefundPercents(club) {
+        if (!club || club.useDefaultRefundPolicy !== false) {
+          return { h72: 100, h48: 75, h24: 50, h0: 0 };
+        }
+        const tiers = club.refundPolicy?.tiers;
+        if (!Array.isArray(tiers) || tiers.length < 4) {
+          return { h72: 100, h48: 75, h24: 50, h0: 0 };
+        }
+        return {
+          h72: Number(tiers[0]?.percent) || 0,
+          h48: Number(tiers[1]?.percent) || 0,
+          h24: Number(tiers[2]?.percent) || 0,
+          h0: Number(tiers[3]?.percent) || 0,
+        };
+      }
+
+      function toggleClubRefundCustom() {
+        const useDefault = document.getElementById("c-refund-default")?.checked !== false;
+        const grid = document.getElementById("c-refund-tiers");
+        if (grid) grid.classList.toggle("disabled", useDefault);
+      }
+
+      function clubCancellationConfigHtml(club, draft) {
+        const useDefault = draft?.useDefaultRefundPolicy ?? (club?.useDefaultRefundPolicy !== false);
+        const percents = draft ? {
+          h72: Number(draft.refundH72) || 100,
+          h48: Number(draft.refundH48) || 75,
+          h24: Number(draft.refundH24) || 50,
+          h0: Number(draft.refundH0) || 0,
+        } : clubRefundPercents(club);
+        const noShowHours = draft?.noShowGraceHours ?? (club?.noShowGraceHours != null ? Number(club.noShowGraceHours) : 6);
+        return `
+          <div class="loyalty-owner-box">
+            <h4>↩️ Cancelaciones y devoluciones</h4>
+            <p class="hint loyalty-owner-intro">Configurá cuánto se reintegra según la antelación. Si usás la política Kluby, el cliente ve la escala estándar (72h/48h/24h).</p>
+            <label class="k-loyalty-toggle" style="margin:0 0 12px">
+              <input type="checkbox" id="c-refund-default" ${useDefault ? "checked" : ""} onchange="toggleClubRefundCustom()" />
+              Usar política Kluby (recomendado)
+            </label>
+            <div class="refund-tier-grid${useDefault ? " disabled" : ""}" id="c-refund-tiers">
+              <div><label>&gt;72 h</label><input id="c-refund-h72" type="number" min="0" max="100" value="${percents.h72}" /> %</div>
+              <div><label>48–72 h</label><input id="c-refund-h48" type="number" min="0" max="100" value="${percents.h48}" /> %</div>
+              <div><label>24–48 h</label><input id="c-refund-h24" type="number" min="0" max="100" value="${percents.h24}" /> %</div>
+              <div><label>&lt;24 h</label><input id="c-refund-h0" type="number" min="0" max="100" value="${percents.h0}" /> %</div>
+            </div>
+            <div class="loyalty-owner-setting" style="margin-top:12px">
+              <b style="font-size:13px">No-show automático</b>
+              <p class="hint" style="margin:6px 0">Horas después del inicio del evento para marcar como no-show si no escanearon el QR.</p>
+              <div class="loyalty-point-value-row">
+                <input id="c-noshow-hours" type="number" min="1" max="48" value="${noShowHours}" />
+                <span class="hint loyalty-per-pt">horas</span>
+              </div>
+            </div>
+          </div>`;
       }
 
       function clubLoyaltyConfigHtml(pointValue, rules) {
@@ -1098,6 +1166,7 @@
         }
         _loyaltyRulesForForm = loyaltyRules;
         const loyaltyBlock = editing ? clubLoyaltyConfigHtml(pointValue, loyaltyRules) : "";
+        const cancellationBlock = editing ? clubCancellationConfigHtml(club, draft) : "";
         openModal(`
           <h3>${editing ? "Editar boliche" : "Nuevo boliche"}</h3>
           <p class="sub">${editing ? "Modificá los datos del boliche." : "Completá los datos y subí un logo (podés recortarlo)."}</p>
@@ -1121,6 +1190,7 @@
           <label>Teléfono de contacto (opcional)</label>
           <input id="c-phone" type="tel" value="${attr(contactPhone)}" placeholder="Ej. +54 11 1234-5678" />
           ${loyaltyBlock}
+          ${cancellationBlock}
           <label>Logo</label>
           <input id="c-logo" type="file" accept="image/png,image/jpeg,image/webp" onchange="onClubLogo(event)" />
           <div id="c-logo-preview" style="margin-top:10px">${clubLogoPreviewHtml()}</div>
@@ -1349,6 +1419,17 @@
           body.contactPhone = contactPhone || null;
           const pv = Number(document.getElementById("c-point-value")?.value);
           if (Number.isFinite(pv) && pv >= 1) body.pointValue = pv;
+          body.useDefaultRefundPolicy = document.getElementById("c-refund-default")?.checked !== false;
+          const noShowH = Number(document.getElementById("c-noshow-hours")?.value);
+          if (Number.isFinite(noShowH) && noShowH >= 1) body.noShowGraceHours = noShowH;
+          if (!body.useDefaultRefundPolicy) {
+            body.refundPercents = {
+              h72: Number(document.getElementById("c-refund-h72")?.value),
+              h48: Number(document.getElementById("c-refund-h48")?.value),
+              h24: Number(document.getElementById("c-refund-h24")?.value),
+              h0: Number(document.getElementById("c-refund-h0")?.value),
+            };
+          }
         }
         else if (contactPhone) body.contactPhone = contactPhone;
         if (_clubLogo) body.imageUrl = _clubLogo;
@@ -1634,7 +1715,7 @@
             <button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`);
         } catch (e) { openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`); }
       }
-      const RES_STATUS = { PENDING_PAYMENT: ["amber", "Sin pagar"], CONFIRMED: ["green", "Confirmada"], CHECKED_IN: ["violet", "Ingresado"], COMPLETED: ["muted", "Finalizada"], CANCELLED: ["red", "Cancelada"], EXPIRED: ["muted", "Expirada"] };
+      const RES_STATUS = { PENDING_PAYMENT: ["amber", "Sin pagar"], CONFIRMED: ["green", "Confirmada"], CHECKED_IN: ["violet", "Ingresado"], COMPLETED: ["muted", "Finalizada"], CANCELLED: ["red", "Cancelada"], EXPIRED: ["muted", "Expirada"], NO_SHOW: ["red", "No-show"] };
       function resBadge(s) { const [c, l] = RES_STATUS[s] || ["muted", s]; return `<span class="badge ${c}">${l}</span>`; }
       const GUEST_STATUS = { REQUESTED: ["amber", "Solicitado"], ACCEPTED_PENDING_PAYMENT: ["violet", "Aceptado"], CONFIRMED: ["green", "Confirmado"], REJECTED: ["red", "Rechazado"], CANCELLED: ["muted", "Cancelado"] };
       function guestBadge(s) { const [c, l] = GUEST_STATUS[s] || ["muted", s]; return `<span class="badge ${c}">${l}</span>`; }
@@ -3091,6 +3172,13 @@
             delta: `<span class="k-delta flat">${fmtNum(k.occupiedTableSlots)}/${fmtNum(k.totalTableSlots)} mesas</span>`,
             sub: `${fmtNum(k.eventsInPeriod)} evento(s) en el período`,
           },
+          {
+            label: "Cancelaciones",
+            value: fmtNum(k.cancelledCount ?? 0),
+            color: "#ff6b81",
+            delta: `<span class="k-delta ${(k.cancellationRate ?? 0) > 15 ? "down" : "flat"}">${k.cancellationRate ?? 0}% del total</span>`,
+            sub: `${fmtMoney(k.refundedAmount ?? 0)} reembolsado · ${fmtNum(k.refundCount ?? 0)} ops.`,
+          },
         ];
         document.getElementById("kpis").innerHTML = items
           .map(
@@ -3118,6 +3206,7 @@
         COMPLETED: "Finalizada",
         CANCELLED: "Cancelada",
         EXPIRED: "Expirada",
+        NO_SHOW: "No-show",
       };
 
       function dismissOnboard(persist) {

@@ -49,6 +49,7 @@ enum ReservationStatus {
   COMPLETED // Mesa cerrada (check-out)
   CANCELLED // Cancelada por el usuario o admin
   EXPIRED // El TTL vencio sin pago, mesa liberada
+  NO_SHOW // Confirmada pero no ingreso (QR no escaneado tras el evento)
 }
 
 /// Estado de un invitado dentro de una Mesa Abierta.
@@ -254,6 +255,9 @@ model Club {
   contactEmail   String  // Email de contacto del boliche (tarjeta visible al cliente)
   contactPhone   String? // Telefono de contacto (opcional)
   pointValue     Decimal  @default(1) @db.Decimal(12, 2) // Valor de canje de 1 punto (RN18, min $1)
+  useDefaultRefundPolicy Boolean @default(true) // true = escala Kluby; false = refundPolicy custom
+  refundPolicy   Json? // { tiers: [{ minHours, percent, label }] } cuando useDefaultRefundPolicy es false
+  noShowGraceHours Int @default(6) // Horas tras inicio del evento antes de marcar no-show
   isActive    Boolean  @default(true) // Baja logica
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -351,6 +355,7 @@ model Reservation {
   checkedInAt DateTime?
   completedAt DateTime?
   cancelledAt DateTime?
+  noShowAt    DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

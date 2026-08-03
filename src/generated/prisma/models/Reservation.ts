@@ -65,6 +65,7 @@ export type ReservationMinAggregateOutputType = {
   checkedInAt: Date | null
   completedAt: Date | null
   cancelledAt: Date | null
+  noShowAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -90,6 +91,7 @@ export type ReservationMaxAggregateOutputType = {
   checkedInAt: Date | null
   completedAt: Date | null
   cancelledAt: Date | null
+  noShowAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -115,6 +117,7 @@ export type ReservationCountAggregateOutputType = {
   checkedInAt: number
   completedAt: number
   cancelledAt: number
+  noShowAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -160,6 +163,7 @@ export type ReservationMinAggregateInputType = {
   checkedInAt?: true
   completedAt?: true
   cancelledAt?: true
+  noShowAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -185,6 +189,7 @@ export type ReservationMaxAggregateInputType = {
   checkedInAt?: true
   completedAt?: true
   cancelledAt?: true
+  noShowAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -210,6 +215,7 @@ export type ReservationCountAggregateInputType = {
   checkedInAt?: true
   completedAt?: true
   cancelledAt?: true
+  noShowAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -322,6 +328,7 @@ export type ReservationGroupByOutputType = {
   checkedInAt: Date | null
   completedAt: Date | null
   cancelledAt: Date | null
+  noShowAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: ReservationCountAggregateOutputType | null
@@ -370,6 +377,7 @@ export type ReservationWhereInput = {
   checkedInAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
   cancelledAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
+  noShowAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Reservation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Reservation"> | Date | string
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
@@ -404,6 +412,7 @@ export type ReservationOrderByWithRelationInput = {
   checkedInAt?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   cancelledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  noShowAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   club?: Prisma.ClubOrderByWithRelationInput
@@ -441,6 +450,7 @@ export type ReservationWhereUniqueInput = Prisma.AtLeast<{
   checkedInAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
   cancelledAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
+  noShowAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Reservation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Reservation"> | Date | string
   club?: Prisma.XOR<Prisma.ClubScalarRelationFilter, Prisma.ClubWhereInput>
@@ -475,6 +485,7 @@ export type ReservationOrderByWithAggregationInput = {
   checkedInAt?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   cancelledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  noShowAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ReservationCountOrderByAggregateInput
@@ -508,6 +519,7 @@ export type ReservationScalarWhereWithAggregatesInput = {
   checkedInAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Reservation"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Reservation"> | Date | string | null
   cancelledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Reservation"> | Date | string | null
+  noShowAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Reservation"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Reservation"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Reservation"> | Date | string
 }
@@ -529,6 +541,7 @@ export type ReservationCreateInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutReservationsInput
@@ -563,6 +576,7 @@ export type ReservationUncheckedCreateInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guests?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutReservationInput
@@ -589,6 +603,7 @@ export type ReservationUpdateInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutReservationsNestedInput
@@ -623,6 +638,7 @@ export type ReservationUncheckedUpdateInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guests?: Prisma.ReservationGuestUncheckedUpdateManyWithoutReservationNestedInput
@@ -653,6 +669,7 @@ export type ReservationCreateManyInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -674,6 +691,7 @@ export type ReservationUpdateManyMutationInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -699,6 +717,7 @@ export type ReservationUncheckedUpdateManyInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -734,6 +753,7 @@ export type ReservationCountOrderByAggregateInput = {
   checkedInAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   cancelledAt?: Prisma.SortOrder
+  noShowAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -768,6 +788,7 @@ export type ReservationMaxOrderByAggregateInput = {
   checkedInAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   cancelledAt?: Prisma.SortOrder
+  noShowAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -793,6 +814,7 @@ export type ReservationMinOrderByAggregateInput = {
   checkedInAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   cancelledAt?: Prisma.SortOrder
+  noShowAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -1093,6 +1115,7 @@ export type ReservationCreateWithoutHostInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutReservationsInput
@@ -1125,6 +1148,7 @@ export type ReservationUncheckedCreateWithoutHostInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guests?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutReservationInput
@@ -1184,6 +1208,7 @@ export type ReservationScalarWhereInput = {
   checkedInAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
   cancelledAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
+  noShowAt?: Prisma.DateTimeNullableFilter<"Reservation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Reservation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Reservation"> | Date | string
 }
@@ -1205,6 +1230,7 @@ export type ReservationCreateWithoutClubInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   event: Prisma.EventNightCreateNestedOneWithoutReservationsInput
@@ -1237,6 +1263,7 @@ export type ReservationUncheckedCreateWithoutClubInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guests?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutReservationInput
@@ -1289,6 +1316,7 @@ export type ReservationCreateWithoutTableInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutReservationsInput
@@ -1321,6 +1349,7 @@ export type ReservationUncheckedCreateWithoutTableInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guests?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutReservationInput
@@ -1373,6 +1402,7 @@ export type ReservationCreateWithoutEventInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutReservationsInput
@@ -1405,6 +1435,7 @@ export type ReservationUncheckedCreateWithoutEventInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guests?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutReservationInput
@@ -1457,6 +1488,7 @@ export type ReservationCreateWithoutGuestsInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutReservationsInput
@@ -1490,6 +1522,7 @@ export type ReservationUncheckedCreateWithoutGuestsInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutReservationInput
@@ -1531,6 +1564,7 @@ export type ReservationUpdateWithoutGuestsInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutReservationsNestedInput
@@ -1564,6 +1598,7 @@ export type ReservationUncheckedUpdateWithoutGuestsInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutReservationNestedInput
@@ -1589,6 +1624,7 @@ export type ReservationCreateWithoutPaymentsInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutReservationsInput
@@ -1622,6 +1658,7 @@ export type ReservationUncheckedCreateWithoutPaymentsInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guests?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutReservationInput
@@ -1663,6 +1700,7 @@ export type ReservationUpdateWithoutPaymentsInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutReservationsNestedInput
@@ -1696,6 +1734,7 @@ export type ReservationUncheckedUpdateWithoutPaymentsInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guests?: Prisma.ReservationGuestUncheckedUpdateManyWithoutReservationNestedInput
@@ -1721,6 +1760,7 @@ export type ReservationCreateWithoutOrdersInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutReservationsInput
@@ -1754,6 +1794,7 @@ export type ReservationUncheckedCreateWithoutOrdersInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guests?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutReservationInput
@@ -1795,6 +1836,7 @@ export type ReservationUpdateWithoutOrdersInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutReservationsNestedInput
@@ -1828,6 +1870,7 @@ export type ReservationUncheckedUpdateWithoutOrdersInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guests?: Prisma.ReservationGuestUncheckedUpdateManyWithoutReservationNestedInput
@@ -1853,6 +1896,7 @@ export type ReservationCreateWithoutLoyaltyTxnsInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutReservationsInput
@@ -1886,6 +1930,7 @@ export type ReservationUncheckedCreateWithoutLoyaltyTxnsInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guests?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutReservationInput
@@ -1927,6 +1972,7 @@ export type ReservationUpdateWithoutLoyaltyTxnsInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutReservationsNestedInput
@@ -1960,6 +2006,7 @@ export type ReservationUncheckedUpdateWithoutLoyaltyTxnsInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guests?: Prisma.ReservationGuestUncheckedUpdateManyWithoutReservationNestedInput
@@ -1985,6 +2032,7 @@ export type ReservationCreateWithoutChatMessagesInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   club: Prisma.ClubCreateNestedOneWithoutReservationsInput
@@ -2018,6 +2066,7 @@ export type ReservationUncheckedCreateWithoutChatMessagesInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   guests?: Prisma.ReservationGuestUncheckedCreateNestedManyWithoutReservationInput
@@ -2059,6 +2108,7 @@ export type ReservationUpdateWithoutChatMessagesInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutReservationsNestedInput
@@ -2092,6 +2142,7 @@ export type ReservationUncheckedUpdateWithoutChatMessagesInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guests?: Prisma.ReservationGuestUncheckedUpdateManyWithoutReservationNestedInput
@@ -2120,6 +2171,7 @@ export type ReservationCreateManyHostInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2141,6 +2193,7 @@ export type ReservationUpdateWithoutHostInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutReservationsNestedInput
@@ -2173,6 +2226,7 @@ export type ReservationUncheckedUpdateWithoutHostInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guests?: Prisma.ReservationGuestUncheckedUpdateManyWithoutReservationNestedInput
@@ -2202,6 +2256,7 @@ export type ReservationUncheckedUpdateManyWithoutHostInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2226,6 +2281,7 @@ export type ReservationCreateManyClubInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2247,6 +2303,7 @@ export type ReservationUpdateWithoutClubInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   event?: Prisma.EventNightUpdateOneRequiredWithoutReservationsNestedInput
@@ -2279,6 +2336,7 @@ export type ReservationUncheckedUpdateWithoutClubInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guests?: Prisma.ReservationGuestUncheckedUpdateManyWithoutReservationNestedInput
@@ -2308,6 +2366,7 @@ export type ReservationUncheckedUpdateManyWithoutClubInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2332,6 +2391,7 @@ export type ReservationCreateManyTableInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2353,6 +2413,7 @@ export type ReservationUpdateWithoutTableInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutReservationsNestedInput
@@ -2385,6 +2446,7 @@ export type ReservationUncheckedUpdateWithoutTableInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guests?: Prisma.ReservationGuestUncheckedUpdateManyWithoutReservationNestedInput
@@ -2414,6 +2476,7 @@ export type ReservationUncheckedUpdateManyWithoutTableInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2438,6 +2501,7 @@ export type ReservationCreateManyEventInput = {
   checkedInAt?: Date | string | null
   completedAt?: Date | string | null
   cancelledAt?: Date | string | null
+  noShowAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -2459,6 +2523,7 @@ export type ReservationUpdateWithoutEventInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   club?: Prisma.ClubUpdateOneRequiredWithoutReservationsNestedInput
@@ -2491,6 +2556,7 @@ export type ReservationUncheckedUpdateWithoutEventInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guests?: Prisma.ReservationGuestUncheckedUpdateManyWithoutReservationNestedInput
@@ -2520,6 +2586,7 @@ export type ReservationUncheckedUpdateManyWithoutEventInput = {
   checkedInAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  noShowAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -2612,6 +2679,7 @@ export type ReservationSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   checkedInAt?: boolean
   completedAt?: boolean
   cancelledAt?: boolean
+  noShowAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
@@ -2647,6 +2715,7 @@ export type ReservationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   checkedInAt?: boolean
   completedAt?: boolean
   cancelledAt?: boolean
+  noShowAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
@@ -2676,6 +2745,7 @@ export type ReservationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   checkedInAt?: boolean
   completedAt?: boolean
   cancelledAt?: boolean
+  noShowAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
@@ -2705,11 +2775,12 @@ export type ReservationSelectScalar = {
   checkedInAt?: boolean
   completedAt?: boolean
   cancelledAt?: boolean
+  noShowAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ReservationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "clubId" | "eventId" | "tableId" | "hostId" | "mode" | "paymentOption" | "status" | "totalAmount" | "depositAmount" | "amountPaid" | "loyaltyPointsRedeemed" | "loyaltyDiscount" | "maxGuests" | "expiresAt" | "confirmedAt" | "checkedInAt" | "completedAt" | "cancelledAt" | "createdAt" | "updatedAt", ExtArgs["result"]["reservation"]>
+export type ReservationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "clubId" | "eventId" | "tableId" | "hostId" | "mode" | "paymentOption" | "status" | "totalAmount" | "depositAmount" | "amountPaid" | "loyaltyPointsRedeemed" | "loyaltyDiscount" | "maxGuests" | "expiresAt" | "confirmedAt" | "checkedInAt" | "completedAt" | "cancelledAt" | "noShowAt" | "createdAt" | "updatedAt", ExtArgs["result"]["reservation"]>
 export type ReservationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   event?: boolean | Prisma.EventNightDefaultArgs<ExtArgs>
@@ -2769,6 +2840,7 @@ export type $ReservationPayload<ExtArgs extends runtime.Types.Extensions.Interna
     checkedInAt: Date | null
     completedAt: Date | null
     cancelledAt: Date | null
+    noShowAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["reservation"]>
@@ -3223,6 +3295,7 @@ export interface ReservationFieldRefs {
   readonly checkedInAt: Prisma.FieldRef<"Reservation", 'DateTime'>
   readonly completedAt: Prisma.FieldRef<"Reservation", 'DateTime'>
   readonly cancelledAt: Prisma.FieldRef<"Reservation", 'DateTime'>
+  readonly noShowAt: Prisma.FieldRef<"Reservation", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Reservation", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Reservation", 'DateTime'>
 }

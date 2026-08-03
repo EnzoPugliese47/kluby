@@ -40,7 +40,7 @@
       }
 
       const badge = (s) => {
-        const map = { CONFIRMED: ["green", "Confirmada"], CHECKED_IN: ["violet", "Ingresado"], COMPLETED: ["muted", "Finalizada"], PENDING_PAYMENT: ["amber", "Sin pagar"], CANCELLED: ["red", "Cancelada"], EXPIRED: ["muted", "Expirada"] };
+        const map = { CONFIRMED: ["green", "Confirmada"], CHECKED_IN: ["violet", "Ingresado"], COMPLETED: ["muted", "Finalizada"], PENDING_PAYMENT: ["amber", "Sin pagar"], CANCELLED: ["red", "Cancelada"], EXPIRED: ["muted", "Expirada"], NO_SHOW: ["red", "No-show"] };
         const [c, l] = map[s] || ["muted", s]; return `<span class="badge ${c}">${l}</span>`;
       };
 
@@ -334,7 +334,7 @@
               <div class="btn-row">
                 ${r.status === "CONFIRMED" ? `<button class="ops-btn-lg" onclick="act('${r.id}','check-in')">Registrar ingreso</button>` : ""}
                 ${r.status === "CHECKED_IN" ? `<button class="ops-btn-lg secondary" onclick="act('${r.id}','checkout')">Cerrar mesa</button>` : ""}
-                ${["COMPLETED","CANCELLED","EXPIRED","PENDING_PAYMENT"].includes(r.status) ? `<span class="hint">Sin acciones para este estado.</span>` : ""}
+                ${["COMPLETED","CANCELLED","EXPIRED","NO_SHOW","PENDING_PAYMENT"].includes(r.status) ? `<span class="hint">Sin acciones para este estado.</span>` : ""}
               </div>
             </div>`;
         } catch (e) { $("result").innerHTML = `<div class="card" style="padding:20px;border-color:var(--red)"><b style="color:var(--red)">${esc(e.message)}</b></div>`; }

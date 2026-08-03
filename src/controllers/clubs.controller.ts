@@ -13,6 +13,7 @@ import {
   requireParam,
   requireString,
 } from "../utils/validation";
+import { parseRefundPolicyBody } from "../utils/clubRefundPolicy";
 import { parseClubZone, requireClubZone } from "../utils/clubZones";
 import { openTablesEventCutoff } from "../utils/eventTiming";
 import {
@@ -284,6 +285,17 @@ export const updateClub = async (
       } else {
         data.contactPhone = optionalContactPhone(body);
       }
+    }
+
+    const refundFields = parseRefundPolicyBody(body);
+    if (body["useDefaultRefundPolicy"] !== undefined) {
+      data.useDefaultRefundPolicy = refundFields.useDefaultRefundPolicy;
+    }
+    if (refundFields.refundPolicy !== undefined) {
+      data.refundPolicy = refundFields.refundPolicy;
+    }
+    if (refundFields.noShowGraceHours !== undefined) {
+      data.noShowGraceHours = refundFields.noShowGraceHours;
     }
 
     if (Object.keys(data).length === 0) {

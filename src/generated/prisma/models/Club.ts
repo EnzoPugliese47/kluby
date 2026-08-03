@@ -29,11 +29,13 @@ export type AggregateClub = {
 export type ClubAvgAggregateOutputType = {
   defaultConsumptionPercent: number | null
   pointValue: runtime.Decimal | null
+  noShowGraceHours: number | null
 }
 
 export type ClubSumAggregateOutputType = {
   defaultConsumptionPercent: number | null
   pointValue: runtime.Decimal | null
+  noShowGraceHours: number | null
 }
 
 export type ClubMinAggregateOutputType = {
@@ -50,6 +52,8 @@ export type ClubMinAggregateOutputType = {
   contactEmail: string | null
   contactPhone: string | null
   pointValue: runtime.Decimal | null
+  useDefaultRefundPolicy: boolean | null
+  noShowGraceHours: number | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -70,6 +74,8 @@ export type ClubMaxAggregateOutputType = {
   contactEmail: string | null
   contactPhone: string | null
   pointValue: runtime.Decimal | null
+  useDefaultRefundPolicy: boolean | null
+  noShowGraceHours: number | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -90,6 +96,9 @@ export type ClubCountAggregateOutputType = {
   contactEmail: number
   contactPhone: number
   pointValue: number
+  useDefaultRefundPolicy: number
+  refundPolicy: number
+  noShowGraceHours: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -101,11 +110,13 @@ export type ClubCountAggregateOutputType = {
 export type ClubAvgAggregateInputType = {
   defaultConsumptionPercent?: true
   pointValue?: true
+  noShowGraceHours?: true
 }
 
 export type ClubSumAggregateInputType = {
   defaultConsumptionPercent?: true
   pointValue?: true
+  noShowGraceHours?: true
 }
 
 export type ClubMinAggregateInputType = {
@@ -122,6 +133,8 @@ export type ClubMinAggregateInputType = {
   contactEmail?: true
   contactPhone?: true
   pointValue?: true
+  useDefaultRefundPolicy?: true
+  noShowGraceHours?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -142,6 +155,8 @@ export type ClubMaxAggregateInputType = {
   contactEmail?: true
   contactPhone?: true
   pointValue?: true
+  useDefaultRefundPolicy?: true
+  noShowGraceHours?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -162,6 +177,9 @@ export type ClubCountAggregateInputType = {
   contactEmail?: true
   contactPhone?: true
   pointValue?: true
+  useDefaultRefundPolicy?: true
+  refundPolicy?: true
+  noShowGraceHours?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -269,6 +287,9 @@ export type ClubGroupByOutputType = {
   contactEmail: string
   contactPhone: string | null
   pointValue: runtime.Decimal
+  useDefaultRefundPolicy: boolean
+  refundPolicy: runtime.JsonValue | null
+  noShowGraceHours: number
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -312,6 +333,9 @@ export type ClubWhereInput = {
   contactEmail?: Prisma.StringFilter<"Club"> | string
   contactPhone?: Prisma.StringNullableFilter<"Club"> | string | null
   pointValue?: Prisma.DecimalFilter<"Club"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFilter<"Club"> | boolean
+  refundPolicy?: Prisma.JsonNullableFilter<"Club">
+  noShowGraceHours?: Prisma.IntFilter<"Club"> | number
   isActive?: Prisma.BoolFilter<"Club"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Club"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Club"> | Date | string
@@ -341,6 +365,9 @@ export type ClubOrderByWithRelationInput = {
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   pointValue?: Prisma.SortOrder
+  useDefaultRefundPolicy?: Prisma.SortOrder
+  refundPolicy?: Prisma.SortOrderInput | Prisma.SortOrder
+  noShowGraceHours?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -373,6 +400,9 @@ export type ClubWhereUniqueInput = Prisma.AtLeast<{
   contactEmail?: Prisma.StringFilter<"Club"> | string
   contactPhone?: Prisma.StringNullableFilter<"Club"> | string | null
   pointValue?: Prisma.DecimalFilter<"Club"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFilter<"Club"> | boolean
+  refundPolicy?: Prisma.JsonNullableFilter<"Club">
+  noShowGraceHours?: Prisma.IntFilter<"Club"> | number
   isActive?: Prisma.BoolFilter<"Club"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Club"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Club"> | Date | string
@@ -402,6 +432,9 @@ export type ClubOrderByWithAggregationInput = {
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   pointValue?: Prisma.SortOrder
+  useDefaultRefundPolicy?: Prisma.SortOrder
+  refundPolicy?: Prisma.SortOrderInput | Prisma.SortOrder
+  noShowGraceHours?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -430,6 +463,9 @@ export type ClubScalarWhereWithAggregatesInput = {
   contactEmail?: Prisma.StringWithAggregatesFilter<"Club"> | string
   contactPhone?: Prisma.StringNullableWithAggregatesFilter<"Club"> | string | null
   pointValue?: Prisma.DecimalWithAggregatesFilter<"Club"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolWithAggregatesFilter<"Club"> | boolean
+  refundPolicy?: Prisma.JsonNullableWithAggregatesFilter<"Club">
+  noShowGraceHours?: Prisma.IntWithAggregatesFilter<"Club"> | number
   isActive?: Prisma.BoolWithAggregatesFilter<"Club"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Club"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Club"> | Date | string
@@ -450,6 +486,9 @@ export type ClubCreateInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -478,6 +517,9 @@ export type ClubUncheckedCreateInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -506,6 +548,9 @@ export type ClubUpdateInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -534,6 +579,9 @@ export type ClubUncheckedUpdateInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -562,6 +610,9 @@ export type ClubCreateManyInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -582,6 +633,9 @@ export type ClubUpdateManyMutationInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -601,6 +655,9 @@ export type ClubUncheckedUpdateManyInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -636,6 +693,9 @@ export type ClubCountOrderByAggregateInput = {
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
   pointValue?: Prisma.SortOrder
+  useDefaultRefundPolicy?: Prisma.SortOrder
+  refundPolicy?: Prisma.SortOrder
+  noShowGraceHours?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -645,6 +705,7 @@ export type ClubCountOrderByAggregateInput = {
 export type ClubAvgOrderByAggregateInput = {
   defaultConsumptionPercent?: Prisma.SortOrder
   pointValue?: Prisma.SortOrder
+  noShowGraceHours?: Prisma.SortOrder
 }
 
 export type ClubMaxOrderByAggregateInput = {
@@ -661,6 +722,8 @@ export type ClubMaxOrderByAggregateInput = {
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
   pointValue?: Prisma.SortOrder
+  useDefaultRefundPolicy?: Prisma.SortOrder
+  noShowGraceHours?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -681,6 +744,8 @@ export type ClubMinOrderByAggregateInput = {
   contactEmail?: Prisma.SortOrder
   contactPhone?: Prisma.SortOrder
   pointValue?: Prisma.SortOrder
+  useDefaultRefundPolicy?: Prisma.SortOrder
+  noShowGraceHours?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -690,6 +755,7 @@ export type ClubMinOrderByAggregateInput = {
 export type ClubSumOrderByAggregateInput = {
   defaultConsumptionPercent?: Prisma.SortOrder
   pointValue?: Prisma.SortOrder
+  noShowGraceHours?: Prisma.SortOrder
 }
 
 export type ClubCreateNestedManyWithoutOwnerInput = {
@@ -872,6 +938,9 @@ export type ClubCreateWithoutOwnerInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -899,6 +968,9 @@ export type ClubUncheckedCreateWithoutOwnerInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -955,6 +1027,9 @@ export type ClubScalarWhereInput = {
   contactEmail?: Prisma.StringFilter<"Club"> | string
   contactPhone?: Prisma.StringNullableFilter<"Club"> | string | null
   pointValue?: Prisma.DecimalFilter<"Club"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFilter<"Club"> | boolean
+  refundPolicy?: Prisma.JsonNullableFilter<"Club">
+  noShowGraceHours?: Prisma.IntFilter<"Club"> | number
   isActive?: Prisma.BoolFilter<"Club"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Club"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Club"> | Date | string
@@ -975,6 +1050,9 @@ export type ClubCreateWithoutMembersInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1002,6 +1080,9 @@ export type ClubUncheckedCreateWithoutMembersInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1045,6 +1126,9 @@ export type ClubUpdateWithoutMembersInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1072,6 +1156,9 @@ export type ClubUncheckedUpdateWithoutMembersInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1099,6 +1186,9 @@ export type ClubCreateWithoutJoinInvitesInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1126,6 +1216,9 @@ export type ClubUncheckedCreateWithoutJoinInvitesInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1169,6 +1262,9 @@ export type ClubUpdateWithoutJoinInvitesInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1196,6 +1292,9 @@ export type ClubUncheckedUpdateWithoutJoinInvitesInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1223,6 +1322,9 @@ export type ClubCreateWithoutEventInvitesInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1250,6 +1352,9 @@ export type ClubUncheckedCreateWithoutEventInvitesInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1293,6 +1398,9 @@ export type ClubUpdateWithoutEventInvitesInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1320,6 +1428,9 @@ export type ClubUncheckedUpdateWithoutEventInvitesInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1347,6 +1458,9 @@ export type ClubCreateWithoutTablesInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1374,6 +1488,9 @@ export type ClubUncheckedCreateWithoutTablesInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1417,6 +1534,9 @@ export type ClubUpdateWithoutTablesInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1444,6 +1564,9 @@ export type ClubUncheckedUpdateWithoutTablesInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1471,6 +1594,9 @@ export type ClubCreateWithoutEventsInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1498,6 +1624,9 @@ export type ClubUncheckedCreateWithoutEventsInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1541,6 +1670,9 @@ export type ClubUpdateWithoutEventsInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1568,6 +1700,9 @@ export type ClubUncheckedUpdateWithoutEventsInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1595,6 +1730,9 @@ export type ClubCreateWithoutReservationsInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1622,6 +1760,9 @@ export type ClubUncheckedCreateWithoutReservationsInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1665,6 +1806,9 @@ export type ClubUpdateWithoutReservationsInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1692,6 +1836,9 @@ export type ClubUncheckedUpdateWithoutReservationsInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1719,6 +1866,9 @@ export type ClubCreateWithoutProductsInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1746,6 +1896,9 @@ export type ClubUncheckedCreateWithoutProductsInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1789,6 +1942,9 @@ export type ClubUpdateWithoutProductsInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1816,6 +1972,9 @@ export type ClubUncheckedUpdateWithoutProductsInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1843,6 +2002,9 @@ export type ClubCreateWithoutLoyaltyTxnsInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1870,6 +2032,9 @@ export type ClubUncheckedCreateWithoutLoyaltyTxnsInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1913,6 +2078,9 @@ export type ClubUpdateWithoutLoyaltyTxnsInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1940,6 +2108,9 @@ export type ClubUncheckedUpdateWithoutLoyaltyTxnsInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1967,6 +2138,9 @@ export type ClubCreateManyOwnerInput = {
   contactEmail: string
   contactPhone?: string | null
   pointValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: number
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1986,6 +2160,9 @@ export type ClubUpdateWithoutOwnerInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2013,6 +2190,9 @@ export type ClubUncheckedUpdateWithoutOwnerInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2040,6 +2220,9 @@ export type ClubUncheckedUpdateManyWithoutOwnerInput = {
   contactEmail?: Prisma.StringFieldUpdateOperationsInput | string
   contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pointValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2153,6 +2336,9 @@ export type ClubSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   contactEmail?: boolean
   contactPhone?: boolean
   pointValue?: boolean
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: boolean
+  noShowGraceHours?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2183,6 +2369,9 @@ export type ClubSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   contactEmail?: boolean
   contactPhone?: boolean
   pointValue?: boolean
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: boolean
+  noShowGraceHours?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2204,6 +2393,9 @@ export type ClubSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   contactEmail?: boolean
   contactPhone?: boolean
   pointValue?: boolean
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: boolean
+  noShowGraceHours?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2225,13 +2417,16 @@ export type ClubSelectScalar = {
   contactEmail?: boolean
   contactPhone?: boolean
   pointValue?: boolean
+  useDefaultRefundPolicy?: boolean
+  refundPolicy?: boolean
+  noShowGraceHours?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   ownerId?: boolean
 }
 
-export type ClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "address" | "city" | "zone" | "musicGenre" | "imageUrl" | "floorMapUrl" | "defaultConsumptionPercent" | "contactEmail" | "contactPhone" | "pointValue" | "isActive" | "createdAt" | "updatedAt" | "ownerId", ExtArgs["result"]["club"]>
+export type ClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "address" | "city" | "zone" | "musicGenre" | "imageUrl" | "floorMapUrl" | "defaultConsumptionPercent" | "contactEmail" | "contactPhone" | "pointValue" | "useDefaultRefundPolicy" | "refundPolicy" | "noShowGraceHours" | "isActive" | "createdAt" | "updatedAt" | "ownerId", ExtArgs["result"]["club"]>
 export type ClubInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   tables?: boolean | Prisma.Club$tablesArgs<ExtArgs>
@@ -2278,6 +2473,9 @@ export type $ClubPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     contactEmail: string
     contactPhone: string | null
     pointValue: runtime.Decimal
+    useDefaultRefundPolicy: boolean
+    refundPolicy: runtime.JsonValue | null
+    noShowGraceHours: number
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -2727,6 +2925,9 @@ export interface ClubFieldRefs {
   readonly contactEmail: Prisma.FieldRef<"Club", 'String'>
   readonly contactPhone: Prisma.FieldRef<"Club", 'String'>
   readonly pointValue: Prisma.FieldRef<"Club", 'Decimal'>
+  readonly useDefaultRefundPolicy: Prisma.FieldRef<"Club", 'Boolean'>
+  readonly refundPolicy: Prisma.FieldRef<"Club", 'Json'>
+  readonly noShowGraceHours: Prisma.FieldRef<"Club", 'Int'>
   readonly isActive: Prisma.FieldRef<"Club", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Club", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Club", 'DateTime'>

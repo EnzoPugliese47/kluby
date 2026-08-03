@@ -352,6 +352,7 @@
         if (!window._wizardTable || !_wizardEventDate || !stillOn("wizard")) return;
         const amt = wizardRefundPayAmount(window._wizardTable);
         const q = new URLSearchParams({ eventDate: _wizardEventDate, amountPaid: String(amt) });
+        if (state.params.clubId) q.set("clubId", state.params.clubId);
         try {
           const policy = await api("/reservations/refund-policy?" + q);
           const el = document.getElementById("wizard-refund-policy");
@@ -530,6 +531,7 @@
           PENDING_PAYMENT: ["amber", "Pago pendiente"], CONFIRMED: ["green", "Confirmada"],
           CHECKED_IN: ["violet", "Ingresado"], COMPLETED: ["muted", "Finalizada"],
           CANCELLED: ["red", "Cancelada"], EXPIRED: ["muted", "Expirada"],
+          NO_SHOW: ["red", "No-show"],
           REQUESTED: ["amber", "Pendiente aprobacion"], ACCEPTED_PENDING_PAYMENT: ["violet", "Aceptado · a pagar"],
           REJECTED: ["red", "Rechazado"],
         };
@@ -658,8 +660,9 @@
       }
 
       function reservationTimelineHtml(r) {
-        if (r.status === "CANCELLED" || r.status === "EXPIRED") {
-          return `<div class="k-timeline cancelled"><div class="k-timeline-step done"><span>${r.status === "CANCELLED" ? "Cancelada" : "Expirada"}</span></div></div>`;
+        if (r.status === "CANCELLED" || r.status === "EXPIRED" || r.status === "NO_SHOW") {
+          const labels = { CANCELLED: "Cancelada", EXPIRED: "Expirada", NO_SHOW: "No-show" };
+          return `<div class="k-timeline cancelled"><div class="k-timeline-step done"><span>${labels[r.status] || r.status}</span></div></div>`;
         }
         const paid = r.status !== "PENDING_PAYMENT" && (Number(r.amountPaid) > 0 || r.status === "CONFIRMED" || r.status === "CHECKED_IN" || r.status === "COMPLETED");
         const checked = r.status === "CHECKED_IN" || r.status === "COMPLETED";

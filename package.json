@@ -16,6 +16,7 @@
     "repair:images": "ts-node-dev --transpile-only src/scripts/repair-images.ts",
     "repair:puerta": "ts-node-dev --transpile-only src/scripts/ensure-puerta-user.ts",
     "sync:zones": "ts-node-dev --transpile-only src/scripts/sync-club-zones.ts",
+    "job:no-shows": "ts-node-dev --transpile-only src/scripts/mark-no-shows.ts",
     "typecheck": "tsc --noEmit",
     "cap:sync": "npx cap sync android",
     "cap:open": "npx cap open android",
