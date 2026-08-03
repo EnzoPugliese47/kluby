@@ -1793,6 +1793,7 @@
       let _pendingEventBottles = [];
       let _pendingEventTables = [];
       let _eventFormDraft = null;
+      let _eventPreviewGen = 0;
 
       function productToPending(p) {
         return {
@@ -1990,6 +1991,7 @@
           return;
         }
 
+        const gen = ++_eventPreviewGen;
         wrap.innerHTML = '<div class="empty" style="padding:12px;margin:0">Cargando...</div>';
 
         try {
@@ -1999,16 +2001,19 @@
 
           if (setup === "club") {
             if (!clubId) {
+              if (gen !== _eventPreviewGen) return;
               wrap.innerHTML = '<p class="hint">Seleccioná un boliche.</p>';
               return;
             }
             const tpl = await api("/clubs/" + clubId + "/template");
+            if (gen !== _eventPreviewGen) return;
             tables = tpl.tables || [];
             products = tpl.products || [];
             bg = tpl.floorMapUrl || null;
           } else if (setup === "past") {
             const eventId = document.getElementById("ev-copy-from")?.value;
             if (!eventId) {
+              if (gen !== _eventPreviewGen) return;
               wrap.innerHTML =
                 '<p class="hint" style="text-align:left">Elegí un evento pasado para cargar plano, mesas y carta.</p>';
               return;
@@ -2017,6 +2022,7 @@
               api("/events/" + eventId + "/availability"),
               api("/events/" + eventId + "/products"),
             ]);
+            if (gen !== _eventPreviewGen) return;
             tables = avail.tables || [];
             products = prods || [];
             bg = avail.event?.backgroundImage || null;
@@ -2026,6 +2032,7 @@
           syncDraftFromSource(tables, products, bg);
           renderEventPreviewMap();
         } catch (e) {
+          if (gen !== _eventPreviewGen) return;
           wrap.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
         }
       }
@@ -2198,7 +2205,7 @@
             <button type="button" style="flex:1" id="ev-save" onclick="saveEvent()">${editing ? "Guardar cambios" : "Crear evento"}</button>
           </div>
           <div class="error" id="ev-err"></div>`);
-        if (!editing) setTimeout(() => refreshEventSetupPreview(!draft?.pendingTables?.length), 0);
+        if (!editing) setTimeout(() => refreshEventSetupPreview(!draft), 0);
       }
       function onEventSetupChange() {
         const setup = document.getElementById("ev-setup")?.value || "club";
