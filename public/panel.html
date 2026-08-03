@@ -1788,9 +1788,159 @@
         return new Date(dt.getTime() - off * 60000).toISOString().slice(0, 16);
       }
       let _eventBg = null;
+      let _eventBgManual = false;
       let _editingEventId = null;
       let _pendingEventBottles = [];
+      let _pendingEventTables = [];
       let _eventFormDraft = null;
+
+      function productToPending(p) {
+        return {
+          _localId: "b" + Math.random().toString(36).slice(2, 10),
+          name: p.name,
+          category: p.category || "",
+          price: Number(p.price),
+          stock: p.stock ?? 0,
+          description: p.description || "",
+        };
+      }
+
+      function tableToPending(t) {
+        return {
+          _localId: "t" + Math.random().toString(36).slice(2, 10),
+          label: t.label,
+          sector: t.sector || "",
+          capacity: t.capacity,
+          price: Number(t.price),
+          consumptionPercent: t.consumptionPercent ?? 100,
+          depositPercent: t.depositPercent ?? 10,
+          posX: Number(t.posX),
+          posY: Number(t.posY),
+        };
+      }
+
+      function pendingTableToDesigner(t) {
+        const id = t._localId;
+        return { ...t, id, status: "AVAILABLE" };
+      }
+
+      function syncDraftFromSource(tables, products, bg) {
+        _pendingEventTables = (tables || []).map(tableToPending);
+        _pendingEventBottles = (products || []).map(productToPending);
+        if (!_eventBgManual) _eventBg = bg || null;
+        const list = document.getElementById("ev-bottles-list");
+        if (list) list.innerHTML = renderPendingBottlesHtml();
+      }
+
+      function renderEventPreviewMap() {
+        const setup = document.getElementById("ev-setup")?.value || "club";
+        const wrap = document.getElementById("ev-setup-preview");
+        if (!wrap) return;
+        const sourceLabel =
+          setup === "club"
+            ? "Configuración base"
+            : setup === "past"
+              ? (() => {
+                  const id = document.getElementById("ev-copy-from")?.value;
+                  const ev = _eventsPastCache.find((e) => e.id === id);
+                  return ev ? `Copiando: ${ev.name}` : "Evento pasado";
+                })()
+              : "Evento nuevo";
+        if (setup === "empty" && !_pendingEventTables.length && !_eventBg) {
+          wrap.innerHTML = `<p class="hint" style="text-align:left">Sin plano ni mesas todavía. Podés agregarlos abajo.</p>${renderEventPreviewControls()}`;
+          return;
+        }
+        wrap.innerHTML = `
+          <span class="role-pill">${esc(sourceLabel)} · ${_pendingEventTables.length} mesa${_pendingEventTables.length === 1 ? "" : "s"} · ${_pendingEventBottles.length} producto${_pendingEventBottles.length === 1 ? "" : "s"}</span>
+          ${templateMapHtml(_eventBg, _pendingEventTables, "tpl-preview")}
+          ${renderEventPreviewControls()}`;
+      }
+
+      function renderEventPreviewControls() {
+        return `<div class="btn-row" style="margin-top:8px;flex-wrap:wrap">
+          <button type="button" class="btn-sm btn-accent" onclick="openDraftEventDesigner()">Editar mesas</button>
+          <label class="btn-sm ghost" style="cursor:pointer;margin:0;display:inline-flex;align-items:center">
+            <input type="file" accept="image/*" style="display:none" onchange="onEventDraftMap(event)" /> Cambiar plano
+          </label>
+          ${_eventBg ? `<button type="button" class="btn-sm btn-danger" onclick="clearEventDraftMap()">Quitar plano</button>` : ""}
+        </div>`;
+      }
+
+      async function onEventDraftMap(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          const dataUrl = await new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result);
+            r.onerror = reject;
+            r.readAsDataURL(file);
+          });
+          const res = await api("/uploads/map", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
+          _eventBg = res.url;
+          _eventBgManual = true;
+          renderEventPreviewMap();
+          toast("Plano cargado", "ok");
+        } catch (err) { toast(err.message, "err"); }
+      }
+
+      function clearEventDraftMap() {
+        if (!confirm("¿Quitar la imagen del plano?")) return;
+        _eventBg = null;
+        _eventBgManual = true;
+        renderEventPreviewMap();
+      }
+
+      function openDraftEventDesigner() {
+        _eventFormDraft = captureEventFormDraft();
+        const clubId = document.getElementById("event-club-select")?.value;
+        _designer = {
+          isDraft: true,
+          isTemplate: false,
+          eventId: null,
+          clubId,
+          name: document.getElementById("ev-name")?.value?.trim() || "Nuevo evento",
+          bg: _eventBg,
+          tables: _pendingEventTables.map(pendingTableToDesigner),
+        };
+        document.getElementById("modal-content").classList.add("wide");
+        renderDesigner();
+      }
+
+      function addLocalBulkTables(sector, count, price, capacity, consumptionPercent, depositPercent) {
+        let nextNum = _designer.tables.reduce(
+          (max, t) => Math.max(max, parseInt(String(t.label).split(" ").pop(), 10) || 0),
+          0
+        );
+        const sectors = [
+          ...new Set(_designer.tables.map((t) => t.sector).filter(Boolean)),
+        ];
+        const sectorIndex = sectors.includes(sector)
+          ? sectors.indexOf(sector)
+          : sectors.length;
+        const cols = Math.min(5, count);
+        const baseY = 12 + (sectorIndex % 4) * 18;
+        const baseX = 14;
+        for (let i = 0; i < count; i++) {
+          nextNum += 1;
+          const col = i % cols;
+          const row = Math.floor(i / cols);
+          const id = "t" + Date.now() + "-" + i;
+          _designer.tables.push({
+            id,
+            _localId: id,
+            label: `Mesa ${nextNum}`,
+            sector,
+            capacity,
+            price,
+            consumptionPercent,
+            depositPercent,
+            posX: Math.min(92, baseX + col * 14),
+            posY: Math.min(92, baseY + row * 9),
+            status: "AVAILABLE",
+          });
+        }
+      }
 
       function renderPendingBottlesHtml() {
         if (!_pendingEventBottles.length) {
@@ -1811,65 +1961,41 @@
       }
 
       function eventBottlesHint(setup) {
-        if (setup === "past") {
-          return "Abajo ves la carta que se copia. Podés sumar botellas extra antes de guardar.";
-        }
         if (setup === "empty") {
-          return "Definí la carta acá o cargala después desde la lista de eventos.";
+          return "Agregá o editá la carta que tendrá este evento.";
         }
-        return "Abajo ves la carta base que se copia. Podés sumar botellas extra antes de guardar.";
+        return "Carta cargada desde la base o evento pasado. Podés editar, agregar o quitar botellas.";
       }
 
-      function renderEventSetupPreviewContent({ setup, tables, products, bg, sourceLabel }) {
-        if (setup === "empty") {
-          return '<p class="hint" style="text-align:left">Empezás sin copiar plano, mesas ni carta.</p>';
-        }
-        const mapHtml = templateMapHtml(bg, tables, "tpl-preview");
-        const productLines = products
-          .slice(0, 8)
-          .map(
-            (p) =>
-              `<div class="pick-row"><div><b>${esc(p.name)}</b><small>${esc(p.category || "General")} · ${fmtMoney(Number(p.price))}</small></div></div>`
-          )
-          .join("");
-        const moreProducts =
-          products.length > 8
-            ? `<p class="hint" style="margin:6px 0 0">… y ${products.length - 8} producto${products.length - 8 === 1 ? "" : "s"} más</p>`
-            : "";
-        return `
-          <span class="role-pill">${esc(sourceLabel)} · ${tables.length} mesa${tables.length === 1 ? "" : "s"} · ${products.length} producto${products.length === 1 ? "" : "s"}</span>
-          ${mapHtml}
-          ${
-            products.length
-              ? `<label style="margin-top:12px;font-size:12px">Carta que se copiará</label><div class="pick-list" style="max-height:140px;overflow-y:auto">${productLines}${moreProducts}</div>`
-              : '<p class="hint" style="margin-top:8px;text-align:left">Sin productos en la carta origen.</p>'
-          }`;
-      }
-
-      async function refreshEventSetupPreview() {
+      async function refreshEventSetupPreview(reloadFromSource) {
         const wrap = document.getElementById("ev-setup-preview");
         if (!wrap) return;
         const setup = document.getElementById("ev-setup")?.value || "club";
         const clubId = document.getElementById("event-club-select")?.value;
 
         if (setup === "empty") {
-          wrap.innerHTML = renderEventSetupPreviewContent({
-            setup: "empty",
-            tables: [],
-            products: [],
-            bg: null,
-            sourceLabel: "",
-          });
+          if (reloadFromSource) {
+            _pendingEventTables = [];
+            _pendingEventBottles = [];
+            if (!_eventBgManual) _eventBg = null;
+            const list = document.getElementById("ev-bottles-list");
+            if (list) list.innerHTML = renderPendingBottlesHtml();
+          }
+          renderEventPreviewMap();
           return;
         }
 
-        wrap.innerHTML = '<div class="empty" style="padding:12px;margin:0">Cargando vista previa...</div>';
+        if (!reloadFromSource) {
+          renderEventPreviewMap();
+          return;
+        }
+
+        wrap.innerHTML = '<div class="empty" style="padding:12px;margin:0">Cargando...</div>';
 
         try {
           let tables = [];
           let products = [];
           let bg = null;
-          let sourceLabel = "";
 
           if (setup === "club") {
             if (!clubId) {
@@ -1880,12 +2006,11 @@
             tables = tpl.tables || [];
             products = tpl.products || [];
             bg = tpl.floorMapUrl || null;
-            sourceLabel = "Configuración base";
           } else if (setup === "past") {
             const eventId = document.getElementById("ev-copy-from")?.value;
             if (!eventId) {
               wrap.innerHTML =
-                '<p class="hint" style="text-align:left">Elegí un evento pasado para ver qué se copiará.</p>';
+                '<p class="hint" style="text-align:left">Elegí un evento pasado para cargar plano, mesas y carta.</p>';
               return;
             }
             const [avail, prods] = await Promise.all([
@@ -1895,25 +2020,19 @@
             tables = avail.tables || [];
             products = prods || [];
             bg = avail.event?.backgroundImage || null;
-            const pastEv = _eventsPastCache.find((e) => e.id === eventId);
-            sourceLabel = pastEv ? `Copiando: ${pastEv.name}` : "Evento pasado";
           }
 
-          const previewBg = _eventBg || bg;
-          wrap.innerHTML = renderEventSetupPreviewContent({
-            setup,
-            tables,
-            products,
-            bg: previewBg,
-            sourceLabel,
-          });
+          _eventBgManual = false;
+          syncDraftFromSource(tables, products, bg);
+          renderEventPreviewMap();
         } catch (e) {
           wrap.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
         }
       }
 
       function onEventPastCopyChange() {
-        refreshEventSetupPreview();
+        _eventBgManual = false;
+        refreshEventSetupPreview(true);
         const bottlesHint = document.getElementById("ev-bottles-hint");
         if (bottlesHint) bottlesHint.textContent = eventBottlesHint("past");
       }
@@ -1929,6 +2048,8 @@
           copyFrom: document.getElementById("ev-copy-from")?.value ?? "",
           eventBg: _eventBg,
           pendingBottles: _pendingEventBottles.map((b) => ({ ...b })),
+          pendingTables: _pendingEventTables.map((t) => ({ ...t })),
+          eventBgManual: _eventBgManual,
         };
       }
 
@@ -1982,6 +2103,9 @@
         };
         if (index != null) _pendingEventBottles[index] = item;
         else _pendingEventBottles.push(item);
+        if (_eventFormDraft) {
+          _eventFormDraft.pendingBottles = _pendingEventBottles.map((b) => ({ ...b }));
+        }
         reopenEventFormFromDraft();
       }
 
@@ -1996,8 +2120,11 @@
         const editing = !!editingId;
         _editingEventId = editing ? editingId : null;
         _eventBg = draft?.eventBg ?? (editing && ev?.backgroundImage ? ev.backgroundImage : null);
+        _eventBgManual = draft?.eventBgManual ?? false;
         if (draft?.pendingBottles) _pendingEventBottles = draft.pendingBottles;
         else if (!editing) _pendingEventBottles = [];
+        if (draft?.pendingTables) _pendingEventTables = draft.pendingTables;
+        else if (!editing) _pendingEventTables = [];
 
         const name = draft?.name ?? (editing ? ev.name : "");
         const dateVal = draft?.date ?? toLocalInput(editing ? ev.date : null);
@@ -2030,10 +2157,10 @@
           </div>
           <p class="hint" style="margin-top:-6px;text-align:left" id="ev-setup-hint">${
             setup === "past"
-              ? "Se copia todo del evento pasado excepto nombre y fecha."
+              ? "Se carga plano, mesas y carta del evento pasado (editable abajo)."
               : setup === "empty"
-                ? "El evento arranca sin plano, mesas ni carta copiada."
-                : "Se copiarán plano, mesas y carta base del boliche. Solo definís nombre y fecha abajo."
+                ? "Arrancás vacío y configurás plano, mesas y carta abajo."
+                : "Se carga la configuración base del boliche (editable abajo)."
           }</p>
           <label>Vista previa</label>
           <div id="ev-setup-preview" class="event-setup-preview"><div class="empty" style="padding:12px;margin:0">Cargando...</div></div>`
@@ -2042,10 +2169,15 @@
           ? `<label>Carta de botellas</label>
           <button type="button" class="btn-sm btn-accent" onclick='openEventBottles(${JSON.stringify(editingId)}, ${JSON.stringify(name || ev.name)})'>Gestionar carta de botellas</button>
           <p class="hint" style="margin-top:6px;text-align:left">Editá precios, stock y productos de este evento.</p>`
-          : `<label>Botellas extra (opcional)</label>
+          : `<label>Carta de botellas</label>
           <div class="pick-list" id="ev-bottles-list">${renderPendingBottlesHtml()}</div>
-          <button type="button" class="btn-sm btn-accent" style="margin-top:8px" onclick="openPendingBottleForm()">+ Agregar botella extra</button>
+          <button type="button" class="btn-sm btn-accent" style="margin-top:8px" onclick="openPendingBottleForm()">+ Agregar botella</button>
           <p class="hint" style="margin-top:6px;text-align:left" id="ev-bottles-hint">${eventBottlesHint(setup)}</p>`;
+        const planoBlock = editing
+          ? `<label>Plano del salón (imagen de fondo)</label>
+          <input id="ev-img" type="file" accept="image/*" onchange="onEventImage(event)" />
+          <div id="ev-img-preview" style="margin-top:10px">${_eventBg ? `<img src="${esc(_eventBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>` : '<span class="role-pill">Sin imagen. El mapa usará la grilla por defecto.</span>'}</div>`
+          : "";
         openModal(`
           <h3>${editing ? "Editar evento" : "Nuevo evento"}</h3>
           <p class="sub">${editing ? "Modificá los datos de la fecha." : "Creá una nueva fecha para el boliche seleccionado."}</p>
@@ -2060,15 +2192,13 @@
           <input id="ev-cons-pct" type="number" min="1" max="100" value="${consPct}" />
           <p class="hint" style="margin-top:-6px">Porcentaje del precio de mesa que se acredita en botellas. Ej. 100 = el total de la mesa en consumición.</p>
           ${bottlesBlock}
-          <label>Plano del salón (imagen de fondo)</label>
-          <input id="ev-img" type="file" accept="image/*" onchange="onEventImage(event)" />
-          <div id="ev-img-preview" style="margin-top:10px">${_eventBg ? `<img src="${esc(_eventBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>` : '<span class="role-pill">Sin imagen. El mapa usará la grilla por defecto.</span>'}</div>
+          ${planoBlock}
           <div class="btn-row" style="margin-top:20px">
             <button type="button" class="ghost" onclick="closeModal()">Cancelar</button>
             <button type="button" style="flex:1" id="ev-save" onclick="saveEvent()">${editing ? "Guardar cambios" : "Crear evento"}</button>
           </div>
           <div class="error" id="ev-err"></div>`);
-        if (!editing) setTimeout(refreshEventSetupPreview, 0);
+        if (!editing) setTimeout(() => refreshEventSetupPreview(!draft?.pendingTables?.length), 0);
       }
       function onEventSetupChange() {
         const setup = document.getElementById("ev-setup")?.value || "club";
@@ -2078,13 +2208,14 @@
         if (pastWrap) pastWrap.style.display = setup === "past" ? "block" : "none";
         const setupText =
           setup === "past"
-            ? "Se copia todo del evento pasado excepto nombre y fecha."
+            ? "Se carga plano, mesas y carta del evento pasado (editable abajo)."
             : setup === "empty"
-              ? "El evento arranca sin plano, mesas ni carta copiada."
-              : "Se copiarán plano, mesas y carta base del boliche. Solo definís nombre y fecha abajo.";
+              ? "Arrancás vacío y configurás plano, mesas y carta abajo."
+              : "Se carga la configuración base del boliche (editable abajo).";
         if (hint) hint.textContent = setupText;
         if (bottlesHint) bottlesHint.textContent = eventBottlesHint(setup);
-        refreshEventSetupPreview();
+        _eventBgManual = false;
+        refreshEventSetupPreview(true);
       }
       async function onEventImage(e) {
         const file = e.target.files[0];
@@ -2101,7 +2232,6 @@
           const res = await api("/uploads/map", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
           _eventBg = res.url;
           prev.innerHTML = `<img src="${esc(_eventBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>`;
-          refreshEventSetupPreview();
           toast("Imagen cargada", "ok");
         } catch (err) { prev.innerHTML = `<span style="color:var(--pink)">${esc(err.message)}</span>`; }
       }
@@ -2117,7 +2247,11 @@
         if (!name || !dateVal) { errEl.textContent = "Nombre y fecha son obligatorios."; return; }
         if (!(consPct >= 1 && consPct <= 100)) { errEl.textContent = "El % de consumición debe ser entre 1 y 100."; return; }
         const body = { name, date: new Date(dateVal).toISOString(), musicGenre, defaultConsumptionPercent: consPct };
-        if (_eventBg) body.backgroundImage = _eventBg;
+        if (eventId) {
+          if (_eventBg) body.backgroundImage = _eventBg;
+        } else {
+          body.backgroundImage = _eventBg ?? null;
+        }
         const btn = document.getElementById("ev-save");
         if (btn) { btn.disabled = true; btn.textContent = "Guardando..."; }
         try {
@@ -2137,29 +2271,34 @@
               }
               body.copyFromEventId = copyFrom;
             }
+            body.useDraftLayout = true;
+            body.draftTables = _pendingEventTables.map((t) => ({
+              label: t.label,
+              sector: t.sector || null,
+              capacity: t.capacity,
+              price: t.price,
+              consumptionPercent: t.consumptionPercent ?? 100,
+              depositPercent: t.depositPercent ?? 10,
+              posX: t.posX,
+              posY: t.posY,
+            }));
+            body.draftProducts = _pendingEventBottles.map((b) => ({
+              name: b.name,
+              category: b.category || null,
+              price: b.price,
+              stock: b.stock ?? 0,
+              description: b.description || null,
+            }));
             const created = await api("/clubs/" + clubId + "/events", { method: "POST", body: JSON.stringify(body) });
             const lc = created.layoutCopy;
             const parts = [];
             if (lc?.tablesCopied) parts.push(`${lc.tablesCopied} mesa${lc.tablesCopied === 1 ? "" : "s"}`);
-            if (lc?.productsCopied) parts.push(`${lc.productsCopied} producto${lc.productsCopied === 1 ? "" : "s"} copiado${lc.productsCopied === 1 ? "" : "s"}`);
+            if (lc?.productsCopied) parts.push(`${lc.productsCopied} producto${lc.productsCopied === 1 ? "" : "s"}`);
             if (lc?.backgroundCopied) parts.push("plano copiado");
-            if (_pendingEventBottles.length) {
-              for (const b of _pendingEventBottles) {
-                await api("/events/" + created.id + "/products", {
-                  method: "POST",
-                  body: JSON.stringify({
-                    name: b.name,
-                    category: b.category,
-                    price: b.price,
-                    stock: b.stock,
-                    description: b.description,
-                  }),
-                });
-              }
-              parts.push(`${_pendingEventBottles.length} botella${_pendingEventBottles.length === 1 ? "" : "s"} agregada${_pendingEventBottles.length === 1 ? "" : "s"}`);
-            }
             toast(parts.length ? `Evento creado · ${parts.join(" · ")}` : "Evento creado", "ok");
             _pendingEventBottles = [];
+            _pendingEventTables = [];
+            _eventBgManual = false;
           }
           _editingEventId = null;
           closeModal();
@@ -2381,6 +2520,27 @@
       }
       function closeDesigner() {
         document.getElementById("modal-content").classList.remove("wide");
+        if (_designer.isDraft) {
+          _pendingEventTables = _designer.tables.map((t) => ({
+            _localId: t._localId || t.id,
+            label: t.label,
+            sector: t.sector || "",
+            capacity: t.capacity,
+            price: Number(t.price),
+            consumptionPercent: t.consumptionPercent ?? 100,
+            depositPercent: t.depositPercent ?? 10,
+            posX: Number(t.posX),
+            posY: Number(t.posY),
+          }));
+          _eventBg = _designer.bg;
+          if (_eventFormDraft) {
+            _eventFormDraft.pendingTables = _pendingEventTables.map((t) => ({ ...t }));
+            _eventFormDraft.eventBg = _eventBg;
+            _eventFormDraft.eventBgManual = _eventBgManual;
+          }
+          reopenEventFormFromDraft();
+          return;
+        }
         if (_designer.isTemplate) closeClubTemplateDesigner();
         else { closeModal(); loadEvents(); }
       }
@@ -2392,9 +2552,10 @@
         const mapInner = d.bg
           ? `<img id="dmap-img" src="${esc(d.bg)}" alt="plano" onerror="this.style.display='none'" />${pins}`
           : `<span class="canvas-label">Lienzo 1725 × 2490</span>${pins}`;
+        const title = d.isDraft ? "Mesas del evento (borrador)" : d.isTemplate ? "Mesas base" : "Diseñar mesas";
         openModal(`
-          <h3>${d.isTemplate ? "Mesas base" : "Diseñar mesas"} · ${esc(d.name)}</h3>
-          <p class="sub">${d.isTemplate ? "Layout de mesas que se copia a eventos nuevos." : d.bg ? "Arrastrá las mesas sobre el plano." : "Sin imagen de fondo: usá el lienzo predeterminado. Arrastrá o agregá mesas."}</p>
+          <h3>${title} · ${esc(d.name)}</h3>
+          <p class="sub">${d.isDraft ? "Editá mesas antes de crear el evento. Los cambios se guardan al volver al formulario." : d.isTemplate ? "Layout de mesas que se copia a eventos nuevos." : d.bg ? "Arrastrá las mesas sobre el plano." : "Sin imagen de fondo: usá el lienzo predeterminado. Arrastrá o agregá mesas."}</p>
           <div class="btn-row" style="margin-bottom:12px;flex-wrap:wrap">
             <button class="btn-sm btn-accent" onclick="openBulkSectorForm()">+ Agregar sector</button>
             <button class="btn-sm" onclick="openSingleTableForm()">+ Agregar mesa</button>
@@ -2411,6 +2572,14 @@
       async function clearDesignerMap() {
         if (!confirm("¿Quitar la imagen del plano?")) return;
         try {
+          if (_designer.isDraft) {
+            _designer.bg = null;
+            _eventBg = null;
+            _eventBgManual = true;
+            renderDesigner();
+            toast("Plano eliminado", "ok");
+            return;
+          }
           if (_designer.isTemplate) {
             await api("/clubs/" + _designer.clubId + "/template", {
               method: "PATCH",
@@ -2431,6 +2600,12 @@
       async function deleteAllDesignerTables() {
         if (!confirm("¿Eliminar TODAS las mesas del plano?\nNo se puede deshacer.")) return;
         try {
+          if (_designer.isDraft) {
+            _designer.tables = [];
+            renderDesigner();
+            toast("Mesas eliminadas", "ok");
+            return;
+          }
           const url = _designer.isTemplate
             ? "/clubs/" + _designer.clubId + "/template/tables"
             : "/events/" + _designer.eventId + "/tables";
@@ -2477,11 +2652,18 @@
               document.removeEventListener("touchend", onUp);
               pin.classList.remove("dragging");
               if (moved) {
-                try {
-                  await api("/tables/" + pin.dataset.id, { method: "PATCH", body: JSON.stringify({ posX: parseFloat(pin.dataset.x), posY: parseFloat(pin.dataset.y) }) });
-                  const t = _designer.tables.find((x) => x.id === pin.dataset.id);
-                  if (t) { t.posX = parseFloat(pin.dataset.x); t.posY = parseFloat(pin.dataset.y); }
-                } catch (err) { toast(err.message, "err"); }
+                const px = parseFloat(pin.dataset.x);
+                const py = parseFloat(pin.dataset.y);
+                if (_designer.isDraft) {
+                  const t = _designer.tables.find((x) => String(x.id) === pin.dataset.id);
+                  if (t) { t.posX = px; t.posY = py; }
+                } else {
+                  try {
+                    await api("/tables/" + pin.dataset.id, { method: "PATCH", body: JSON.stringify({ posX: px, posY: py }) });
+                    const t = _designer.tables.find((x) => x.id === pin.dataset.id);
+                    if (t) { t.posX = px; t.posY = py; }
+                  } catch (err) { toast(err.message, "err"); }
+                }
               } else {
                 editDesignerTable(pin.dataset.id);
               }
@@ -2546,6 +2728,12 @@
           return;
         }
         try {
+          if (_designer.isDraft) {
+            addLocalBulkTables(sector, count, price, capacity, consumptionPercent, depositPercent);
+            renderDesigner();
+            toast(count + " mesas creadas en " + sector, "ok");
+            return;
+          }
           const bulkUrl = _designer.isTemplate
             ? "/clubs/" + _designer.clubId + "/template/tables/bulk"
             : "/events/" + _designer.eventId + "/tables/bulk";
@@ -2603,6 +2791,25 @@
           return;
         }
         try {
+          if (_designer.isDraft) {
+            const id = "t" + Date.now();
+            _designer.tables.push({
+              id,
+              _localId: id,
+              label,
+              sector,
+              capacity,
+              price,
+              consumptionPercent,
+              depositPercent,
+              posX: 50,
+              posY: 50,
+              status: "AVAILABLE",
+            });
+            renderDesigner();
+            toast("Mesa agregada (arrastrala a su lugar)", "ok");
+            return;
+          }
           const t = await api("/clubs/" + _designer.clubId + "/tables", {
             method: "POST",
             body: JSON.stringify({
@@ -2659,6 +2866,20 @@
           return;
         }
         try {
+          if (_designer.isDraft) {
+            const t = _designer.tables.find((x) => String(x.id) === String(id));
+            if (t) {
+              t.label = label;
+              t.sector = sector;
+              t.price = price;
+              t.capacity = capacity;
+              t.consumptionPercent = consumptionPercent;
+              t.depositPercent = depositPercent;
+            }
+            renderDesigner();
+            toast("Mesa actualizada", "ok");
+            return;
+          }
           const upd = await api("/tables/" + id, {
             method: "PATCH",
             body: JSON.stringify({ label, sector, price, capacity, consumptionPercent, depositPercent }),
@@ -2680,6 +2901,12 @@
       async function deleteDesignerTable(id) {
         if (!confirm("¿Eliminar esta mesa del plano?")) return;
         try {
+          if (_designer.isDraft) {
+            _designer.tables = _designer.tables.filter((x) => String(x.id) !== String(id));
+            renderDesigner();
+            toast("Mesa eliminada", "ok");
+            return;
+          }
           await api("/tables/" + id, { method: "DELETE" });
           _designer.tables = _designer.tables.filter((x) => x.id !== id);
           renderDesigner();

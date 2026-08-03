@@ -22,6 +22,11 @@ import {
 import { openTablesEventCutoff, isEventPast } from "../utils/eventTiming";
 import { copyEventLayoutFrom, type EventLayoutCopyResult } from "../utils/eventLayout";
 import { applyClubDefaultsToEvent } from "../utils/clubDefaults";
+import {
+  applyDraftLayoutToEvent,
+  parseDraftProducts,
+  parseDraftTables,
+} from "../utils/eventDraft";
 
 const PAYMENT_OPTION_VALUES = Object.values(PaymentOption);
 
@@ -41,6 +46,10 @@ export const createEvent = async (
     const defaultConsumptionPercent = optionalNumber(body, "defaultConsumptionPercent");
     const copyFromEventId = optionalString(body, "copyFromEventId");
     const setupMode = optionalString(body, "setupMode");
+    const useDraftLayout =
+      body.useDraftLayout === true || body.useDraftLayout === "true";
+    const draftTables = parseDraftTables(body["draftTables"]);
+    const draftProducts = parseDraftProducts(body["draftProducts"]);
 
     const date = new Date(dateRaw);
     if (Number.isNaN(date.getTime())) {
@@ -95,33 +104,43 @@ export const createEvent = async (
       }
     }
 
-    const resolvedBackground =
-      backgroundImage ??
-      (usePast && sourceEvent ? sourceEvent.backgroundImage : null) ??
-      (startEmpty ? null : club.floorMapUrl) ??
-      null;
+    const resolvedBackground = useDraftLayout
+      ? body["backgroundImage"] === null
+        ? null
+        : (backgroundImage ?? null)
+      : backgroundImage ??
+        (usePast && sourceEvent ? sourceEvent.backgroundImage : null) ??
+        (startEmpty ? null : club.floorMapUrl) ??
+        null;
     const backgroundCopiedAtCreate =
+      !useDraftLayout &&
       Boolean(resolvedBackground) &&
       !backgroundImage &&
       Boolean(usePast ? sourceEvent?.backgroundImage : club.floorMapUrl);
 
     const resolvedGenre =
-      usePast && sourceEvent
-        ? sourceEvent.musicGenre
-        : startEmpty
-          ? (musicGenre ?? null)
-          : (musicGenre ?? club.musicGenre ?? null);
+      useDraftLayout
+        ? (musicGenre ?? null)
+        : usePast && sourceEvent
+          ? sourceEvent.musicGenre
+          : startEmpty
+            ? (musicGenre ?? null)
+            : (musicGenre ?? club.musicGenre ?? null);
 
     const resolvedConsPct =
-      usePast && sourceEvent
-        ? sourceEvent.defaultConsumptionPercent
-        : startEmpty
-          ? defaultConsumptionPercent !== undefined
-            ? Math.round(defaultConsumptionPercent)
-            : 100
-          : defaultConsumptionPercent !== undefined
-            ? Math.round(defaultConsumptionPercent)
-            : club.defaultConsumptionPercent;
+      useDraftLayout
+        ? defaultConsumptionPercent !== undefined
+          ? Math.round(defaultConsumptionPercent)
+          : 100
+        : usePast && sourceEvent
+          ? sourceEvent.defaultConsumptionPercent
+          : startEmpty
+            ? defaultConsumptionPercent !== undefined
+              ? Math.round(defaultConsumptionPercent)
+              : 100
+            : defaultConsumptionPercent !== undefined
+              ? Math.round(defaultConsumptionPercent)
+              : club.defaultConsumptionPercent;
 
     const event = await prisma.eventNight.create({
       data: {
@@ -135,7 +154,12 @@ export const createEvent = async (
     });
 
     let layoutCopy: EventLayoutCopyResult | null = null;
-    if (usePast && copyFromEventId) {
+    if (useDraftLayout) {
+      layoutCopy = await applyDraftLayoutToEvent(clubId, event.id, {
+        tables: draftTables ?? [],
+        products: draftProducts ?? [],
+      });
+    } else if (usePast && copyFromEventId) {
       layoutCopy = await copyEventLayoutFrom(copyFromEventId, event.id, clubId);
     } else if (!startEmpty) {
       layoutCopy = await applyClubDefaultsToEvent(clubId, event.id);
