@@ -301,7 +301,7 @@
         const pv = Number(pointValue) || 1;
         const maxDiscount = payAmount * (rules.maxRedeemPercent / 100);
         const maxByPct = Math.floor(maxDiscount / pv);
-        const cap = rules.maxRedeemPointsCap ?? 500;
+        const cap = rules.maxRedeemPointsCap ?? 3000;
         return Math.min(balance, Math.max(0, maxByPct), cap);
       }
 
@@ -331,7 +331,7 @@
         return `
           <div class="k-loyalty-block" id="wizard-loyalty">
             <div class="k-loyalty-head"><span>⭐ Kluby Points en este boliche</span><b>${balance} pts</b></div>
-            <p class="hint" style="margin:0">Hasta ${rules.maxRedeemPercent}% del pago · máx. ${rules.maxRedeemPointsCap ?? 500} pts · mín. ${rules.minRedeemPoints} pts</p>
+            <p class="hint" style="margin:0">Hasta ${rules.maxRedeemPercent}% del pago · máx. ${rules.maxRedeemPointsCap ?? 3000} pts · mín. ${rules.minRedeemPoints} pts</p>
             <label class="k-loyalty-toggle"><input type="checkbox" id="wizard-loyalty-use" onchange="toggleWizardLoyalty()" /> Usar puntos en esta reserva</label>
             <div class="k-loyalty-slider hidden" id="wizard-loyalty-slider">
               <input type="range" id="wizard-loyalty-range" min="${rules.minRedeemPoints}" max="${maxPts}" step="1" value="${maxPts}" oninput="onWizardLoyaltyChange()" />

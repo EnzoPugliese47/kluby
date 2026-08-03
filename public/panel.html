@@ -1014,7 +1014,7 @@
 
       function loyaltyPreviewText(pointValue, rules) {
         const pv = Number(pointValue) || 1;
-        const pts = 100;
+        const pts = 500;
         const spend = pts * rules.currencyPerPoint;
         return `Ejemplo: si un cliente junta ${pts} puntos (pagó ~${fmtMoney(spend)} en tu boliche), puede descontar ${fmtMoney(pts * pv)} en su próxima reserva.`;
       }
@@ -1089,7 +1089,7 @@
             return;
           }
         }
-        let loyaltyRules = { currencyPerPoint: 150, minRedeemPoints: 100, maxRedeemPercent: 25, maxRedeemPointsCap: 500 };
+        let loyaltyRules = { currencyPerPoint: 150, minRedeemPoints: 500, maxRedeemPercent: 25, maxRedeemPointsCap: 3000 };
         if (editing) {
           try {
             loyaltyRules = await api("/loyalty/config");

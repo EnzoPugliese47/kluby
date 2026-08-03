@@ -30,11 +30,11 @@ export const env = {
   jwtSecret: process.env["JWT_SECRET"] ?? "kluby-dev-secret-change-me",
   jwtExpiresIn: process.env["JWT_EXPIRES_IN"] ?? "7d",
   // Fidelizacion inicial: $150 pagados = 1 pt (~0,7% al canjear a $1/pt).
-  // El dueño configura cuánto $ descuenta 1 pt (club.pointValue). Min 100 pts, max 25%, tope 500 pts.
+  // El dueño configura cuánto $ descuenta 1 pt (club.pointValue). Min 500 pts, max 3000 pts.
   loyaltyCurrencyPerPoint: optionalNumber("LOYALTY_CURRENCY_PER_POINT", 150),
-  loyaltyMinRedeemPoints: optionalNumber("LOYALTY_MIN_REDEEM_POINTS", 100),
+  loyaltyMinRedeemPoints: optionalNumber("LOYALTY_MIN_REDEEM_POINTS", 500),
   loyaltyMaxRedeemPercent: optionalNumber("LOYALTY_MAX_REDEEM_PERCENT", 25),
-  loyaltyMaxRedeemPointsCap: optionalNumber("LOYALTY_MAX_REDEEM_POINTS_CAP", 500),
+  loyaltyMaxRedeemPointsCap: optionalNumber("LOYALTY_MAX_REDEEM_POINTS_CAP", 3000),
   loyaltyFirstReservationBonus: optionalNumber("LOYALTY_FIRST_RESERVATION_BONUS", 25),
   loyaltyCheckInBonus: optionalNumber("LOYALTY_CHECKIN_BONUS", 5),
 } as const;
