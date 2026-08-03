@@ -30,8 +30,15 @@ html, body { overflow-x: hidden; max-width: 100%; }
 .ops-panel { display: none; }
 .ops-panel.active { display: block; }
 
-#qr-reader { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
-#qr-reader video { border-radius: 14px; }
+#qr-reader { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); min-height: 280px; background: #0e0e16; }
+#qr-reader video { border-radius: 14px; width: 100% !important; }
+#qr-reader img { display: none; }
+.ops-scan-status {
+  margin: 12px 0; padding: 14px 16px; border-radius: 12px; font-size: 13px; line-height: 1.5;
+  background: rgba(255, 180, 84, 0.1); border: 1px solid rgba(255, 180, 84, 0.35); color: var(--text);
+}
+.ops-scan-status.err { background: rgba(255, 92, 108, 0.1); border-color: rgba(255, 92, 108, 0.35); }
+.ops-scan-retry { margin-top: 10px; width: 100%; }
 .ops-scan-hint {
   text-align: center; color: var(--muted); font-size: 13px; margin: 12px 0 4px;
 }

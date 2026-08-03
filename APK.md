@@ -71,6 +71,22 @@ APK: `android/app/build/outputs/apk/debug/app-debug.apk`
 
 La app necesita **internet**; usa el backend de Railway automáticamente.
 
+### Cámara en Puerta (escaneo QR)
+
+La pantalla **Puerta** usa la cámara del celular. Si no abre:
+
+1. **Recompilá e instalá el APK** (el permiso de cámara va en la app nativa):
+   ```powershell
+   npm install
+   npm run cap:sync
+   npm run cap:open
+   ```
+   Android Studio → **Build → Build APK(s)** → instalá de nuevo.
+
+2. En el celular: **Ajustes → Apps → Kluby → Permisos → Cámara → Permitir**.
+
+3. En Puerta → pestaña **Escanear** → **Permitir cámara / reintentar**.
+
 ## Publicar el botón en la web
 
 La home (`index.html`) tiene la sección **Instalá Kluby en tu celular** con enlace a `/downloads/kluby.apk`.

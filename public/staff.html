@@ -75,34 +75,123 @@
         document.querySelectorAll(".ops-tab").forEach((el) => el.classList.toggle("active", el.dataset.tab === tab));
         document.querySelectorAll(".ops-panel").forEach((el) => el.classList.toggle("active", el.dataset.panel === tab));
         if (tab === "scan") startScanner();
-        else stopScanner();
+        else {
+          stopScanner();
+          clearScanStatus();
+        }
         if (tab === "history") loadCheckIns();
       }
 
+      function showScanStatus(message, isError, showRetry) {
+        const panel = document.querySelector('[data-panel="scan"]');
+        if (!panel) return;
+        let el = $("scan-status");
+        if (!el) {
+          el = document.createElement("div");
+          el.id = "scan-status";
+          el.className = "ops-scan-status" + (isError ? " err" : "");
+          const reader = $("qr-reader");
+          if (reader) panel.insertBefore(el, reader);
+        }
+        el.className = "ops-scan-status" + (isError ? " err" : "");
+        el.innerHTML =
+          esc(message) +
+          (showRetry
+            ? `<button type="button" class="ops-btn-lg secondary ops-scan-retry" onclick="retryScanner()">Permitir cámara / reintentar</button>`
+            : "");
+      }
+
+      function clearScanStatus() {
+        $("scan-status")?.remove();
+      }
+
+      async function ensureCameraPermission() {
+        const cap = window.Capacitor;
+        if (cap?.isNativePlatform?.() && cap.Plugins?.Camera?.requestPermissions) {
+          try {
+            const cur = await cap.Plugins.Camera.checkPermissions();
+            if (cur.camera === "granted") return true;
+            const req = await cap.Plugins.Camera.requestPermissions({ permissions: ["camera"] });
+            return req.camera === "granted";
+          } catch (e) {
+            console.warn("Capacitor camera permission", e);
+          }
+        }
+        if (!navigator.mediaDevices?.getUserMedia) return false;
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" } },
+            audio: false,
+          });
+          stream.getTracks().forEach((t) => t.stop());
+          return true;
+        } catch (e) {
+          console.warn("getUserMedia", e);
+          return false;
+        }
+      }
+
       async function startScanner() {
-        if (typeof Html5Qrcode === "undefined") return;
+        if (typeof Html5Qrcode === "undefined") {
+          showScanStatus("No se cargó el lector QR. Revisá tu conexión e intentá de nuevo.", true, true);
+          return;
+        }
         if (qrScanner) return;
         const box = $("qr-reader");
         if (!box) return;
-        qrScanner = new Html5Qrcode("qr-reader");
-        try {
-          await qrScanner.start(
-            { facingMode: "environment" },
-            { fps: 10, qrbox: { width: 240, height: 240 }, aspectRatio: 1 },
-            (decoded) => {
-              stopScanner();
-              const code = normalizeCode(decoded);
-              if ($("code")) $("code").value = code;
-              lookup(code);
-              setTab("manual");
-            },
-            () => {}
+        clearScanStatus();
+        box.innerHTML = "";
+
+        const permitted = await ensureCameraPermission();
+        if (!permitted) {
+          showScanStatus(
+            "Necesitamos acceso a la cámara para escanear QR. Tocá abajo para permitir, o andá a Ajustes → Apps → Kluby → Permisos → Cámara.",
+            true,
+            true
           );
-        } catch (e) {
-          qrScanner = null;
-          toast("No se pudo abrir la cámara. Usá código manual.", "err");
-          setTab("manual");
+          return;
         }
+
+        qrScanner = new Html5Qrcode("qr-reader");
+        const cameraConfigs = [{ facingMode: "environment" }, { facingMode: "user" }, { facingMode: { exact: "environment" } }];
+        let lastErr = null;
+        for (const cam of cameraConfigs) {
+          try {
+            await qrScanner.start(
+              cam,
+              { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0, disableFlip: false },
+              (decoded) => {
+                stopScanner();
+                const code = normalizeCode(decoded);
+                if ($("code")) $("code").value = code;
+                lookup(code);
+                setTab("manual");
+              },
+              () => {}
+            );
+            clearScanStatus();
+            return;
+          } catch (e) {
+            lastErr = e;
+            try {
+              await qrScanner.stop();
+            } catch {}
+            try {
+              qrScanner.clear();
+            } catch {}
+            qrScanner = null;
+            box.innerHTML = "";
+          }
+        }
+        showScanStatus(
+          "No se pudo abrir la cámara" + (lastErr?.message ? ": " + lastErr.message : "") + ". Reintentá o usá código manual.",
+          true,
+          true
+        );
+      }
+
+      function retryScanner() {
+        stopScanner().finally(() => startScanner());
       }
 
       async function stopScanner() {
@@ -265,6 +354,7 @@
       window.act = act;
       window.logout = logout;
       window.loadCheckIns = loadCheckIns;
+      window.retryScanner = retryScanner;
 
       if (token && user) {
         if (!["PUERTA", "CLUB_ADMIN", "SUPER_ADMIN"].includes(user.role)) {
