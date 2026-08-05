@@ -16,6 +16,7 @@ import {
   requireParam,
   requireString,
 } from "../utils/validation";
+import { assertPassword, assertPhone, assertOptionalPhone } from "../utils/userInputRules";
 
 /** Campos publicos del usuario (nunca exponemos el passwordHash). */
 const publicUserSelect = {
@@ -36,15 +37,9 @@ const publicUserSelect = {
 // Roles de personal del boliche (vinculados a un club via ClubMember).
 const CLUB_PERSONAL_ROLE_VALUES = [UserRole.STAFF, UserRole.PUERTA] as const;
 
-/** Telefono obligatorio (clientes y staff). Exige un minimo de digitos. */
-const requirePhone = (body: Record<string, unknown>): string => {
-  const phone = requireString(body, "phone");
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length < 6) {
-    throw new AppError("El telefono no es valido (minimo 6 digitos)", 400);
-  }
-  return phone;
-};
+/** Telefono obligatorio (clientes y staff). */
+const requirePhone = (body: Record<string, unknown>): string =>
+  assertPhone(requireString(body, "phone"));
 
 /** RN01: validar mayoria de edad (18+) a partir de la fecha de nacimiento. */
 const isAdult = (birthDate: Date): boolean => {
@@ -89,9 +84,7 @@ export const registerUser = async (
       birthDate = parsed;
     }
 
-    if (password.length < 8) {
-      throw new AppError("La contrasena debe tener al menos 8 caracteres", 400);
-    }
+    assertPassword(password);
 
     const passwordHash = await hashPassword(password);
 
@@ -100,7 +93,7 @@ export const registerUser = async (
         email,
         passwordHash,
         fullName,
-        phone: phone ?? null,
+        phone,
         dni: dni ?? null,
         birthDate: birthDate ?? null,
         role,
@@ -128,11 +121,9 @@ export const createClubOwner = async (
     const email = requireString(body, "email").toLowerCase();
     const password = requireString(body, "password");
     const fullName = requireString(body, "fullName");
-    const phone = optionalString(body, "phone");
+    const phone = assertOptionalPhone(optionalString(body, "phone"));
 
-    if (password.length < 8) {
-      throw new AppError("La contrasena debe tener al menos 8 caracteres", 400);
-    }
+    assertPassword(password);
 
     const passwordHash = await hashPassword(password);
     const user = await prisma.user.create({
@@ -174,9 +165,7 @@ export const createStaffUser = async (
 
     const phone = requirePhone(body);
 
-    if (password.length < 8) {
-      throw new AppError("La contrasena debe tener al menos 8 caracteres", 400);
-    }
+    assertPassword(password);
 
     const club = await prisma.club.findUnique({ where: { id: clubId } });
     if (club === null) {
@@ -339,9 +328,7 @@ export const resetPassword = async (
     const token = requireString(body, "token");
     const newPassword = requireString(body, "newPassword");
 
-    if (newPassword.length < 8) {
-      throw new AppError("La contrasena debe tener al menos 8 caracteres", 400);
-    }
+    assertPassword(newPassword);
 
     const tokenHash = hashResetToken(token);
     const record = await prisma.passwordResetToken.findUnique({
@@ -424,11 +411,7 @@ export const updateUser = async (
       data.fullName = fullName;
     }
     if (phoneRaw !== undefined) {
-      const digits = phoneRaw.replace(/\D/g, "");
-      if (digits.length < 6) {
-        throw new AppError("El telefono no es valido (minimo 6 digitos)", 400);
-      }
-      data.phone = phoneRaw;
+      data.phone = assertPhone(phoneRaw);
     }
     if (profileImageUrl !== undefined) {
       data.profileImageUrl = profileImageUrl === "" ? null : profileImageUrl;

@@ -201,11 +201,12 @@
             <input id="r-name" placeholder="Tu nombre" />
             <label>Email</label>
             <input id="r-email" type="email" placeholder="tu@email.com" />
-            <label>Teléfono</label>
-            <input id="r-phone" placeholder="11 1234 5678" />
-            <p class="hint" style="margin-top:-4px">Para Mesa Abierta y contacto con anfitriones.</p>
-            <label>Contraseña (mín. 8)</label>
-            <input id="r-pass" type="password" placeholder="••••••••" />
+            <label>Teléfono / celular</label>
+            <input id="r-phone" type="tel" inputmode="tel" placeholder="11 1234 5678" />
+            <p class="hint" style="margin-top:-4px">10 dígitos (ej. 11…) o +54 9 11… · Para Mesa Abierta y contacto.</p>
+            <label>Contraseña</label>
+            <input id="r-pass" type="password" placeholder="Mín. 8 · letra y número" autocomplete="new-password" />
+            <p class="hint" style="margin-top:-4px">Al menos 8 caracteres, una letra y un número.</p>
             <button class="btn-full btn-accent" onclick="submitRegister()">Crear cuenta</button>`;
         }
       }
@@ -226,10 +227,11 @@
       async function submitRegister() {
         $("auth-err").textContent = "";
         const phone = $("r-phone").value.trim();
-        if (phone.replace(/\D/g, "").length < 6) {
-          $("auth-err").textContent = "Ingresá un teléfono válido (mínimo 6 dígitos).";
-          return;
-        }
+        const pass = $("r-pass").value;
+        const phoneErr = UI.validatePhone(phone);
+        if (phoneErr) { $("auth-err").textContent = phoneErr; return; }
+        const passErr = UI.validatePassword(pass);
+        if (passErr) { $("auth-err").textContent = passErr; return; }
         try {
           const data = await api("/users/register", {
             method: "POST",
@@ -237,7 +239,7 @@
               fullName: $("r-name").value.trim(),
               email: $("r-email").value.trim(),
               phone,
-              password: $("r-pass").value,
+              password: pass,
             }),
           });
           saveSession(data);
@@ -262,6 +264,8 @@
 
       async function submitReset() {
         $("auth-err").textContent = "";
+        const passErr = UI.validatePassword($("r-newpass").value);
+        if (passErr) { $("auth-err").textContent = passErr; return; }
         try {
           await api("/users/reset-password", {
             method: "POST",

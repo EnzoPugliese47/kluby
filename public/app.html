@@ -3053,7 +3053,8 @@
               <label>Nombre completo</label>
               <input id="pf-name" value="${attr(user.fullName)}" placeholder="Tu nombre" />
               <label>Teléfono</label>
-              <input id="pf-phone" value="${attr(user.phone || "")}" placeholder="11 1234 5678" />
+              <input id="pf-phone" type="tel" inputmode="tel" value="${attr(user.phone || "")}" placeholder="11 1234 5678" />
+              <p class="hint" style="margin-top:6px">10 dígitos (ej. 11…) o +54 9 11…</p>
               <label>Email</label>
               <input class="readonly-field" value="${attr(user.email)}" readonly title="El email no se puede modificar" />
               <p class="hint" style="margin-top:-6px">El email no se puede cambiar.</p>
@@ -3105,6 +3106,8 @@
         const name = document.getElementById("pf-name").value.trim();
         const phone = document.getElementById("pf-phone").value.trim();
         if (!name) { errEl.textContent = "El nombre es obligatorio."; return; }
+        const phoneErr = KlubyUI.validatePhone(phone);
+        if (phoneErr) { errEl.textContent = phoneErr; return; }
         const body = { fullName: name, phone };
         if (_profileImage) body.profileImageUrl = _profileImage;
         btn.disabled = true;

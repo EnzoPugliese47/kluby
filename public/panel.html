@@ -1776,9 +1776,9 @@
           <label>Email</label>
           <input id="o-email" type="email" placeholder="duenokluby4@kluby.com" />
           <label>Contraseña</label>
-          <input id="o-password" type="password" placeholder="Mínimo 8 caracteres" />
+          <input id="o-password" type="password" placeholder="Mín. 8 · letra y número" />
           <label>Teléfono (opcional)</label>
-          <input id="o-phone" type="tel" placeholder="Ej. +54 9 11 1234-5678" />
+          <input id="o-phone" type="tel" inputmode="tel" placeholder="11 1234 5678" />
           <div class="btn-row" style="margin-top:20px">
             <button type="button" class="ghost" onclick="closeModal()">Cancelar</button>
             <button type="button" style="flex:1" onclick="saveOwner()">Crear dueño</button>
@@ -1797,9 +1797,11 @@
           errEl.textContent = "Nombre, email y contraseña son obligatorios.";
           return;
         }
-        if (password.length < 8) {
-          errEl.textContent = "La contraseña debe tener al menos 8 caracteres.";
-          return;
+        const passErr = KlubyUI.validatePassword(password);
+        if (passErr) { errEl.textContent = passErr; return; }
+        if (phone) {
+          const phoneErr = KlubyUI.validatePhone(phone);
+          if (phoneErr) { errEl.textContent = phoneErr; return; }
         }
         if (!email.includes("@")) {
           errEl.textContent = "El email no es válido.";

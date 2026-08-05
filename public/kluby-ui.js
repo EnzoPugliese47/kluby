@@ -314,6 +314,49 @@ window.KlubyUI = (function () {
     if (trigger) trigger.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
+  function phoneDigits(phone) {
+    return String(phone || "").replace(/\D/g, "");
+  }
+
+  /** Devuelve mensaje de error o null si la contraseña es válida. */
+  function validatePassword(password) {
+    const p = String(password || "");
+    if (p.length < 8) return "La contraseña debe tener al menos 8 caracteres.";
+    if (p.length > 72) return "La contraseña es demasiado larga.";
+    if (!/[a-zA-Z]/.test(p)) return "La contraseña debe incluir al menos una letra.";
+    if (!/\d/.test(p)) return "La contraseña debe incluir al menos un número.";
+    return null;
+  }
+
+  /** Devuelve mensaje de error o null si el celular es válido. */
+  function validatePhone(phone) {
+    const trimmed = String(phone || "").trim();
+    const digits = phoneDigits(trimmed);
+    if (digits.length < 10 || digits.length > 13) {
+      return "Celular inválido. Usá 10 dígitos (ej. 11 1234 5678) o +54 9 11 1234 5678.";
+    }
+    if (/^(\d)\1+$/.test(digits)) return "El celular no es válido.";
+    if (digits.length === 10) {
+      if (digits.startsWith("0")) return "El celular no debe empezar con 0. Ej: 11 1234 5678.";
+      return null;
+    }
+    if (digits.length === 13 && digits.startsWith("549")) {
+      const local = digits.slice(3);
+      if (local.length !== 10 || local.startsWith("0")) {
+        return "Celular inválido con +54. Ej: +54 9 11 1234 5678.";
+      }
+      return null;
+    }
+    if (digits.length === 12 && digits.startsWith("54")) {
+      const local = digits.slice(2);
+      if (local.length !== 10 || local.startsWith("0")) {
+        return "Celular inválido. Ej: +54 9 11 1234 5678.";
+      }
+      return null;
+    }
+    return "Celular inválido. Usá 10 dígitos (ej. 11 1234 5678) o +54 9 11 1234 5678.";
+  }
+
   function friendlyError(message, status) {
     const msg = String(message || "").trim();
     const lower = msg.toLowerCase();
@@ -731,6 +774,8 @@ window.KlubyUI = (function () {
     readExploreFilters,
     clearExploreFilters,
     friendlyError,
+    validatePassword,
+    validatePhone,
     emptyStateHtml,
     clubsQueryString,
     eventsQueryString,
