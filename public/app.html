@@ -1305,14 +1305,54 @@
         const next = Math.max(0, (ctx.qty[productId] || 0) + delta);
         if (next === 0) delete ctx.qty[productId];
         else ctx.qty[productId] = next;
-        paintConsumptionPlanner();
+        refreshCalcPlannerUi();
       }
 
-      function setCalcBudget(val) {
+      function refreshCalcSummaryOnly() {
+        const ctx = window._calcCtx;
+        const el = document.getElementById("calc-summary");
+        if (!ctx || !el) return;
+        el.innerHTML = calcSummaryHtml(calcCartTotal(), ctx.budget);
+      }
+
+      function calcLinesHtml(ctx) {
+        const products = ctx.products || [];
+        if (!products.length) return `<div class="empty">Todavía no hay botellas cargadas para este evento.</div>`;
+        return products.map((p) => {
+          const q = ctx.qty[p.id] || 0;
+          const lineTotal = calcLineTotal(p.id);
+          return `<div class="k-calc-line">
+            <div>
+              <div class="name">${esc(p.name)}</div>
+              <div class="price">${esc(p.category || "General")} · ${money(p.price)} c/u</div>
+            </div>
+            <div class="k-calc-qty">
+              <button type="button" onclick="setCalcQty('${p.id}', -1)">−</button>
+              <span>${q}</span>
+              <button type="button" onclick="setCalcQty('${p.id}', 1)">+</button>
+            </div>
+            <div class="k-calc-line-total">${q ? money(lineTotal) : "—"}</div>
+          </div>`;
+        }).join("");
+      }
+
+      function refreshCalcPlannerUi() {
         const ctx = window._calcCtx;
         if (!ctx) return;
-        ctx.budget = Math.max(0, num(val));
-        paintConsumptionPlanner();
+        const linesEl = document.getElementById("calc-lines");
+        if (linesEl) linesEl.innerHTML = calcLinesHtml(ctx);
+        refreshCalcSummaryOnly();
+      }
+
+      function bindCalcBudgetInput() {
+        const inp = document.getElementById("calc-budget-input");
+        const ctx = window._calcCtx;
+        if (!inp || !ctx || inp.dataset.bound) return;
+        inp.dataset.bound = "1";
+        inp.addEventListener("input", () => {
+          ctx.budget = Math.max(0, num(inp.value));
+          refreshCalcSummaryOnly();
+        });
       }
 
       function calcSummaryHtml(cartTotal, budget) {
@@ -1337,37 +1377,20 @@
         const financeBlock = guestView
           ? guestFinanceHtml(guestView)
           : (r ? reservationFinanceHtml(r) : "");
-        const lines = products.length
-          ? products.map((p) => {
-              const q = ctx.qty[p.id] || 0;
-              const lineTotal = calcLineTotal(p.id);
-              return `<div class="k-calc-line">
-                <div>
-                  <div class="name">${esc(p.name)}</div>
-                  <div class="price">${esc(p.category || "General")} · ${money(p.price)} c/u</div>
-                </div>
-                <div class="k-calc-qty">
-                  <button type="button" onclick="setCalcQty('${p.id}', -1)">−</button>
-                  <span>${q}</span>
-                  <button type="button" onclick="setCalcQty('${p.id}', 1)">+</button>
-                </div>
-                <div class="k-calc-line-total">${q ? money(lineTotal) : "—"}</div>
-              </div>`;
-            }).join("")
-          : `<div class="empty">Todavía no hay botellas cargadas para este evento.</div>`;
 
         openModal(`
           <h3>Calculadora de consumo</h3>
           <p class="sub">${esc(eventName)} · Planificá antes de ir al boliche</p>
           ${financeBlock}
           <div class="k-calc-budget">
-            <label>Presupuesto para botellas / combos</label>
-            <input type="number" min="0" step="1000" value="${budget || ""}" oninput="setCalcBudget(this.value)" placeholder="Ej. consumición mínima" />
+            <label for="calc-budget-input">Presupuesto para botellas / combos</label>
+            <input id="calc-budget-input" type="number" min="0" step="1000" value="${budget || ""}" placeholder="Ej. consumición mínima" inputmode="numeric" />
             <p class="k-fin-note" style="margin-top:6px">Por defecto usamos la consumición mínima de la mesa, si está definida.</p>
           </div>
-          <div class="k-calc-lines">${lines}</div>
-          ${calcSummaryHtml(cartTotal, budget)}
+          <div class="k-calc-lines" id="calc-lines">${calcLinesHtml(ctx)}</div>
+          <div id="calc-summary">${calcSummaryHtml(cartTotal, budget)}</div>
           <button class="btn-full ghost" style="margin-top:16px" onclick="closeModal()">Cerrar</button>`);
+        bindCalcBudgetInput();
       }
 
       async function openBottleMenu(eventId, eventName) {

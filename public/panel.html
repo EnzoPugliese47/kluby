@@ -1699,25 +1699,59 @@
         openModal('<div class="empty">Cargando...</div>');
         try {
           const d = await api("/users/" + id + "/tables");
-          const hostRows = d.asHost.map((r) => `
+          window._userTablesModal = { id, name, data: d };
+          renderUserTablesModal();
+        } catch (e) { openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`); }
+      }
+
+      function isPastUserEvent(dateStr) {
+        return new Date(dateStr).getTime() < Date.now();
+      }
+
+      function renderUserTablesModal() {
+        const stash = window._userTablesModal;
+        if (!stash) return;
+        const { name, data: d } = stash;
+        const filter = document.getElementById("user-tables-filter")?.value || "upcoming";
+        const matchFilter = (dateStr) => {
+          const past = isPastUserEvent(dateStr);
+          if (filter === "past") return past;
+          if (filter === "upcoming") return !past;
+          return true;
+        };
+        const hostList = d.asHost.filter((r) => matchFilter(r.event.date));
+        const guestList = d.asGuest.filter((g) => matchFilter(g.reservation.event.date));
+        const emptyHost = filter === "past"
+          ? "No tuvo mesas como anfitrión en eventos pasados."
+          : "No tiene mesas como anfitrión en eventos próximos.";
+        const emptyGuest = filter === "past"
+          ? "No estuvo como invitado en eventos pasados."
+          : "No está como invitado en eventos próximos.";
+        const hostRows = hostList.map((r) => `
             <div class="pick-row"><div>
               <b>${esc(r.table.label)}</b> · ${esc(r.club.name)}
               <small>${esc(r.event.name)} · ${fdt(r.event.date)}</small>
-            </div>${resBadge(r.status)}</div>`).join("") || '<div class="empty">No es anfitrión de ninguna mesa.</div>';
-          const guestRows = d.asGuest.map((g) => `
+            </div>${resBadge(r.status)}</div>`).join("") || `<div class="empty">${emptyHost}</div>`;
+        const guestRows = guestList.map((g) => `
             <div class="pick-row"><div>
               <b>${esc(g.reservation.table.label)}</b> · ${esc(g.reservation.club.name)}
               <small>${esc(g.reservation.event.name)} · ${fdt(g.reservation.event.date)} · anfitrión: ${esc(g.reservation.host.fullName)}</small>
-            </div>${guestBadge(g.status)}</div>`).join("") || '<div class="empty">No está como invitado en ninguna mesa.</div>';
-          openModal(`
+            </div>${guestBadge(g.status)}</div>`).join("") || `<div class="empty">${emptyGuest}</div>`;
+        const filterLabel = filter === "past" ? "eventos pasados" : "próximos eventos";
+        openModal(`
             <h3>Mesas de ${esc(name)}</h3>
             <p class="sub">Reservas como anfitrión e ingresos a mesas abiertas.</p>
+            <label for="user-tables-filter">Mostrar</label>
+            <select id="user-tables-filter" onchange="renderUserTablesModal()" style="margin-bottom:14px">
+              <option value="upcoming"${filter === "upcoming" ? " selected" : ""}>Próximos eventos</option>
+              <option value="past"${filter === "past" ? " selected" : ""}>Eventos pasados</option>
+            </select>
+            <p class="role-pill" style="margin:-6px 0 12px">${hostList.length + guestList.length} mesa(s) · ${filterLabel}</p>
             <label style="margin-top:0">Como anfitrión</label>
             <div class="pick-list">${hostRows}</div>
             <label>Como invitado</label>
             <div class="pick-list">${guestRows}</div>
             <button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`);
-        } catch (e) { openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`); }
       }
       const RES_STATUS = { PENDING_PAYMENT: ["amber", "Sin pagar"], CONFIRMED: ["green", "Confirmada"], CHECKED_IN: ["violet", "Ingresado"], COMPLETED: ["muted", "Finalizada"], CANCELLED: ["red", "Cancelada"], EXPIRED: ["muted", "Expirada"], NO_SHOW: ["red", "No-show"] };
       function resBadge(s) { const [c, l] = RES_STATUS[s] || ["muted", s]; return `<span class="badge ${c}">${l}</span>`; }
