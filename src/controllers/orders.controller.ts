@@ -6,6 +6,7 @@ import {
   PaymentStatus,
   PaymentType,
   ReservationStatus,
+  GuestStatus,
 } from "../generated/prisma/client";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/appError";
@@ -93,6 +94,18 @@ export const createOrder = async (
           "Solo se pueden hacer pedidos sobre reservas confirmadas o con check-in",
           400
         );
+      }
+
+      const isHost = reservation.hostId === auth.sub;
+      const guest = await tx.reservationGuest.findFirst({
+        where: {
+          reservationId,
+          userId: auth.sub,
+          status: GuestStatus.CONFIRMED,
+        },
+      });
+      if (!isHost && guest === null && auth.role !== "SUPER_ADMIN") {
+        throw new AppError("Solo el anfitrión o invitados confirmados pueden pedir consumo", 403);
       }
 
       let total = new Prisma.Decimal(0);

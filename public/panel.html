@@ -653,8 +653,8 @@
             <div class="chart-wrap"><canvas id="chart-tables"></canvas></div>
           </div>
           <div class="card panel col-6 stats-card-event hidden" id="panel-tables-event">
-            <h3>Ingresos por mesa</h3>
-            <p class="sub">Mesas vendidas esta noche · una reserva por mesa, ordenadas por facturación</p>
+            <h3>Gasto por mesa</h3>
+            <p class="sub">Mesa + consumo pagado · ordenadas por gasto total de la noche</p>
             <div class="chart-wrap"><canvas id="chart-tables-revenue"></canvas></div>
           </div>
           <div class="card panel col-6 stats-card-shared">
@@ -4111,7 +4111,7 @@
         document.getElementById("summary").className = "";
         document.getElementById("summary").innerHTML = eventView
           ? `<div style="display:flex;flex-direction:column;gap:14px;font-size:14px">
-              <div>💰 <b>Mayor facturación:</b> ${topTable && topTable.revenue > 0 ? esc(topTable.label) + " · " + fmtMoney(topTable.revenue) : "—"}</div>
+              <div>💰 <b>Mayor gasto (mesa + consumo):</b> ${topTable && topTable.revenue > 0 ? esc(topTable.label) + " · " + fmtMoney(topTable.revenue) : "—"}</div>
               <div>🪑 <b>Ocupación:</b> ${fmtNum(d.kpis.occupiedTableSlots)}/${fmtNum(d.kpis.totalTableSlots)} mesas vendidas · ${fmtNum(freeTables)} libres</div>
               <div>🍾 <b>Producto top:</b> ${topProduct ? esc(topProduct.name) + " (" + topProduct.unitsSold + " u.)" : "—"}</div>
               <div>⏰ <b>Hora pico de consumo:</b> ${peakHour && peakHour.total > 0 ? peakHour.label + " · " + fmtMoney(peakHour.total) : "—"}</div>

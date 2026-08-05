@@ -698,6 +698,7 @@ export const getDashboard = async (
       eventsInPeriod,
       prevEventPayments,
       prevVipReservations,
+      tablePaymentRows,
     ] = await Promise.all([
       prisma.payment.findMany({
         where: paymentScopeInPeriod,
@@ -773,6 +774,17 @@ export const getDashboard = async (
             },
             select: { amountPaid: true, table: { select: { label: true, sector: true } } },
           }),
+      prisma.payment.findMany({
+        where: {
+          status: PaymentStatus.APPROVED,
+          type: { not: PaymentType.REFUND },
+          reservation: tableRankingWhere,
+        },
+        select: {
+          amount: true,
+          reservation: { select: { tableId: true } },
+        },
+      }),
     ]);
 
     const totalRevenue = paymentsScoped.reduce((acc, p) => acc + Number(p.amount), 0);
@@ -915,13 +927,21 @@ export const getDashboard = async (
     ).length;
 
     const tableById = new Map(tables.map((t) => [t.id, t]));
+    const spendByTable = new Map<string, number>();
+    for (const row of tablePaymentRows) {
+      const tableId = row.reservation.tableId;
+      spendByTable.set(
+        tableId,
+        (spendByTable.get(tableId) ?? 0) + Number(row.amount)
+      );
+    }
     const topTables = tableGroups
       .map((row) => ({
         tableId: row.tableId,
         label: tableById.get(row.tableId)?.label ?? "(desconocida)",
         sector: tableById.get(row.tableId)?.sector ?? null,
         reservationCount: row._count._all,
-        revenue: Number(row._sum.amountPaid ?? 0),
+        revenue: spendByTable.get(row.tableId) ?? Number(row._sum.amountPaid ?? 0),
       }))
       .sort((a, b) =>
         isEventScope

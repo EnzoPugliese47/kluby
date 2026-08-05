@@ -996,7 +996,7 @@
               <p class="k-ticket-code">${esc(r.code)}</p>
               ${reservationFinanceHtml(r)}
               <p class="hint" style="margin-top:10px">Mostrá este código en puerta para ingresar.</p>
-              <button type="button" class="ghost btn-sm" style="margin-top:12px" onclick="openConsumptionPlanner({ reservationId: '${r.id}' })">🍾 Calculadora de consumo</button>
+              <button type="button" class="ghost btn-sm" style="margin-top:12px" onclick="openConsumptionPlanner({ reservationId: '${r.id}' })">🍾 Pedir consumo</button>
               ${reservationTimelineHtml(r)}
               <p class="hint" style="margin-top:16px;text-align:center"><a href="#" onclick="event.preventDefault();go('cancelacion')">Política de cancelación y devoluciones</a></p>
               <div class="btn-row" style="justify-content:center;margin-top:28px">
@@ -1278,7 +1278,8 @@
           const defaultBudget = opts.defaultBudget ?? (opts.guestView
             ? guestBudgetDefault(opts.guestView)
             : (r ? consumptionBudgetDefault(r) : (opts.minConsumption > 0 ? opts.minConsumption : Math.max(0, num(opts.tablePrice) - Math.round(num(opts.tablePrice) * (opts.depositPercent || 10) / 100)))));
-          window._calcCtx = { r, eventId, eventName, products, budget: defaultBudget, qty: {}, guestView: opts.guestView || null };
+          window._calcCtx = { r, eventId, eventName, products, budget: defaultBudget, qty: {}, guestView: opts.guestView || null, orders: [] };
+          if (r?.id) await loadCalcOrders();
           paintConsumptionPlanner();
         } catch (e) {
           openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" style="margin-top:16px" onclick="closeModal()">Cerrar</button>`);
@@ -1342,6 +1343,12 @@
         const linesEl = document.getElementById("calc-lines");
         if (linesEl) linesEl.innerHTML = calcLinesHtml(ctx);
         refreshCalcSummaryOnly();
+        const payBtn = document.getElementById("calc-pay-btn");
+        if (payBtn) {
+          const total = calcCartTotal();
+          payBtn.disabled = total <= 0;
+          payBtn.textContent = "Pagar consumo · " + money(total);
+        }
       }
 
       function bindCalcBudgetInput() {
@@ -1369,26 +1376,104 @@
         return `<div class="k-calc-summary over">Armado: <b>${money(cartTotal)}</b> · Presupuesto: <b>${money(budget)}</b><br/>Te faltan <b>${money(-diff)}</b> para cubrir lo seleccionado.</div>`;
       }
 
+      function canCheckoutConsumption(r, guestView) {
+        if (!r || (r.status !== "CONFIRMED" && r.status !== "CHECKED_IN")) return false;
+        if (guestView) return guestView.status === "CONFIRMED";
+        return true;
+      }
+
+      function calcCartItems(ctx) {
+        return Object.entries(ctx.qty || {})
+          .filter(([, q]) => Number(q) > 0)
+          .map(([productId, quantity]) => ({ productId, quantity: Number(quantity) }));
+      }
+
+      async function loadCalcOrders() {
+        const ctx = window._calcCtx;
+        if (!ctx?.r?.id) return;
+        try {
+          ctx.orders = await api("/reservations/" + ctx.r.id + "/orders");
+        } catch {
+          ctx.orders = [];
+        }
+      }
+
+      function calcOrdersHtml(orders) {
+        if (!orders?.length) return "";
+        const STATUS = {
+          PENDING_PAYMENT: "Pago pendiente",
+          PAID: "Pagado",
+          PREPARING: "En preparación",
+          READY: "Listo",
+          DELIVERED: "Entregado",
+          CANCELLED: "Cancelado",
+        };
+        return `<div class="k-calc-orders" style="margin-top:16px">
+          <label style="margin-bottom:8px;display:block">Pedidos de tu mesa</label>
+          ${orders.slice(0, 6).map((o) => {
+            const items = (o.items || []).map((i) => `${i.quantity}× ${i.product?.name || "Producto"}`).join(", ");
+            return `<div class="k-fin-row"><span>${esc(items)}</span><b>${money(o.total)} · ${STATUS[o.status] || o.status}</b></div>`;
+          }).join("")}
+        </div>`;
+      }
+
+      async function checkoutConsumptionOrder() {
+        const ctx = window._calcCtx;
+        if (!ctx?.r?.id) { toast("Necesitás una reserva confirmada", "err"); return; }
+        if (!canCheckoutConsumption(ctx.r)) { toast("Confirmá la reserva antes de pedir consumo", "err"); return; }
+        const items = calcCartItems(ctx);
+        if (!items.length) { toast("Agregá botellas o combos al carrito", "err"); return; }
+        const btn = document.getElementById("calc-pay-btn");
+        const cartTotal = calcCartTotal();
+        if (btn) { btn.disabled = true; btn.textContent = "Procesando..."; }
+        try {
+          const type = ctx.r.status === "CHECKED_IN" ? "LIVE" : "PREORDER";
+          const order = await api("/reservations/" + ctx.r.id + "/orders", {
+            method: "POST",
+            body: JSON.stringify({ type, items }),
+          });
+          await api("/orders/" + order.id + "/pay", {
+            method: "POST",
+            body: JSON.stringify({ provider: "demo" }),
+          });
+          ctx.qty = {};
+          ctx.r = await api("/reservations/" + ctx.r.id);
+          await loadCalcOrders();
+          toast("¡Consumo pagado!", "ok");
+          paintConsumptionPlanner();
+        } catch (e) {
+          toast(e.message, "err");
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = "Pagar consumo · " + money(cartTotal);
+          }
+        }
+      }
+
       function paintConsumptionPlanner() {
         const ctx = window._calcCtx;
         if (!ctx) return;
-        const { r, eventName, products, budget, guestView } = ctx;
+        const { r, eventName, products, budget, guestView, orders = [] } = ctx;
         const cartTotal = calcCartTotal();
+        const canPay = canCheckoutConsumption(r, guestView);
         const financeBlock = guestView
           ? guestFinanceHtml(guestView)
           : (r ? reservationFinanceHtml(r) : "");
 
         openModal(`
-          <h3>Calculadora de consumo</h3>
-          <p class="sub">${esc(eventName)} · Planificá antes de ir al boliche</p>
+          <h3>${canPay ? "Pedí y pagá tu consumo" : "Calculadora de consumo"}</h3>
+          <p class="sub">${esc(eventName)} · ${canPay ? "Elegí de la carta y pagá online (demo)" : "Planificá antes de ir al boliche"}</p>
           ${financeBlock}
           <div class="k-calc-budget">
-            <label for="calc-budget-input">Presupuesto para botellas / combos</label>
+            <label for="calc-budget-input">${canPay ? "Presupuesto de referencia (opcional)" : "Presupuesto para botellas / combos"}</label>
             <input id="calc-budget-input" type="number" min="0" step="1000" value="${budget || ""}" placeholder="Ej. consumición mínima" inputmode="numeric" />
-            <p class="k-fin-note" style="margin-top:6px">Por defecto usamos la consumición mínima de la mesa, si está definida.</p>
+            <p class="k-fin-note" style="margin-top:6px">${canPay ? "Compará lo que elegís contra tu presupuesto. Al pagar, el consumo se suma a lo abonado de la mesa." : "Por defecto usamos la consumición mínima de la mesa, si está definida."}</p>
           </div>
           <div class="k-calc-lines" id="calc-lines">${calcLinesHtml(ctx)}</div>
           <div id="calc-summary">${calcSummaryHtml(cartTotal, budget)}</div>
+          ${calcOrdersHtml(orders)}
+          ${canPay ? `<button type="button" class="btn-full btn-accent" id="calc-pay-btn" style="margin-top:16px" ${cartTotal > 0 ? "" : "disabled"} onclick="checkoutConsumptionOrder()">Pagar consumo · ${money(cartTotal)}</button>` : ""}
+          ${canPay && cartTotal === 0 ? `<p class="k-fin-note" style="margin-top:12px">Agregá productos para pagar tu consumo.</p>` : ""}
           <button class="btn-full ghost" style="margin-top:16px" onclick="closeModal()">Cerrar</button>`);
         bindCalcBudgetInput();
       }
@@ -1450,7 +1535,8 @@
         if (r.status === "CONFIRMED" && r.mode === "STANDARD") actions.push(`<button class="btn-sm btn-accent" onclick="openTableModal('${r.id}',${r.table.capacity})">Abrir mesa 👥</button>`);
         if (r.mode === "OPEN_TABLE") actions.push(`<button class="btn-sm" onclick="go('detail',{id:'${r.id}'})">Invitados</button>`);
         if (r.status === "CONFIRMED" || r.status === "CHECKED_IN") actions.push(`<button class="btn-sm btn-accent" onclick="go('ticket',{id:'${r.id}'})">Ver QR</button>`);
-        actions.push(`<button class="btn-sm ghost" onclick="openConsumptionPlanner({ reservationId: '${r.id}' })">Calculadora 🍾</button>`);
+        if (r.status === "CONFIRMED" || r.status === "CHECKED_IN") actions.push(`<button class="btn-sm ghost" onclick="openConsumptionPlanner({ reservationId: '${r.id}' })">Pedir consumo 🍾</button>`);
+        else actions.push(`<button class="btn-sm ghost" onclick="openConsumptionPlanner({ reservationId: '${r.id}' })">Calculadora 🍾</button>`);
         if (r.status === "PENDING_PAYMENT" || r.status === "CONFIRMED") actions.push(`<button class="btn-sm btn-danger" onclick="cancelReservation('${r.id}')">Cancelar</button>`);
         return `<div class="card list-card">
           <div class="head"><div class="title">${esc(r.table.label)}</div>${statusBadge(r.status)}</div>
