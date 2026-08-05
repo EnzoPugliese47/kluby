@@ -5,8 +5,8 @@ import { prisma } from "../lib/prisma";
 import { saveStoredAsset } from "../utils/storedAsset";
 
 /**
- * Crea evento Kora — sábado 15 de agosto con plano y 30 mesas en 3 sectores.
- * Ejecutar: npm run seed:kora-aug15 [ruta-al-plano.png]
+ * Crea evento Kora — sábado 15 de agosto con plano y 40 mesas en 3 sectores.
+ * Ejecutar: npm run seed:kora-aug15 [ruta-al-plano.png|reuse]
  */
 
 const KORA_CLUB_ID = "a13df687-c80f-4440-9c08-264424e57f0f";
@@ -23,43 +23,55 @@ type TableDef = {
   posY: number;
 };
 
-/** Coordenadas en % sobre el plano vertical de Kora. */
+/** Coordenadas en % sobre el plano vertical de Kora. Etiquetas: solo números 1–40. */
+const GENERAL_X = [5, 11, 17, 23, 29, 35, 41, 47, 53, 59];
+const GENERAL_PRICES = [95000, 95000, 100000, 100000, 105000, 105000, 110000, 110000, 115000, 115000];
+
+const generalRow = (row: 0 | 1, startNum: number): TableDef[] =>
+  GENERAL_X.map((posX, i) => ({
+    label: String(startNum + i),
+    sector: "Pista General",
+    capacity: i >= 4 && i <= 5 ? 10 : 8,
+    price: GENERAL_PRICES[i]!,
+    posX,
+    posY: row === 0 ? 9 : 17,
+  }));
+
+const vip1Pairs: Array<[number, number]> = [
+  [180000, 185000],
+  [185000, 190000],
+  [190000, 195000],
+  [195000, 200000],
+  [200000, 205000],
+  [205000, 210000],
+  [210000, 220000],
+];
+
+const vip1Tables = (): TableDef[] => {
+  const out: TableDef[] = [];
+  let n = 21;
+  for (let row = 0; row < vip1Pairs.length; row++) {
+    const [p1, p2] = vip1Pairs[row]!;
+    const y = 24 + row * 8;
+    out.push(
+      { label: String(n++), sector: "VIP 1", capacity: 10, price: p1, posX: 78, posY: y },
+      { label: String(n++), sector: "VIP 1", capacity: 10, price: p2, posX: 88, posY: y }
+    );
+  }
+  return out;
+};
+
 const TABLES: TableDef[] = [
-  // Pista General — 10 mesas arriba pegadas a la pared (PG 1–10)
-  { label: "PG 1", sector: "Pista General", capacity: 8, price: 95000, posX: 12, posY: 9 },
-  { label: "PG 2", sector: "Pista General", capacity: 8, price: 95000, posX: 18, posY: 9 },
-  { label: "PG 3", sector: "Pista General", capacity: 8, price: 100000, posX: 24, posY: 9 },
-  { label: "PG 4", sector: "Pista General", capacity: 8, price: 100000, posX: 30, posY: 9 },
-  { label: "PG 5", sector: "Pista General", capacity: 10, price: 105000, posX: 36, posY: 9 },
-  { label: "PG 6", sector: "Pista General", capacity: 10, price: 105000, posX: 42, posY: 9 },
-  { label: "PG 7", sector: "Pista General", capacity: 8, price: 110000, posX: 48, posY: 9 },
-  { label: "PG 8", sector: "Pista General", capacity: 8, price: 110000, posX: 54, posY: 9 },
-  { label: "PG 9", sector: "Pista General", capacity: 8, price: 115000, posX: 60, posY: 9 },
-  { label: "PG 10", sector: "Pista General", capacity: 8, price: 115000, posX: 66, posY: 9 },
-
-  // VIP 1 — 14 mesas en la franja derecha (V1-1 – V1-14)
-  { label: "V1-1", sector: "VIP 1", capacity: 10, price: 180000, posX: 78, posY: 16 },
-  { label: "V1-2", sector: "VIP 1", capacity: 10, price: 185000, posX: 88, posY: 16 },
-  { label: "V1-3", sector: "VIP 1", capacity: 10, price: 185000, posX: 78, posY: 24 },
-  { label: "V1-4", sector: "VIP 1", capacity: 10, price: 190000, posX: 88, posY: 24 },
-  { label: "V1-5", sector: "VIP 1", capacity: 10, price: 190000, posX: 78, posY: 32 },
-  { label: "V1-6", sector: "VIP 1", capacity: 10, price: 195000, posX: 88, posY: 32 },
-  { label: "V1-7", sector: "VIP 1", capacity: 10, price: 195000, posX: 78, posY: 40 },
-  { label: "V1-8", sector: "VIP 1", capacity: 10, price: 200000, posX: 88, posY: 40 },
-  { label: "V1-9", sector: "VIP 1", capacity: 10, price: 200000, posX: 78, posY: 48 },
-  { label: "V1-10", sector: "VIP 1", capacity: 10, price: 205000, posX: 88, posY: 48 },
-  { label: "V1-11", sector: "VIP 1", capacity: 10, price: 205000, posX: 78, posY: 56 },
-  { label: "V1-12", sector: "VIP 1", capacity: 10, price: 210000, posX: 88, posY: 56 },
-  { label: "V1-13", sector: "VIP 1", capacity: 10, price: 210000, posX: 78, posY: 64 },
-  { label: "V1-14", sector: "VIP 1", capacity: 10, price: 220000, posX: 88, posY: 64 },
-
-  // VIP 2 — 6 mesas abajo a la izquierda (V2-1 – V2-6)
-  { label: "V2-1", sector: "VIP 2", capacity: 10, price: 150000, posX: 10, posY: 82 },
-  { label: "V2-2", sector: "VIP 2", capacity: 10, price: 150000, posX: 16, posY: 82 },
-  { label: "V2-3", sector: "VIP 2", capacity: 10, price: 155000, posX: 22, posY: 82 },
-  { label: "V2-4", sector: "VIP 2", capacity: 10, price: 155000, posX: 10, posY: 89 },
-  { label: "V2-5", sector: "VIP 2", capacity: 10, price: 160000, posX: 16, posY: 89 },
-  { label: "V2-6", sector: "VIP 2", capacity: 10, price: 165000, posX: 22, posY: 89 },
+  ...generalRow(0, 1),
+  ...generalRow(1, 11),
+  ...vip1Tables(),
+  // VIP 2 — 6 mesas (35–40), más separadas entre sí
+  { label: "35", sector: "VIP 2", capacity: 10, price: 150000, posX: 7, posY: 78 },
+  { label: "36", sector: "VIP 2", capacity: 10, price: 150000, posX: 16, posY: 78 },
+  { label: "37", sector: "VIP 2", capacity: 10, price: 155000, posX: 25, posY: 78 },
+  { label: "38", sector: "VIP 2", capacity: 10, price: 155000, posX: 7, posY: 91 },
+  { label: "39", sector: "VIP 2", capacity: 10, price: 160000, posX: 16, posY: 91 },
+  { label: "40", sector: "VIP 2", capacity: 10, price: 165000, posX: 25, posY: 91 },
 ];
 
 const defaultMapPath = path.join(
@@ -68,23 +80,38 @@ const defaultMapPath = path.join(
 );
 
 const main = async (): Promise<void> => {
-  const mapPath = process.argv[2] ?? defaultMapPath;
-  if (!fs.existsSync(mapPath)) {
-    throw new Error(`Plano no encontrado: ${mapPath}`);
-  }
-
   const club = await prisma.club.findUnique({ where: { id: KORA_CLUB_ID } });
   if (club === null) {
     throw new Error("Boliche Kora no encontrado.");
   }
 
-  const mapBuffer = fs.readFileSync(mapPath);
-  const mapUrl = await saveStoredAsset("image/png", mapBuffer, "kora-plano-aug15.png");
+  const mapArg = process.argv[2];
+  const reuseMap = mapArg === "reuse";
 
-  await prisma.club.update({
-    where: { id: KORA_CLUB_ID },
-    data: { floorMapUrl: mapUrl },
-  });
+  let mapUrl = club.floorMapUrl;
+  if (!reuseMap) {
+    const mapPath = mapArg ?? defaultMapPath;
+    if (!fs.existsSync(mapPath)) {
+      if (mapUrl) {
+        console.log("[kora-aug15] Plano no en disco, reutilizando mapa del boliche.");
+      } else {
+        throw new Error(`Plano no encontrado: ${mapPath}`);
+      }
+    } else {
+      const mapBuffer = fs.readFileSync(mapPath);
+      mapUrl = await saveStoredAsset("image/png", mapBuffer, "kora-plano-aug15.png");
+      await prisma.club.update({
+        where: { id: KORA_CLUB_ID },
+        data: { floorMapUrl: mapUrl },
+      });
+    }
+  } else if (!mapUrl) {
+    throw new Error("No hay plano guardado en el boliche. Pasá la ruta al PNG.");
+  }
+
+  if (!mapUrl) {
+    throw new Error("No se pudo determinar el plano del evento.");
+  }
 
   // Sábado 15 de agosto de 2026, 23:00 (Argentina UTC-3)
   const eventDate = new Date("2026-08-16T02:00:00.000Z");
@@ -154,9 +181,9 @@ const main = async (): Promise<void> => {
   console.log(`Fecha:    sábado 15 de agosto de 2026 · 23:00`);
   console.log(`Plano:    ${mapUrl}`);
   console.log(`Mesas:    ${TABLES.length}`);
-  console.log("  · Pista General (PG 1–10)");
-  console.log("  · VIP 1 (V1-1 – V1-14)");
-  console.log("  · VIP 2 (V2-1 – V2-6)");
+  console.log("  · Pista General (1–20)");
+  console.log("  · VIP 1 (21–34)");
+  console.log("  · VIP 2 (35–40)");
   console.log("========================================\n");
 };
 
