@@ -210,6 +210,9 @@ interface EventMetricsSnapshot {
   noShowRate: number;
   reservationsCount: number;
   avgTicket: number;
+  cancelledCount: number;
+  cancellationRate: number;
+  openTableCount: number;
 }
 
 /** Métricas resumidas de un evento (para comparación lado a lado). */
@@ -233,7 +236,7 @@ const computeEventMetrics = async (
     }),
     prisma.reservation.findMany({
       where: { clubId, eventId },
-      select: { status: true, checkedInAt: true },
+      select: { status: true, checkedInAt: true, mode: true },
     }),
     prisma.clubTable.count({ where: { eventId } }),
     prisma.reservation.groupBy({
@@ -271,6 +274,22 @@ const computeEventMetrics = async (
     (r) =>
       r.status !== ReservationStatus.CANCELLED && r.status !== ReservationStatus.EXPIRED
   ).length;
+  const cancelledCount = reservations.filter(
+    (r) => r.status === ReservationStatus.CANCELLED
+  ).length;
+  const countedForCancel = reservations.filter(
+    (r) =>
+      r.status !== ReservationStatus.EXPIRED &&
+      r.status !== ReservationStatus.PENDING_PAYMENT
+  ).length;
+  const cancellationRate =
+    countedForCancel > 0 ? Math.round((cancelledCount / countedForCancel) * 100) : 0;
+  const openTableCount = reservations.filter(
+    (r) =>
+      r.mode === "OPEN_TABLE" &&
+      r.status !== ReservationStatus.CANCELLED &&
+      r.status !== ReservationStatus.EXPIRED
+  ).length;
   const occupancyRate =
     totalTables > 0 ? Math.round((reservedGroups.length / totalTables) * 100) : 0;
 
@@ -284,6 +303,9 @@ const computeEventMetrics = async (
     noShowRate,
     reservationsCount,
     avgTicket: reservationsCount > 0 ? Math.round(totalRevenue / reservationsCount) : 0,
+    cancelledCount,
+    cancellationRate,
+    openTableCount,
   };
 };
 

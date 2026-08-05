@@ -126,6 +126,17 @@
       .compare-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: end; margin-bottom: 14px; }
       .compare-row .field { min-width: 260px; flex: 1; }
       .compare-row.hidden { display: none; }
+      .compare-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+      .compare-table th, .compare-table td { padding: 11px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
+      .compare-table th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; }
+      .compare-table tr:last-child td { border-bottom: none; }
+      .compare-table .cur-col { color: #b6a4ff; font-weight: 700; }
+      .compare-table .cmp-col { color: var(--accent); font-weight: 700; }
+      .compare-delta { font-size: 12px; font-weight: 700; white-space: nowrap; }
+      .compare-delta.up { color: var(--green); }
+      .compare-delta.down { color: var(--pink); }
+      .compare-delta.flat { color: var(--muted); }
+      .stats-hint { font-size: 13px; color: var(--muted); margin: -4px 0 16px; line-height: 1.5; }
 
       .loyalty-owner-box {
         margin: 18px 0; padding: 16px; border-radius: 12px;
@@ -541,10 +552,11 @@
           <button type="button" class="btn-export" onclick="exportStatsCsv()">⬇ CSV KPIs</button>
         </div>
         <p class="stats-period-label" id="stats-period-label">Las estadísticas corresponden al boliche seleccionado.</p>
+        <p class="stats-hint" id="stats-hint"></p>
 
         <div class="compare-row hidden" id="compare-row">
           <div class="field">
-            <label for="stats-compare-select">Comparar evento con</label>
+            <label for="stats-compare-select">Comparar con</label>
             <select id="stats-compare-select" onchange="onStatsCompareChange()">
               <option value="">Evento anterior (automático)</option>
             </select>
@@ -559,20 +571,19 @@
           <div class="kpis" id="loyalty-kpis"></div>
         </div>
 
-        <div class="grid">
-          <div class="card panel col-12 hidden" id="panel-compare">
-            <h3>Comparación entre eventos</h3>
-            <p class="sub" id="compare-sub">Ingresos, ocupación y asistencia lado a lado</p>
-            <div class="chart-wrap"><canvas id="chart-compare"></canvas></div>
-          </div>
+        <div class="card panel col-12 hidden" id="panel-compare">
+          <h3>Comparación entre eventos</h3>
+          <p class="sub" id="compare-sub">Valores reales de cada noche, lado a lado</p>
+          <div id="compare-content"></div>
+        </div>
 
+        <div class="grid">
           <div class="card panel col-6">
             <h3>Mesa estándar vs Mesa abierta</h3>
             <p class="sub">Split Bill · invitados y revenue por modalidad</p>
             <div class="chart-wrap" style="height:220px"><canvas id="chart-modes"></canvas></div>
             <div class="mode-cards" id="mode-cards"></div>
           </div>
-          <div class="card panel col-6">
             <h3>Flujo de consumo por hora</h3>
             <p class="sub">Pedidos confirmados · identificá la hora pico de ventas</p>
             <div class="chart-wrap"><canvas id="chart-hourly"></canvas></div>
@@ -3233,25 +3244,28 @@
         }
       }
 
-      function renderKpis(k, periodLabel) {
-        const deltaHtml = (pct) => {
-          if (pct === 0) return `<span class="k-delta flat">— sin cambio</span>`;
+      function renderKpis(k, periodLabel, eventComparison) {
+        const compareLabel = eventComparison?.compare?.name
+          ? `vs ${eventComparison.compare.name}`
+          : periodLabel;
+        const deltaHtml = (pct, label) => {
+          if (pct === 0) return `<span class="k-delta flat">— sin cambio${label ? " " + label : ""}</span>`;
           const sign = pct > 0 ? "+" : "";
-          return `<span class="k-delta ${pct > 0 ? "up" : "down"}">${sign}${pct}% vs período anterior</span>`;
+          return `<span class="k-delta ${pct > 0 ? "up" : "down"}">${sign}${pct}%${label ? " " + label : ""}</span>`;
         };
         const items = [
           {
             label: "Ingresos totales",
             value: fmtMoney(k.totalRevenue),
             color: "#7c5cff",
-            delta: deltaHtml(k.revenueChangePct),
+            delta: deltaHtml(k.revenueChangePct, compareLabel ? compareLabel : "vs período anterior"),
             sub: periodLabel,
           },
           {
             label: "Ticket promedio VIP",
             value: k.avgVipTicket ? fmtMoney(k.avgVipTicket) : "—",
             color: "#ffb454",
-            delta: k.avgVipTicket ? deltaHtml(k.avgVipTicketChangePct) : `<span class="k-delta flat">Sin mesas VIP</span>`,
+            delta: k.avgVipTicket ? deltaHtml(k.avgVipTicketChangePct, compareLabel ? compareLabel : "vs período anterior") : `<span class="k-delta flat">Sin mesas VIP</span>`,
             sub: "Mesas VIP / Premium / Privado",
           },
           {
@@ -3537,8 +3551,13 @@
           const p = d.eventComparison.compare;
           compareHtml = `<h2>Comparación de eventos</h2><table><tr><th>Métrica</th><th>${escH(c.name)}</th><th>${escH(p.name)}</th></tr>
             <tr><td>Ingresos</td><td>${money(c.totalRevenue)}</td><td>${money(p.totalRevenue)}</td></tr>
+            <tr><td>Reservas</td><td>${c.reservationsCount}</td><td>${p.reservationsCount}</td></tr>
             <tr><td>Ocupación</td><td>${c.occupancyRate}%</td><td>${p.occupancyRate}%</td></tr>
-            <tr><td>Asistencia</td><td>${c.showRate}%</td><td>${p.showRate}%</td></tr></table>`;
+            <tr><td>Asistencia</td><td>${c.showRate}%</td><td>${p.showRate}%</td></tr>
+            <tr><td>No-show</td><td>${c.noShowRate}%</td><td>${p.noShowRate}%</td></tr>
+            <tr><td>Ticket prom.</td><td>${money(c.avgTicket)}</td><td>${money(p.avgTicket)}</td></tr>
+            <tr><td>Cancelaciones</td><td>${c.cancelledCount} (${c.cancellationRate}%)</td><td>${p.cancelledCount} (${p.cancellationRate}%)</td></tr>
+            <tr><td>Mesas abiertas</td><td>${c.openTableCount}</td><td>${p.openTableCount}</td></tr></table>`;
         }
         let modesHtml = "";
         if (d.modeBreakdown) {
@@ -3634,69 +3653,68 @@
         loadDashboard();
       }
 
-      function renderEventComparison(comp) {
+      function compareDeltaHtml(cur, prev, fmt = (n) => String(n)) {
+        if (prev === 0 && cur === 0) return `<span class="compare-delta flat">—</span>`;
+        if (prev === 0) return `<span class="compare-delta up">Nuevo</span>`;
+        const pct = Math.round(((cur - prev) / prev) * 100);
+        if (pct === 0) return `<span class="compare-delta flat">=</span>`;
+        return `<span class="compare-delta ${pct > 0 ? "up" : "down"}">${pct > 0 ? "+" : ""}${pct}%</span>`;
+      }
+
+      function renderEventComparison(comp, eventSelected) {
         const panel = document.getElementById("panel-compare");
-        if (!panel || !comp?.current || !comp?.compare) {
-          if (panel) panel.classList.add("hidden");
+        const content = document.getElementById("compare-content");
+        const sub = document.getElementById("compare-sub");
+        if (!panel || !content) return;
+
+        if (!eventSelected) {
+          panel.classList.add("hidden");
           return;
         }
+
         panel.classList.remove("hidden");
-        const sub = document.getElementById("compare-sub");
-        if (sub) {
-          sub.textContent = `${comp.current.name} vs ${comp.compare.name} · barras relativas (100% = el mayor de cada métrica)`;
+
+        if (!comp?.current || !comp?.compare) {
+          if (sub) sub.textContent = "Necesitás al menos dos eventos en este boliche para comparar.";
+          content.innerHTML = `<div class="empty" style="padding:24px 0">Creá otro evento o elegí uno distinto en «Comparar con».</div>`;
+          return;
         }
-        const norm = (a, b) => {
-          const max = Math.max(a, b, 1);
-          return [Math.round((a / max) * 100), Math.round((b / max) * 100)];
-        };
-        const rev = norm(comp.current.totalRevenue, comp.compare.totalRevenue);
-        const occ = norm(comp.current.occupancyRate, comp.compare.occupancyRate);
-        const show = norm(comp.current.showRate, comp.compare.showRate);
+
         const cur = comp.current;
         const cmp = comp.compare;
-        makeChart("chart-compare", {
-          type: "bar",
-          data: {
-            labels: ["Ingresos", "Ocupación", "Asistencia"],
-            datasets: [
-              {
-                label: cur.name,
-                data: [rev[0], occ[0], show[0]],
-                backgroundColor: "rgba(124,92,255,0.75)",
-                borderRadius: 6,
-              },
-              {
-                label: cmp.name,
-                data: [rev[1], occ[1], show[1]],
-                backgroundColor: "rgba(45,226,198,0.65)",
-                borderRadius: 6,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: "top", labels: { boxWidth: 12, font: { size: 12 } } },
-              tooltip: {
-                callbacks: {
-                  label: (c) => {
-                    const idx = c.dataIndex;
-                    const isCur = c.datasetIndex === 0;
-                    const snap = isCur ? cur : cmp;
-                    if (idx === 0) return c.dataset.label + ": " + fmtMoney(snap.totalRevenue);
-                    if (idx === 1) return c.dataset.label + ": " + snap.occupancyRate + "% ocupación";
-                    return c.dataset.label + ": " + snap.showRate + "% asistencia";
-                  },
-                },
-              },
-            },
-            scales: {
-              x: { grid: { display: false } },
-              y: { max: 100, ticks: { callback: (v) => v + "%" } },
-            },
-          },
-        });
+        if (sub) {
+          sub.textContent = `${cur.name} (${formatStatsEventDate(cur.date)}) vs ${cmp.name} (${formatStatsEventDate(cmp.date)})`;
+        }
+
+        const rows = [
+          { label: "Ingresos", cur: fmtMoney(cur.totalRevenue), cmp: fmtMoney(cmp.totalRevenue), delta: compareDeltaHtml(cur.totalRevenue, cmp.totalRevenue) },
+          { label: "Reservas", cur: fmtNum(cur.reservationsCount), cmp: fmtNum(cmp.reservationsCount), delta: compareDeltaHtml(cur.reservationsCount, cmp.reservationsCount) },
+          { label: "Ocupación", cur: cur.occupancyRate + "%", cmp: cmp.occupancyRate + "%", delta: compareDeltaHtml(cur.occupancyRate, cmp.occupancyRate) },
+          { label: "Asistencia", cur: cur.showRate + "%", cmp: cmp.showRate + "%", delta: compareDeltaHtml(cur.showRate, cmp.showRate) },
+          { label: "No-show", cur: cur.noShowRate + "%", cmp: cmp.noShowRate + "%", delta: compareDeltaHtml(cmp.noShowRate, cur.noShowRate) },
+          { label: "Ticket prom.", cur: fmtMoney(cur.avgTicket), cmp: fmtMoney(cmp.avgTicket), delta: compareDeltaHtml(cur.avgTicket, cmp.avgTicket) },
+          { label: "Cancelaciones", cur: fmtNum(cur.cancelledCount) + " (" + cur.cancellationRate + "%)", cmp: fmtNum(cmp.cancelledCount) + " (" + cmp.cancellationRate + "%)", delta: compareDeltaHtml(cur.cancelledCount, cmp.cancelledCount) },
+          { label: "Mesas abiertas", cur: fmtNum(cur.openTableCount), cmp: fmtNum(cmp.openTableCount), delta: compareDeltaHtml(cur.openTableCount, cmp.openTableCount) },
+        ];
+
+        content.innerHTML = `
+          <div class="data-table-wrap" style="border:none;margin-top:4px">
+            <table class="compare-table">
+              <thead><tr>
+                <th>Métrica</th>
+                <th class="cur-col">${esc(cur.name)}</th>
+                <th class="cmp-col">${esc(cmp.name)}</th>
+                <th>Variación</th>
+              </tr></thead>
+              <tbody>${rows.map((r) => `
+                <tr>
+                  <td>${esc(r.label)}</td>
+                  <td>${r.cur}</td>
+                  <td>${r.cmp}</td>
+                  <td>${r.delta}</td>
+                </tr>`).join("")}</tbody>
+            </table>
+          </div>`;
       }
 
       function renderModeBreakdown(mb) {
@@ -3788,14 +3806,20 @@
         const eventId = document.getElementById("stats-event-select")?.value || "";
 
         const periodLbl = document.getElementById("stats-period-label");
+        const hintEl = document.getElementById("stats-hint");
         if (periodLbl) {
           periodLbl.textContent = eventId
-            ? "Evento seleccionado · compará con otro evento del mismo boliche abajo."
+            ? `📅 ${d.period?.label || "Evento seleccionado"}`
             : (d.period?.label || "Período seleccionado");
         }
+        if (hintEl) {
+          hintEl.textContent = eventId
+            ? "Los gráficos muestran solo este evento. Abajo comparás con otra noche del mismo boliche."
+            : "Elegí Semana, Mes o Última noche — o seleccioná un evento concreto para ver y comparar una fecha.";
+        }
 
-        renderKpis(d.kpis, d.period?.label || "");
-        renderEventComparison(d.eventComparison);
+        renderKpis(d.kpis, d.period?.label || "", d.eventComparison);
+        renderEventComparison(d.eventComparison, !!eventId);
         renderModeBreakdown(d.modeBreakdown);
         void loadLoyaltyStatsPanel(clubId);
 
