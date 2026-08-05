@@ -99,7 +99,7 @@ Railway **no bloquea** nada de esto. Solo agregás variables y código:
 
 ### Mercado Pago (sandbox)
 - Guía completa: **`MERCADOPAGO.md`**
-- Variables: `MP_ACCESS_TOKEN`, `MP_SANDBOX=true`, `MP_TEST_PAYER_EMAIL` (email del comprador de prueba en el panel MP), `PUBLIC_APP_URL`
+- Variables: `MP_ACCESS_TOKEN`, `MP_SANDBOX=true`, `MP_TEST_PAYER_USER_ID=3594961386` (o `MP_TEST_PAYER_EMAIL`), `PUBLIC_APP_URL`
 - Webhook: `https://TU-DOMINIO.up.railway.app/api/webhooks/mercadopago`
 - Sin `MP_ACCESS_TOKEN` → pagos demo siguen funcionando
 

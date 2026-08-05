@@ -8,23 +8,45 @@ export function isMercadoPagoSandbox(): boolean {
   return env.mpSandbox;
 }
 
-/** Email del pagador en la preferencia MP (sandbox exige cuenta de prueba). */
-export function resolveMercadoPagoPayerEmail(fallbackEmail: string): string {
-  if (isMercadoPagoSandbox() && env.mpTestPayerEmail) {
-    return env.mpTestPayerEmail;
-  }
-  return fallbackEmail;
-}
-
-export function mercadoPagoSandboxReady(): boolean {
-  return !isMercadoPagoSandbox() || env.mpTestPayerEmail.length > 0;
-}
-
 function mpHeaders(): Record<string, string> {
   return {
     Authorization: `Bearer ${env.mpAccessToken}`,
     "Content-Type": "application/json",
   };
+}
+
+/** Email del comprador de prueba vía API de MP (User ID del panel). */
+async function fetchMpTestUserEmail(userId: string): Promise<string | null> {
+  const res = await fetch(`https://api.mercadopago.com/users/${encodeURIComponent(userId)}`, {
+    headers: mpHeaders(),
+  });
+  const data = (await res.json()) as { email?: string; message?: string };
+  if (!res.ok || !data.email) return null;
+  return data.email.trim();
+}
+
+/** Resuelve el email del pagador para sandbox (cuenta de prueba, no email real de Kluby). */
+export async function resolveMercadoPagoPayerEmail(fallbackEmail: string): Promise<string> {
+  if (!isMercadoPagoSandbox()) return fallbackEmail;
+
+  if (env.mpTestPayerEmail) return env.mpTestPayerEmail;
+
+  if (env.mpTestPayerUserId) {
+    const fromApi = await fetchMpTestUserEmail(env.mpTestPayerUserId);
+    if (fromApi) return fromApi;
+  }
+
+  throw new Error(
+    "Configurá MP_TEST_PAYER_EMAIL o MP_TEST_PAYER_USER_ID (3594961386) con el comprador de prueba de Mercado Pago"
+  );
+}
+
+export function mercadoPagoSandboxReady(): boolean {
+  return (
+    !isMercadoPagoSandbox()
+    || env.mpTestPayerEmail.length > 0
+    || env.mpTestPayerUserId.length > 0
+  );
 }
 
 export type MpPreferenceItem = {
@@ -48,6 +70,7 @@ export type MpCheckoutInput = {
 export type MpCheckoutResult = {
   preferenceId: string;
   checkoutUrl: string;
+  payerEmail: string;
 };
 
 export async function createMercadoPagoCheckout(
@@ -58,18 +81,7 @@ export async function createMercadoPagoCheckout(
     throw new Error("Monto invalido para Mercado Pago");
   }
 
-  if (isMercadoPagoSandbox() && !env.mpTestPayerEmail) {
-    throw new Error(
-      "Configurá MP_TEST_PAYER_EMAIL con el email del comprador de prueba de Mercado Pago (panel → Cuentas de prueba → Comprador)"
-    );
-  }
-
-  const payerEmail = resolveMercadoPagoPayerEmail(input.payerEmail);
-  const payer: Record<string, unknown> = { email: payerEmail.slice(0, 254) };
-  if (isMercadoPagoSandbox()) {
-    payer.name = "APRO";
-    payer.identification = { type: "DNI", number: "12345678" };
-  }
+  const payerEmail = await resolveMercadoPagoPayerEmail(input.payerEmail);
 
   const body: Record<string, unknown> = {
     items: [
@@ -80,7 +92,7 @@ export async function createMercadoPagoCheckout(
         currency_id: "ARS",
       },
     ],
-    payer,
+    payer: { email: payerEmail.slice(0, 254) },
     back_urls: {
       success: input.successUrl,
       failure: input.failureUrl,
@@ -92,11 +104,10 @@ export async function createMercadoPagoCheckout(
     metadata: input.metadata ?? {},
   };
 
-  // En sandbox, Pago Fácil / Rapipago suelen dejar el botón "Pagar" deshabilitado.
-  // Forzamos tarjeta (y cuenta MP) para la demo con tarjetas de prueba.
   if (isMercadoPagoSandbox()) {
     body.payment_methods = {
       excluded_payment_types: [{ id: "ticket" }, { id: "atm" }, { id: "bank_transfer" }],
+      installments: 1,
     };
   }
 
@@ -119,8 +130,6 @@ export async function createMercadoPagoCheckout(
     throw new Error(`Mercado Pago: ${detail}`);
   }
 
-  // En sandbox priorizamos sandbox_init_point: evita mezclar cookies de tu cuenta real
-  // en mercadopago.com.ar con el flujo de prueba.
   const checkoutUrl = isMercadoPagoSandbox()
     ? data.sandbox_init_point || data.init_point
     : data.init_point || data.sandbox_init_point;
@@ -129,7 +138,7 @@ export async function createMercadoPagoCheckout(
     throw new Error("Mercado Pago no devolvio URL de checkout");
   }
 
-  return { preferenceId: data.id, checkoutUrl };
+  return { preferenceId: data.id, checkoutUrl, payerEmail };
 }
 
 export type MpPaymentInfo = {

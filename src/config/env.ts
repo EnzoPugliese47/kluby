@@ -53,6 +53,8 @@ export const env = {
    * Obligatorio en sandbox: no se puede mezclar email real con token de prueba.
    */
   mpTestPayerEmail: process.env["MP_TEST_PAYER_EMAIL"]?.trim() ?? "",
+  /** User ID del comprador de prueba (panel MP). Si no hay email, se consulta a la API de MP. */
+  mpTestPayerUserId: process.env["MP_TEST_PAYER_USER_ID"]?.trim() ?? "",
   /** URL publica HTTPS del deploy (Railway). Requerida si MP esta activo. */
   publicAppUrl:
     process.env["PUBLIC_APP_URL"]?.trim() ||

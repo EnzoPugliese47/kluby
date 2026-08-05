@@ -16,8 +16,8 @@ Integración **Checkout Pro** para reservas e invitados. Si no configurás MP, l
 
 ```env
 MP_ACCESS_TOKEN=TEST-xxxxxxxx...   # o APP_USR-... (Credenciales de prueba)
-MP_SANDBOX=true                    # obligatorio si el token es APP_USR- de prueba
-MP_TEST_PAYER_EMAIL=test_user_123456@testuser.com
+MP_SANDBOX=true
+MP_TEST_PAYER_USER_ID=3594961386   # User ID del comprador de prueba (panel MP)
 PUBLIC_APP_URL=https://kluby-production-2fa4.up.railway.app
 ```
 
@@ -25,8 +25,11 @@ PUBLIC_APP_URL=https://kluby-production-2fa4.up.railway.app
 |----------|-------------|-------------|
 | `MP_ACCESS_TOKEN` | No* | Sin esto → solo pago demo |
 | `MP_SANDBOX` | Sí con APP_USR- | `true` si usás credenciales de **prueba** |
-| `MP_TEST_PAYER_EMAIL` | Sí en sandbox | Email del **comprador de prueba** (panel MP → Cuentas de prueba → Comprador). Sin esto el botón Pagar queda deshabilitado. |
+| `MP_TEST_PAYER_USER_ID` | Sí en sandbox† | User ID del comprador (`3594961386`). Kluby obtiene el email desde MP. |
+| `MP_TEST_PAYER_EMAIL` | Alternativa † | Email exacto del comprador si preferís no usar User ID |
 | `PUBLIC_APP_URL` | Sí con MP | URL HTTPS pública (Railway) |
+
+† Uno de los dos: `MP_TEST_PAYER_USER_ID` o `MP_TEST_PAYER_EMAIL`.
 
 \* Si falta `MP_ACCESS_TOKEN`, no pasa nada: la demo sigue igual.
 
