@@ -8,8 +8,8 @@ const config: CapacitorConfig = {
   appName: "Kluby",
   webDir: "public",
   server: {
-    /** La app Android carga la web desde Railway (misma API/DB). */
-    url: `${PRODUCTION_URL}/app.html`,
+    /** La app Android arranca en la home pública; login solo al reservar. */
+    url: `${PRODUCTION_URL}/`,
     androidScheme: "https",
     allowNavigation: [
       "kluby-production-2fa4.up.railway.app",

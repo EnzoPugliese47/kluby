@@ -122,10 +122,11 @@ window.KlubyUI = (function () {
 
   function renderNav(container, active) {
     const session = getSession();
+    const isNativeApp = document.documentElement.classList.contains("cap-native");
     const links = [
       ["home", "/", "Inicio"],
       ["explorar", "/#explorar", "Explorar"],
-      ["app", "/#app-android", "App Android"],
+      ...(isNativeApp ? [] : [["app", "/#app-android", "App Android"]]),
     ];
     container.innerHTML = `
       <nav class="k-nav">
@@ -150,6 +151,7 @@ window.KlubyUI = (function () {
   }
 
   function renderFooter(container) {
+    const isNativeApp = document.documentElement.classList.contains("cap-native");
     container.innerHTML = `
       <footer class="k-footer">
         <p>© ${new Date().getFullYear()} Kluby · Plataforma de reservas VIP</p>
@@ -158,7 +160,7 @@ window.KlubyUI = (function () {
           <a href="/#explorar">Explorar</a>
           <a href="/login.html">Ingresar</a>
           <a href="/app.html">App cliente</a>
-          <a href="/#app-android">Descargar app</a>
+          ${isNativeApp ? "" : '<a href="/#app-android">Descargar app</a>'}
           <a href="/panel.html">Panel dueños</a>
           <a href="/cancelacion.html">Cancelaciones</a>
         </div>

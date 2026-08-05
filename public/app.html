@@ -2856,7 +2856,14 @@
       KlubyUI.renderBg(document.getElementById("k-bg"), { orbs: false });
       captureInviteFromUrl();
       if (!state.token || !state.user) {
-        location.href = "/login.html?next=" + encodeURIComponent("/app.html" + location.search);
+        const p = new URLSearchParams(location.search);
+        const hasWizardDeepLink = p.get("clubId") || p.get("eventId");
+        const isNativeApp = document.documentElement.classList.contains("cap-native");
+        if (isNativeApp && !hasWizardDeepLink) {
+          location.href = "/";
+        } else {
+          location.href = "/login.html?next=" + encodeURIComponent("/app.html" + location.search);
+        }
       } else {
         const away = KlubyUI.resolveAppEntry(state.user);
         if (away) {
