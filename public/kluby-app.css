@@ -896,3 +896,15 @@ html.cap-native .k-app-user .profile-link {
   padding-left: 16px;
   padding-right: 16px;
 }
+
+.k-mine-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.k-mine-tabs {
+  max-width: 420px;
+}

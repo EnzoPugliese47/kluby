@@ -252,6 +252,8 @@
         user: JSON.parse(localStorage.getItem("kluby_user") || "null"),
         view: "home",
         params: {},
+        mineFilter: "all",
+        showPast: false,
       };
 
       // ---------- utils ----------
@@ -699,6 +701,11 @@
         clearTimeout(wzClubsTimer);
         stopChatPoll();
         if (state.view === "wizard" && view !== "wizard") void releaseWizardHold();
+        if (view === "joins") {
+          view = "mine";
+          params = { ...params, filter: params.filter || "guest" };
+        }
+        if (view === "mine" && params.filter) state.mineFilter = params.filter;
         state.view = view;
         state.params = params;
         render();
@@ -1124,7 +1131,7 @@
               <p class="hint" style="margin-top:16px;text-align:center"><a href="#" onclick="event.preventDefault();go('cancelacion')">Política de cancelación y devoluciones</a></p>
               <div class="btn-row" style="justify-content:center;margin-top:28px">
                 <button type="button" class="ghost" onclick="go('home')">Explorar más</button>
-                <button type="button" onclick="go('mine')">Mis reservas</button>
+                <button type="button" onclick="go('mine')">Mis mesas</button>
               </div>
             </div>`;
         } catch (e) {
@@ -1140,8 +1147,7 @@
           ["home", "Explorar"],
           ["invites", "Mis invitaciones"],
           ["open", "Mesas abiertas"],
-          ["mine", "Mis reservas"],
-          ["joins", "Mis postulaciones"],
+          ["mine", "Mis mesas"],
           ["profile", "Mi perfil"],
         ].filter(([v]) => state.user.role === "CLIENT" || v !== "invites");
         const staffLinks = state.user.role === "STAFF"
@@ -1187,7 +1193,6 @@
         else if (state.view === "event") renderEvent(page);
         else if (state.view === "mine") renderMine(page);
         else if (state.view === "open") renderOpen(page);
-        else if (state.view === "joins") renderJoins(page);
         else if (state.view === "profile") renderProfile(page);
         else if (state.view === "cancelacion") renderCancelacion(page);
         else if (state.view === "invites") renderInvites(page);
@@ -1586,40 +1591,76 @@
         go("ticket", { id: r.id });
       }
 
-      // ---------- MY RESERVATIONS ----------
-      async function renderMine(page) {
-        page.innerHTML = `<div class="k-page-head"><h1>Mis reservas</h1><p>Gestioná tus mesas, abrilas a la comunidad o mostrá tu QR. <a href="#" onclick="event.preventDefault();go('cancelacion')" style="color:var(--accent)">Política de cancelación</a></p></div><div id="list"><div class="empty">Cargando...</div></div><div id="past-wrap"></div>`;
-        try {
-          const rs = await api("/users/" + state.user.id + "/reservations");
-          if (!stillOn("mine")) return;
-          const live = livePage("mine"); if (!live) return;
-          const now = Date.now();
-          const visible = (r) => !["CANCELLED", "EXPIRED"].includes(r.status);
-          const upcoming = rs.filter((r) => visible(r) && new Date(r.event.date).getTime() >= now)
-            .sort((a, b) => new Date(a.event.date) - new Date(b.event.date));
-          const past = rs.filter((r) => visible(r) && ["COMPLETED", "CHECKED_IN", "NO_SHOW"].includes(r.status) && new Date(r.event.date).getTime() < now)
-            .sort((a, b) => new Date(b.event.date) - new Date(a.event.date));
-
-          const el = live.querySelector("#list");
-          if (!el) return;
-          if (!upcoming.length) {
-            el.className = "";
-            el.innerHTML = emptyHtml({
-              title: "Sin reservas próximas",
-              hint: "Explorá boliches y reservá tu mesa para el próximo evento.",
-              actionLabel: "Explorar boliches",
-              actionOnclick: "go('home')",
-            });
-          } else {
-            el.className = "grid-cards";
-            el.innerHTML = upcoming.map(upcomingCard).join("");
-          }
-          renderPast(past, live);
-        } catch (e) {
-          if (stillOn("mine")) toast(e.message, "err");
-        }
+      // ---------- MY TABLES (host + guest unified) ----------
+      function setMineFilter(filter) {
+        state.mineFilter = filter;
+        if (!stillOn("mine")) return;
+        renderMine(livePage("mine") || $("page"));
       }
-      function upcomingCard(r) {
+
+      function mineFilterTabsHtml() {
+        const f = state.mineFilter || "all";
+        const tabs = [
+          ["all", "Todas"],
+          ["host", "Anfitrión"],
+          ["guest", "Invitado"],
+        ];
+        return `<div class="k-explore-tabs k-mine-tabs" role="tablist" style="margin-bottom:18px">
+          ${tabs.map(([id, label]) => `<button type="button" class="${f === id ? "active" : ""}" onclick="setMineFilter('${id}')">${label}</button>`).join("")}
+        </div>`;
+      }
+
+      function mineRoleBadge(kind, guestStatus) {
+        if (kind === "host") return `<span class="badge violet">Anfitrión</span>`;
+        if (guestStatus === "REQUESTED") return `<span class="badge amber">Postulaste</span>`;
+        if (guestStatus === "ACCEPTED_PENDING_PAYMENT") return `<span class="badge violet">Te aceptaron</span>`;
+        if (guestStatus === "CONFIRMED") return `<span class="badge green">Invitado</span>`;
+        return `<span class="badge muted">Invitado</span>`;
+      }
+
+      function mineBadgesHtml(kind, status) {
+        return `<div class="k-mine-badges">${mineRoleBadge(kind, status)}${statusBadge(status)}</div>`;
+      }
+
+      function isActiveReservation(r) {
+        return r && !["CANCELLED", "EXPIRED"].includes(r.status);
+      }
+
+      function isUpcomingEvent(date) {
+        return new Date(date).getTime() >= Date.now();
+      }
+
+      function guestEntryCard(g) {
+        const r = g.reservation;
+        const prepaid = r.paymentOption === "FULL_PAYMENT";
+        const guestView = {
+          shareAmount: g.shareAmount,
+          prepaid,
+          minConsumption: reservationMinConsumption(r),
+          status: g.status,
+        };
+        const actions = [];
+        if (g.status === "ACCEPTED_PENDING_PAYMENT" && !prepaid) {
+          actions.push(`<button type="button" class="btn-sm btn-accent" onclick="payShare('${g.id}')">Pagar mi parte (${money(g.shareAmount)})</button>`);
+        } else if (g.status === "CONFIRMED" && prepaid) {
+          actions.push(`<span class="hint">Confirmado · sin costo</span>`);
+        }
+        if (g.status === "CONFIRMED") {
+          actions.push(`<button type="button" class="btn-sm btn-accent" onclick="openTableChat('${r.id}','mine')">💬 Chat</button>`);
+          actions.push(`<button type="button" class="btn-sm btn-accent" onclick="go('ticket',{id:'${r.id}'})">Ver QR</button>`);
+        }
+        if (g.status === "ACCEPTED_PENDING_PAYMENT" || g.status === "CONFIRMED") {
+          actions.push(`<button type="button" class="btn-sm ghost" onclick='openConsumptionPlanner(${JSON.stringify({ reservationId: r.id, guestView })})'>Calculadora 🍾</button>`);
+        }
+        return `<div class="card list-card">
+          <div class="head"><div class="title">${esc(r.table.label)}</div>${mineBadgesHtml("guest", g.status)}</div>
+          <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}<br/>👤 Anfitrión: ${esc(r.host.fullName)}</div>
+          ${guestFinanceHtml(guestView)}
+          <div class="btn-row">${actions.join("") || '<span class="hint">Esperando respuesta del anfitrión</span>'}</div>
+        </div>`;
+      }
+
+      function hostReservationCard(r) {
         const actions = [];
         if (r.status === "PENDING_PAYMENT") actions.push(`<button class="btn-sm" onclick="payReservation('${r.id}')">Pagar seña</button>`);
         if (r.status === "CONFIRMED" && r.mode === "STANDARD") actions.push(`<button class="btn-sm btn-accent" onclick="openTableModal('${r.id}',${r.table.capacity})">Abrir mesa 👥</button>`);
@@ -1633,7 +1674,7 @@
         actions.push(`<button class="btn-sm ghost" onclick="openConsumptionPlanner({ reservationId: '${r.id}' })">Calculadora 🍾</button>`);
         if (r.status === "PENDING_PAYMENT" || r.status === "CONFIRMED") actions.push(`<button class="btn-sm btn-danger" onclick="cancelReservation('${r.id}')">Cancelar</button>`);
         return `<div class="card list-card">
-          <div class="head"><div class="title">${esc(r.table.label)}</div>${statusBadge(r.status)}</div>
+          <div class="head"><div class="title">${esc(r.table.label)}</div>${mineBadgesHtml("host", r.status)}</div>
           <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}${r.mode === "OPEN_TABLE" ? `<br/>👥 Mesa abierta (vos + ${Math.max(0, (r.maxGuests || 1) - 1)} invitados)` : ""}</div>
           ${reservationFinanceHtml(r, true)}
           ${reservationConsumptionHtml(r)}
@@ -1641,19 +1682,121 @@
           <div class="btn-row">${actions.join("")}</div>
         </div>`;
       }
-      function renderPast(past, page = livePage("mine")) {
+
+      function pastGuestCard(g) {
+        const r = g.reservation;
+        return `<div class="card list-card" style="opacity:.7">
+          <div class="head"><div class="title">${esc(r.table.label)}</div><div class="k-mine-badges"><span class="badge green">Invitado</span><span class="badge muted">Finalizado</span></div></div>
+          <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}<br/>👤 ${esc(r.host.fullName)}</div>
+        </div>`;
+      }
+
+      function pastHostCard(r) {
+        return `<div class="card list-card" style="opacity:.7">
+          <div class="head"><div class="title">${esc(r.table.label)}</div><div class="k-mine-badges"><span class="badge violet">Anfitrión</span><span class="badge muted">Finalizado</span></div></div>
+          <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}</div>
+        </div>`;
+      }
+
+      async function renderMine(page) {
+        page.innerHTML = `<div class="k-page-head"><h1>Mis mesas</h1><p>Tus reservas como anfitrión y las mesas donde te invitaron o postulaste. <a href="#" onclick="event.preventDefault();go('cancelacion')" style="color:var(--accent)">Política de cancelación</a></p></div>${mineFilterTabsHtml()}<div id="list"><div class="empty">Cargando...</div></div><div id="past-wrap"></div>`;
+        try {
+          const [rs, entries] = await Promise.all([
+            api("/users/" + state.user.id + "/reservations"),
+            api("/users/" + state.user.id + "/guest-entries"),
+          ]);
+          if (!stillOn("mine")) return;
+          const live = livePage("mine"); if (!live) return;
+          const now = Date.now();
+          const hostIds = new Set(rs.map((r) => r.id));
+          const filter = state.mineFilter || "all";
+
+          const visibleHost = (r) => isActiveReservation(r);
+          const visibleGuest = (g) => (
+            g.reservation
+            && isActiveReservation(g.reservation)
+            && !hostIds.has(g.reservation.id)
+            && g.reservation.hostId !== state.user.id
+          );
+
+          const upcomingHost = rs.filter((r) => visibleHost(r) && isUpcomingEvent(r.event.date))
+            .sort((a, b) => new Date(a.event.date) - new Date(b.event.date));
+          const upcomingGuest = entries.filter((g) => visibleGuest(g) && isUpcomingEvent(g.reservation.event.date))
+            .sort((a, b) => new Date(a.reservation.event.date) - new Date(b.reservation.event.date));
+
+          const pastHost = rs.filter((r) => visibleHost(r) && ["COMPLETED", "CHECKED_IN", "NO_SHOW"].includes(r.status) && new Date(r.event.date).getTime() < now)
+            .sort((a, b) => new Date(b.event.date) - new Date(a.event.date));
+          const pastGuest = entries.filter((g) => visibleGuest(g) && g.status === "CONFIRMED" && new Date(g.reservation.event.date).getTime() < now)
+            .sort((a, b) => new Date(b.reservation.event.date) - new Date(a.reservation.event.date));
+
+          let upcoming = [];
+          if (filter === "all" || filter === "host") {
+            upcoming.push(...upcomingHost.map((r) => ({ kind: "host", date: r.event.date, card: hostReservationCard(r) })));
+          }
+          if (filter === "all" || filter === "guest") {
+            upcoming.push(...upcomingGuest.map((g) => ({ kind: "guest", date: g.reservation.event.date, card: guestEntryCard(g) })));
+          }
+          upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+          let past = [];
+          if (filter === "all" || filter === "host") {
+            past.push(...pastHost.map((r) => ({ date: r.event.date, card: pastHostCard(r) })));
+          }
+          if (filter === "all" || filter === "guest") {
+            past.push(...pastGuest.map((g) => ({ date: g.reservation.event.date, card: pastGuestCard(g) })));
+          }
+          past.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+          const el = live.querySelector("#list");
+          if (!el) return;
+          if (!upcoming.length) {
+            el.className = "";
+            const emptyByFilter = {
+              all: {
+                title: "Sin mesas próximas",
+                hint: "Reservá tu mesa o sumate a una mesa abierta de la comunidad.",
+                actionLabel: "Explorar boliches",
+                actionOnclick: "go('home')",
+              },
+              host: {
+                title: "Sin reservas propias",
+                hint: "Explorá boliches y reservá tu mesa para el próximo evento.",
+                actionLabel: "Explorar boliches",
+                actionOnclick: "go('home')",
+              },
+              guest: {
+                title: "Sin mesas como invitado",
+                hint: "Pedí sumarte a una mesa abierta y seguí el estado acá.",
+                actionLabel: "Ver mesas abiertas",
+                actionOnclick: "go('open')",
+              },
+            };
+            const opts = emptyByFilter[filter] || emptyByFilter.all;
+            if (filter === "all") {
+              el.innerHTML = emptyHtml(opts) + `<div style="text-align:center;margin-top:14px"><button type="button" class="ghost btn-sm" onclick="go('open')">Ver mesas abiertas</button></div>`;
+            } else {
+              el.innerHTML = emptyHtml(opts);
+            }
+          } else {
+            el.className = "grid-cards";
+            el.innerHTML = upcoming.map((item) => item.card).join("");
+          }
+          renderPast(past, live);
+        } catch (e) {
+          if (stillOn("mine")) toast(e.message, "err");
+        }
+      }
+
+      function renderPast(pastItems, page = livePage("mine")) {
         if (!page || !stillOn("mine")) return;
         const wrap = page.querySelector("#past-wrap");
         if (!wrap) return;
-        if (!past.length) { wrap.innerHTML = ""; return; }
+        if (!pastItems.length) { wrap.innerHTML = ""; return; }
         if (!state.showPast) {
-          wrap.innerHTML = `<div style="text-align:center;margin-top:22px"><button class="ghost btn-sm" onclick="state.showPast=true;renderMine($('page'))">Ver eventos pasados (${past.length})</button></div>`;
+          wrap.innerHTML = `<div style="text-align:center;margin-top:22px"><button class="ghost btn-sm" onclick="state.showPast=true;renderMine($('page'))">Ver eventos pasados (${pastItems.length})</button></div>`;
           return;
         }
-        const cards = past.map((r) => `<div class="card list-card" style="opacity:.7">
-            <div class="head"><div class="title">${esc(r.table.label)}</div><span class="badge muted">Finalizado</span></div>
-            <div class="meta">🗓️ ${fdatetime(r.event.date)}</div>
-          </div>`).join("");
+        const cards = pastItems.map((item) => item.card).join("");
         wrap.innerHTML = `<div class="section-sub" style="margin-top:26px;display:flex;justify-content:space-between;align-items:center"><span>Eventos pasados</span><button class="ghost btn-sm" onclick="state.showPast=false;renderMine($('page'))">Ocultar</button></div><div class="grid-cards">${cards}</div>`;
       }
       async function payReservation(id) {
@@ -1768,7 +1911,7 @@
             ? "Mesa pagada por el anfitrión"
             : (r.maxGuests ? money(Number(r.totalAmount) / r.maxGuests) : "-");
           live.innerHTML = `
-            <button type="button" class="ghost btn-sm" onclick="go('mine')">← Volver</button>
+            <button type="button" class="ghost btn-sm" onclick="go('mine')">← Mis mesas</button>
             <div class="section-title" style="margin-top:14px">${esc(r.table.label)} · Mesa abierta</div>
             <div class="section-sub">🗓️ ${fdatetime(r.event.date)} · ${Math.max(0, (r.maxGuests || 1) - 1)} invitados + vos · ${r.paymentOption === "FULL_PAYMENT" ? "<b>Mesa pagada</b> · invitados sin costo" : `Parte por persona: <b>${share}</b>`}</div>
             ${reservationFinanceHtml(r, true)}
@@ -1950,7 +2093,7 @@
         _chatStickBottom = true;
         _chatLocked = false;
         const back = state.params.back || "mine";
-        const backLabel = back === "detail" ? "← Volver a invitados" : back === "joins" ? "← Mis postulaciones" : "← Mis reservas";
+        const backLabel = back === "detail" ? "← Volver a invitados" : "← Mis mesas";
         page.innerHTML = `<div class="empty">Cargando chat…</div>`;
         try {
           const r = await api("/reservations/" + state.params.id);
@@ -1983,7 +2126,7 @@
         } catch (e) {
           const live = livePage("chat");
           if (live) {
-            live.innerHTML = `<button type="button" class="ghost btn-sm" onclick="go('mine')">← Mis reservas</button><div class="empty" style="margin-top:16px">${esc(e.message)}</div>`;
+            live.innerHTML = `<button type="button" class="ghost btn-sm" onclick="go('mine')">← Mis mesas</button><div class="empty" style="margin-top:16px">${esc(e.message)}</div>`;
           }
         }
       }
@@ -2000,8 +2143,8 @@
           if (!wall.length) {
             el.innerHTML = emptyHtml({
               title: "Nadie abrió mesa todavía",
-              hint: "Si ya tenés reserva, podés abrirla a la comunidad desde Mis reservas.",
-              actionLabel: "Ver mis reservas",
+              hint: "Si ya tenés reserva, podés abrirla a la comunidad desde Mis mesas.",
+              actionLabel: "Ver mis mesas",
               actionOnclick: "go('mine')",
             });
             return;
@@ -2038,7 +2181,7 @@
           try {
             await api("/reservations/" + reservationId + "/guests", { method: "POST", body: JSON.stringify({ userId: state.user.id }) });
             toast("¡Postulación enviada! Esperá la aprobación.", "ok");
-            go("joins");
+            go("mine", { filter: "guest" });
           } catch (e) { toast(e.message, "err"); }
         };
         const payNote = prepaid
@@ -2049,66 +2192,18 @@
           <p class="hint">Pedís unirte y el anfitrión decide si te acepta.</p>
           <ul>
             ${payNote}
-            <li>Cuando te acepten, podés planificar consumo desde <b>Mis postulaciones</b>.</li>
-            <li>Seguí el estado en <b>Mis postulaciones</b>.</li>
+            <li>Cuando te acepten, podés planificar consumo desde <b>Mis mesas</b>.</li>
+            <li>Seguí el estado en <b>Mis mesas</b> (filtro Invitado).</li>
           </ul>`, doJoin);
       }
 
-      // ---------- MY JOINS ----------
-      async function renderJoins(page) {
-        page.innerHTML = `<div class="k-page-head"><h1>Mis postulaciones</h1><p>Seguí el estado de las mesas a las que pediste sumarte.</p></div><div id="list"><div class="empty">Cargando...</div></div>`;
-        try {
-          const entries = await api("/users/" + state.user.id + "/guest-entries");
-          if (!stillOn("joins")) return;
-          const live = livePage("joins"); if (!live) return;
-          const el = live.querySelector("#list");
-          if (!el) return;
-          if (!entries.length) {
-            el.innerHTML = emptyHtml({
-              title: "Sin postulaciones",
-              hint: "Cuando pidas sumarte a una mesa abierta, el estado aparece acá.",
-              actionLabel: "Ver mesas abiertas",
-              actionOnclick: "go('open')",
-            });
-            return;
-          }
-          el.className = "grid-cards";
-          el.innerHTML = entries.map((g) => {
-            const r = g.reservation;
-            const prepaid = r.paymentOption === "FULL_PAYMENT";
-            const guestView = {
-              shareAmount: g.shareAmount,
-              prepaid,
-              minConsumption: reservationMinConsumption(r),
-              status: g.status,
-            };
-            let act = g.status === "ACCEPTED_PENDING_PAYMENT" && !prepaid
-              ? `<button type="button" class="btn-sm btn-accent" onclick="payShare('${g.id}')">Pagar mi parte (${money(g.shareAmount)})</button>`
-              : (g.status === "CONFIRMED" && prepaid ? `<span class="hint">Confirmado · sin costo</span>` : "");
-            if (g.status === "CONFIRMED") {
-              act += `<button type="button" class="btn-sm btn-accent" onclick="openTableChat('${r.id}','joins')">💬 Chat</button>`;
-            }
-            const canUseCalc = g.status === "ACCEPTED_PENDING_PAYMENT" || g.status === "CONFIRMED";
-            const calcBtn = canUseCalc
-              ? `<button type="button" class="btn-sm ghost" onclick='openConsumptionPlanner(${JSON.stringify({ reservationId: r.id, guestView })})'>Calculadora 🍾</button>`
-              : "";
-            return `<div class="card list-card">
-              <div class="head"><div class="title">${esc(r.table.label)}</div>${statusBadge(g.status)}</div>
-              <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}<br/>👤 ${esc(r.host.fullName)}</div>
-              ${guestFinanceHtml(guestView)}
-              <div class="btn-row">${act}${calcBtn}</div>
-            </div>`;
-          }).join("");
-        } catch (e) {
-          if (stillOn("joins")) toast(e.message, "err");
-        }
-      }
       async function payShare(guestId) {
         try {
           await api("/guests/" + guestId + "/pay", { method: "POST", body: JSON.stringify({ provider: "demo" }) });
           _alertsCache = null;
           toast("¡Pago confirmado! Ya sos parte de la mesa.", "ok");
-          renderJoins($("page"));
+          state.mineFilter = state.mineFilter || "guest";
+          renderMine($("page"));
           void refreshAlerts();
         } catch (e) { toast(e.message, "err"); }
       }
@@ -2297,7 +2392,7 @@
 
       async function renderCancelacion(page) {
         page.innerHTML = `
-          <button type="button" class="ghost btn-sm k-back" onclick="go('mine')">← Volver a mis reservas</button>
+          <button type="button" class="ghost btn-sm k-back" onclick="go('mine')">← Volver a mis mesas</button>
           <div class="k-page-head">
             <h1>Cancelaciones y devoluciones</h1>
             <p>Cómo funciona si cancelás tu reserva, qué se reintegra y qué pasa con tus Kluby Points.</p>

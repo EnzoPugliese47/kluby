@@ -275,9 +275,7 @@ export const listMyGuestEntries = async (
     const entries = await prisma.reservationGuest.findMany({
       where: {
         userId,
-        reservation: {
-          event: { date: { gte: openTablesEventCutoff() } },
-        },
+        status: { notIn: [GuestStatus.REJECTED, GuestStatus.CANCELLED] },
       },
       include: {
         reservation: {
