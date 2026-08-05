@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { uploadLogo, uploadMap, uploadProfile } from "../controllers/uploads.controller";
+import { uploadFlyer, uploadLogo, uploadMap, uploadProfile } from "../controllers/uploads.controller";
 import { authenticate, authorize } from "../middlewares/auth";
 
 const router = Router();
@@ -18,6 +18,13 @@ router.post(
   authenticate,
   authorize("CLUB_ADMIN", "SUPER_ADMIN"),
   uploadLogo
+);
+
+router.post(
+  "/flyer",
+  authenticate,
+  authorize("CLUB_ADMIN", "SUPER_ADMIN"),
+  uploadFlyer
 );
 
 export default router;

@@ -1415,6 +1415,7 @@
             body.innerHTML = `
               <button type="button" class="ghost btn-sm k-back" onclick="wizardGo(2,{clubId:'${cid}'})">← Cambiar fecha</button>
               <div class="k-page-head"><h1>${esc(data.event.name)}</h1><p>Paso 3 de 4 · Tocá una mesa disponible.</p></div>
+              ${KlubyUI.eventFlyerBannerHtml(data.event)}
               <div class="legend">
                 <span><span class="dot" style="background:var(--accent)"></span>Disponible</span>
                 <span><span class="dot" style="background:var(--red)"></span>Reservada</span>
@@ -1915,6 +1916,7 @@
             <button type="button" class="ghost btn-sm k-back" onclick="go('club',{id:'${cid}'})">← Volver</button>
             <div class="section-title" style="margin-top:14px">${esc(data.event.name)}</div>
             <div class="section-sub">🗓️ ${fdatetime(data.event.date)} · Tocá una mesa disponible para reservar</div>
+            ${KlubyUI.eventFlyerBannerHtml(data.event)}
             <div class="legend">
               <span><span class="dot" style="background:var(--accent)"></span>Disponible</span>
               <span><span class="dot" style="background:var(--red)"></span>Reservada</span>

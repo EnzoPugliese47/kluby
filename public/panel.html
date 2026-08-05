@@ -355,6 +355,9 @@
       .img-crop-zoom-row { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; }
       .img-crop-zoom-row input[type=range] { flex: 1; accent-color: var(--accent); }
       .img-crop-zoom-row span { font-size: 12px; color: var(--muted); min-width: 36px; text-align: right; }
+      .img-crop-viewport.portrait { width: 240px; height: 320px; }
+      .modal.img-crop-modal.flyer { max-width: 480px; }
+      .img-crop-preview.portrait { width: 66px; height: 88px; border-radius: 8px; }
 
       /* Grilla de mesas del evento */
       .tables-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
@@ -1204,7 +1207,9 @@
         ).join("");
       }
       const LOGO_CROP = { output: 500, frame: 248, zoomMin: 1, zoomMax: 3 };
+      const FLYER_CROP = { outputW: 900, outputH: 1200, frameW: 216, frameH: 288, zoomMin: 1, zoomMax: 3 };
       let _logoCrop = null;
+      let _flyerCrop = null;
 
       function clubLogoPreviewHtml(extra) {
         if (!_clubLogo) return '<span class="role-pill">PNG, JPG o WebP · elegí y recortá</span>';
@@ -1597,6 +1602,210 @@
         openClubLogoCropper(file, draft);
       }
 
+      function eventFlyerPreviewHtml() {
+        if (_eventFlyerCleared) return '<span class="role-pill">Sin flyer</span>';
+        if (_eventFlyer) {
+          return `<img src="${esc(_eventFlyer)}" style="max-width:140px;max-height:186px;border-radius:10px;border:1px solid var(--border);object-fit:cover" alt="Flyer" />`;
+        }
+        return '<span class="role-pill">Opcional · formato vertical 3:4</span>';
+      }
+
+      function flyerCropClamp() {
+        if (!_flyerCrop) return;
+        const s = _flyerCrop.baseScale * _flyerCrop.zoom;
+        const dw = _flyerCrop.nw * s;
+        const dh = _flyerCrop.nh * s;
+        const maxX = Math.max(0, (dw - _flyerCrop.frameW) / 2);
+        const maxY = Math.max(0, (dh - _flyerCrop.frameH) / 2);
+        _flyerCrop.panX = Math.min(maxX, Math.max(-maxX, _flyerCrop.panX));
+        _flyerCrop.panY = Math.min(maxY, Math.max(-maxY, _flyerCrop.panY));
+      }
+
+      function flyerCropDraw(ctx, destW, destH) {
+        const s = _flyerCrop.baseScale * _flyerCrop.zoom;
+        const srcW = _flyerCrop.frameW / s;
+        const srcH = _flyerCrop.frameH / s;
+        const srcX = _flyerCrop.nw / 2 - srcW / 2 - _flyerCrop.panX / s;
+        const srcY = _flyerCrop.nh / 2 - srcH / 2 - _flyerCrop.panY / s;
+        ctx.drawImage(_flyerCrop.image, srcX, srcY, srcW, srcH, 0, 0, destW, destH);
+      }
+
+      function flyerCropUpdate() {
+        if (!_flyerCrop?.imgEl) return;
+        const s = _flyerCrop.baseScale * _flyerCrop.zoom;
+        _flyerCrop.imgEl.style.transform = `translate(calc(-50% + ${_flyerCrop.panX}px), calc(-50% + ${_flyerCrop.panY}px)) scale(${s})`;
+        const prev = document.getElementById("flyer-crop-preview-cv");
+        if (prev) {
+          const pctx = prev.getContext("2d");
+          pctx.clearRect(0, 0, prev.width, prev.height);
+          flyerCropDraw(pctx, prev.width, prev.height);
+        }
+        const zoomLbl = document.getElementById("flyer-crop-zoom-val");
+        if (zoomLbl) zoomLbl.textContent = Math.round(_flyerCrop.zoom * 100) + "%";
+      }
+
+      function flyerCropExportDataUrl() {
+        const canvas = document.createElement("canvas");
+        canvas.width = FLYER_CROP.outputW;
+        canvas.height = FLYER_CROP.outputH;
+        flyerCropDraw(canvas.getContext("2d"), FLYER_CROP.outputW, FLYER_CROP.outputH);
+        return canvas.toDataURL("image/jpeg", 0.92);
+      }
+
+      function flyerCropBindEvents() {
+        const vp = document.getElementById("flyer-crop-vp");
+        const zoomEl = document.getElementById("flyer-crop-zoom");
+        if (!vp || !zoomEl) return;
+        let startX = 0, startY = 0, startPanX = 0, startPanY = 0, dragging = false;
+        vp.onpointerdown = (ev) => {
+          dragging = true;
+          vp.setPointerCapture(ev.pointerId);
+          vp.classList.add("dragging");
+          startX = ev.clientX;
+          startY = ev.clientY;
+          startPanX = _flyerCrop.panX;
+          startPanY = _flyerCrop.panY;
+        };
+        vp.onpointermove = (ev) => {
+          if (!dragging) return;
+          _flyerCrop.panX = startPanX + (ev.clientX - startX);
+          _flyerCrop.panY = startPanY + (ev.clientY - startY);
+          flyerCropClamp();
+          flyerCropUpdate();
+        };
+        const endDrag = () => { dragging = false; vp.classList.remove("dragging"); };
+        vp.onpointerup = endDrag;
+        vp.onpointercancel = endDrag;
+        vp.onwheel = (ev) => {
+          ev.preventDefault();
+          _flyerCrop.zoom = Math.min(FLYER_CROP.zoomMax, Math.max(FLYER_CROP.zoomMin, _flyerCrop.zoom - ev.deltaY * 0.002));
+          zoomEl.value = String(_flyerCrop.zoom);
+          flyerCropClamp();
+          flyerCropUpdate();
+        };
+        zoomEl.oninput = () => {
+          _flyerCrop.zoom = Number(zoomEl.value);
+          flyerCropClamp();
+          flyerCropUpdate();
+        };
+      }
+
+      function openEventFlyerCropper(file, draft) {
+        _eventFormDraft = draft;
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+          const { frameW, frameH } = FLYER_CROP;
+          const baseScale = Math.max(frameW / image.width, frameH / image.height);
+          if (_flyerCrop?.blobUrl) URL.revokeObjectURL(_flyerCrop.blobUrl);
+          _flyerCrop = {
+            image,
+            imgEl: null,
+            nw: image.width,
+            nh: image.height,
+            baseScale,
+            zoom: 1,
+            panX: 0,
+            panY: 0,
+            frameW,
+            frameH,
+            blobUrl: url,
+          };
+          openModal(`
+            <h3>Ajustar flyer del evento</h3>
+            <p class="sub">Arrastrá y hacé zoom para encuadrar el flyer (formato vertical 3:4)</p>
+            <div class="img-crop-layout">
+              <div class="img-crop-viewport portrait" id="flyer-crop-vp">
+                <img id="flyer-crop-img" src="${esc(url)}" alt="" draggable="false" />
+                <div class="img-crop-frame" title="Área visible"></div>
+              </div>
+              <div class="img-crop-side">
+                <span class="role-pill" style="margin:0">Vista previa</span>
+                <div class="img-crop-preview portrait">
+                  <canvas id="flyer-crop-preview-cv" width="66" height="88"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="img-crop-zoom-row">
+              <span class="role-pill" style="margin:0">Zoom</span>
+              <input type="range" id="flyer-crop-zoom" min="${FLYER_CROP.zoomMin}" max="${FLYER_CROP.zoomMax}" step="0.01" value="1" />
+              <span id="flyer-crop-zoom-val">100%</span>
+            </div>
+            <div class="btn-row" style="margin-top:18px">
+              <button type="button" class="ghost" onclick="cancelEventFlyerCrop()">Volver al evento</button>
+              <button type="button" style="flex:1" id="flyer-crop-ok" onclick="confirmEventFlyerCrop()">Usar este flyer</button>
+            </div>
+            <div class="error" id="flyer-crop-err"></div>`);
+          document.getElementById("modal-content").classList.add("img-crop-modal", "flyer");
+          _flyerCrop.imgEl = document.getElementById("flyer-crop-img");
+          _flyerCrop.imgEl.style.width = image.width + "px";
+          _flyerCrop.imgEl.style.height = image.height + "px";
+          flyerCropBindEvents();
+          flyerCropUpdate();
+        };
+        image.onerror = () => {
+          URL.revokeObjectURL(url);
+          toast("No se pudo leer la imagen", "err");
+          if (_eventFormDraft) reopenEventFormFromDraft();
+        };
+        image.src = url;
+      }
+
+      function cancelEventFlyerCrop() {
+        const draft = _eventFormDraft;
+        if (_flyerCrop?.blobUrl) URL.revokeObjectURL(_flyerCrop.blobUrl);
+        _flyerCrop = null;
+        document.getElementById("modal-content").classList.remove("img-crop-modal", "flyer");
+        if (draft) reopenEventFormFromDraft();
+        else closeModal();
+      }
+
+      async function confirmEventFlyerCrop() {
+        const errEl = document.getElementById("flyer-crop-err");
+        const btn = document.getElementById("flyer-crop-ok");
+        const draft = _eventFormDraft;
+        if (!_flyerCrop || !draft) return;
+        btn.disabled = true;
+        btn.textContent = "Subiendo...";
+        errEl.textContent = "";
+        try {
+          const dataUrl = flyerCropExportDataUrl();
+          const res = await api("/uploads/flyer", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
+          if (_flyerCrop?.blobUrl) URL.revokeObjectURL(_flyerCrop.blobUrl);
+          _flyerCrop = null;
+          document.getElementById("modal-content").classList.remove("img-crop-modal", "flyer");
+          _eventFlyer = res.url;
+          _eventFlyerCleared = false;
+          openEventForm(draft.editingId ? { id: draft.editingId, name: draft.name, flyerImageUrl: res.url } : null, { ...draft, eventFlyer: res.url, eventFlyerCleared: false });
+          toast("Flyer listo", "ok");
+        } catch (err) {
+          errEl.textContent = err.message;
+          btn.disabled = false;
+          btn.textContent = "Usar este flyer";
+        }
+      }
+
+      function onEventFlyerPick(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        e.target.value = "";
+        if (!/^image\/(png|jpeg|jpg|webp)$/i.test(file.type || "")) {
+          toast("Formato no soportado. Usá PNG, JPG o WebP.", "err");
+          return;
+        }
+        _eventFormDraft = captureEventFormDraft();
+        openEventFlyerCropper(file, _eventFormDraft);
+      }
+
+      function clearEventFlyer() {
+        _eventFlyer = null;
+        _eventFlyerCleared = true;
+        const prev = document.getElementById("ev-flyer-preview");
+        if (prev) prev.innerHTML = eventFlyerPreviewHtml();
+        const rm = document.getElementById("ev-flyer-remove");
+        if (rm) rm.style.display = "none";
+      }
+
       async function deleteClub(id, name) {
         if (!confirm(`¿Eliminar el boliche "${name}"?\nSe borrarán todos sus eventos, mesas, productos y el historial de reservas.\nNo se puede deshacer. Si hay reservas activas, la operación fallará.`)) return;
         try {
@@ -1682,11 +1891,14 @@
       }
       function closeModal() {
         if (_logoCrop?.blobUrl) URL.revokeObjectURL(_logoCrop.blobUrl);
+        if (_flyerCrop?.blobUrl) URL.revokeObjectURL(_flyerCrop.blobUrl);
         _logoCrop = null;
+        _flyerCrop = null;
         _clubFormDraft = null;
         document.getElementById("overlay").classList.remove("show");
         document.getElementById("modal-content").classList.remove("wide");
         document.getElementById("modal-content").classList.remove("img-crop-modal");
+        document.getElementById("modal-content").classList.remove("flyer");
       }
       const fdt = (d) => new Date(d).toLocaleString("es-AR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
@@ -2256,6 +2468,8 @@
       }
       let _eventBg = null;
       let _eventBgManual = false;
+      let _eventFlyer = null;
+      let _eventFlyerCleared = false;
       let _editingEventId = null;
       let _pendingEventBottles = [];
       let _pendingEventTables = [];
@@ -2524,6 +2738,8 @@
           pendingBottles: _pendingEventBottles.map((b) => ({ ...b })),
           pendingTables: _pendingEventTables.map((t) => ({ ...t })),
           eventBgManual: _eventBgManual,
+          eventFlyer: _eventFlyer,
+          eventFlyerCleared: _eventFlyerCleared,
         };
       }
 
@@ -2595,6 +2811,8 @@
         _editingEventId = editing ? editingId : null;
         _eventBg = draft?.eventBg ?? (editing && ev?.backgroundImage ? ev.backgroundImage : null);
         _eventBgManual = draft?.eventBgManual ?? false;
+        _eventFlyer = draft?.eventFlyer ?? (editing && ev?.flyerImageUrl ? ev.flyerImageUrl : null);
+        _eventFlyerCleared = draft?.eventFlyerCleared ?? false;
         if (draft?.pendingBottles) _pendingEventBottles = draft.pendingBottles;
         else if (!editing) _pendingEventBottles = [];
         if (draft?.pendingTables) _pendingEventTables = draft.pendingTables;
@@ -2665,6 +2883,11 @@
           <label>% consumición default (mesas nuevas)</label>
           <input id="ev-cons-pct" type="number" min="1" max="100" value="${consPct}" />
           <p class="hint" style="margin-top:-6px">Porcentaje del precio de mesa que se acredita en botellas. Ej. 100 = el total de la mesa en consumición.</p>
+          <label>Flyer del evento (opcional)</label>
+          <input id="ev-flyer" type="file" accept="image/png,image/jpeg,image/webp" onchange="onEventFlyerPick(event)" />
+          <div id="ev-flyer-preview" style="margin-top:10px">${eventFlyerPreviewHtml()}</div>
+          ${_eventFlyer && !_eventFlyerCleared ? `<button type="button" class="btn-sm ghost" id="ev-flyer-remove" style="margin-top:8px" onclick="clearEventFlyer()">Quitar flyer</button>` : ""}
+          <p class="hint" style="margin-top:6px;text-align:left">Imagen promocional vertical. Se puede recortar antes de subirla.</p>
           ${bottlesBlock}
           ${planoBlock}
           <div class="btn-row" style="margin-top:20px">
@@ -2721,6 +2944,8 @@
         if (!name || !dateVal) { errEl.textContent = "Nombre y fecha son obligatorios."; return; }
         if (!(consPct >= 1 && consPct <= 100)) { errEl.textContent = "El % de consumición debe ser entre 1 y 100."; return; }
         const body = { name, date: new Date(dateVal).toISOString(), musicGenre, defaultConsumptionPercent: consPct };
+        if (_eventFlyerCleared) body.flyerImageUrl = null;
+        else if (_eventFlyer) body.flyerImageUrl = _eventFlyer;
         if (eventId) {
           if (_eventBg) body.backgroundImage = _eventBg;
         } else {
@@ -2772,6 +2997,8 @@
             toast(parts.length ? `Evento creado · ${parts.join(" · ")}` : "Evento creado", "ok");
             _pendingEventBottles = [];
             _pendingEventTables = [];
+            _eventFlyer = null;
+            _eventFlyerCleared = false;
             _eventBgManual = false;
           }
           _editingEventId = null;

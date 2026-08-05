@@ -41,6 +41,7 @@ export type EventNightMinAggregateOutputType = {
   date: Date | null
   musicGenre: string | null
   backgroundImage: string | null
+  flyerImageUrl: string | null
   defaultConsumptionPercent: number | null
   isActive: boolean | null
   createdAt: Date | null
@@ -54,6 +55,7 @@ export type EventNightMaxAggregateOutputType = {
   date: Date | null
   musicGenre: string | null
   backgroundImage: string | null
+  flyerImageUrl: string | null
   defaultConsumptionPercent: number | null
   isActive: boolean | null
   createdAt: Date | null
@@ -67,6 +69,7 @@ export type EventNightCountAggregateOutputType = {
   date: number
   musicGenre: number
   backgroundImage: number
+  flyerImageUrl: number
   defaultConsumptionPercent: number
   isActive: number
   createdAt: number
@@ -90,6 +93,7 @@ export type EventNightMinAggregateInputType = {
   date?: true
   musicGenre?: true
   backgroundImage?: true
+  flyerImageUrl?: true
   defaultConsumptionPercent?: true
   isActive?: true
   createdAt?: true
@@ -103,6 +107,7 @@ export type EventNightMaxAggregateInputType = {
   date?: true
   musicGenre?: true
   backgroundImage?: true
+  flyerImageUrl?: true
   defaultConsumptionPercent?: true
   isActive?: true
   createdAt?: true
@@ -116,6 +121,7 @@ export type EventNightCountAggregateInputType = {
   date?: true
   musicGenre?: true
   backgroundImage?: true
+  flyerImageUrl?: true
   defaultConsumptionPercent?: true
   isActive?: true
   createdAt?: true
@@ -216,6 +222,7 @@ export type EventNightGroupByOutputType = {
   date: Date
   musicGenre: string | null
   backgroundImage: string | null
+  flyerImageUrl: string | null
   defaultConsumptionPercent: number
   isActive: boolean
   createdAt: Date
@@ -252,6 +259,7 @@ export type EventNightWhereInput = {
   date?: Prisma.DateTimeFilter<"EventNight"> | Date | string
   musicGenre?: Prisma.StringNullableFilter<"EventNight"> | string | null
   backgroundImage?: Prisma.StringNullableFilter<"EventNight"> | string | null
+  flyerImageUrl?: Prisma.StringNullableFilter<"EventNight"> | string | null
   defaultConsumptionPercent?: Prisma.IntFilter<"EventNight"> | number
   isActive?: Prisma.BoolFilter<"EventNight"> | boolean
   createdAt?: Prisma.DateTimeFilter<"EventNight"> | Date | string
@@ -271,6 +279,7 @@ export type EventNightOrderByWithRelationInput = {
   date?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrderInput | Prisma.SortOrder
   backgroundImage?: Prisma.SortOrderInput | Prisma.SortOrder
+  flyerImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultConsumptionPercent?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -293,6 +302,7 @@ export type EventNightWhereUniqueInput = Prisma.AtLeast<{
   date?: Prisma.DateTimeFilter<"EventNight"> | Date | string
   musicGenre?: Prisma.StringNullableFilter<"EventNight"> | string | null
   backgroundImage?: Prisma.StringNullableFilter<"EventNight"> | string | null
+  flyerImageUrl?: Prisma.StringNullableFilter<"EventNight"> | string | null
   defaultConsumptionPercent?: Prisma.IntFilter<"EventNight"> | number
   isActive?: Prisma.BoolFilter<"EventNight"> | boolean
   createdAt?: Prisma.DateTimeFilter<"EventNight"> | Date | string
@@ -312,6 +322,7 @@ export type EventNightOrderByWithAggregationInput = {
   date?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrderInput | Prisma.SortOrder
   backgroundImage?: Prisma.SortOrderInput | Prisma.SortOrder
+  flyerImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultConsumptionPercent?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -333,6 +344,7 @@ export type EventNightScalarWhereWithAggregatesInput = {
   date?: Prisma.DateTimeWithAggregatesFilter<"EventNight"> | Date | string
   musicGenre?: Prisma.StringNullableWithAggregatesFilter<"EventNight"> | string | null
   backgroundImage?: Prisma.StringNullableWithAggregatesFilter<"EventNight"> | string | null
+  flyerImageUrl?: Prisma.StringNullableWithAggregatesFilter<"EventNight"> | string | null
   defaultConsumptionPercent?: Prisma.IntWithAggregatesFilter<"EventNight"> | number
   isActive?: Prisma.BoolWithAggregatesFilter<"EventNight"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EventNight"> | Date | string
@@ -345,6 +357,7 @@ export type EventNightCreateInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -364,6 +377,7 @@ export type EventNightUncheckedCreateInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -381,6 +395,7 @@ export type EventNightUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -400,6 +415,7 @@ export type EventNightUncheckedUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -418,6 +434,7 @@ export type EventNightCreateManyInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -430,6 +447,7 @@ export type EventNightUpdateManyMutationInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -443,6 +461,7 @@ export type EventNightUncheckedUpdateManyInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -476,6 +495,7 @@ export type EventNightCountOrderByAggregateInput = {
   date?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrder
   backgroundImage?: Prisma.SortOrder
+  flyerImageUrl?: Prisma.SortOrder
   defaultConsumptionPercent?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -493,6 +513,7 @@ export type EventNightMaxOrderByAggregateInput = {
   date?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrder
   backgroundImage?: Prisma.SortOrder
+  flyerImageUrl?: Prisma.SortOrder
   defaultConsumptionPercent?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -506,6 +527,7 @@ export type EventNightMinOrderByAggregateInput = {
   date?: Prisma.SortOrder
   musicGenre?: Prisma.SortOrder
   backgroundImage?: Prisma.SortOrder
+  flyerImageUrl?: Prisma.SortOrder
   defaultConsumptionPercent?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -638,6 +660,7 @@ export type EventNightCreateWithoutInvitesInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -656,6 +679,7 @@ export type EventNightUncheckedCreateWithoutInvitesInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -688,6 +712,7 @@ export type EventNightUpdateWithoutInvitesInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -706,6 +731,7 @@ export type EventNightUncheckedUpdateWithoutInvitesInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -722,6 +748,7 @@ export type EventNightCreateWithoutEventGuestsInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -740,6 +767,7 @@ export type EventNightUncheckedCreateWithoutEventGuestsInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -772,6 +800,7 @@ export type EventNightUpdateWithoutEventGuestsInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -790,6 +819,7 @@ export type EventNightUncheckedUpdateWithoutEventGuestsInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -806,6 +836,7 @@ export type EventNightCreateWithoutClubInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -823,6 +854,7 @@ export type EventNightUncheckedCreateWithoutClubInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -870,6 +902,7 @@ export type EventNightScalarWhereInput = {
   date?: Prisma.DateTimeFilter<"EventNight"> | Date | string
   musicGenre?: Prisma.StringNullableFilter<"EventNight"> | string | null
   backgroundImage?: Prisma.StringNullableFilter<"EventNight"> | string | null
+  flyerImageUrl?: Prisma.StringNullableFilter<"EventNight"> | string | null
   defaultConsumptionPercent?: Prisma.IntFilter<"EventNight"> | number
   isActive?: Prisma.BoolFilter<"EventNight"> | boolean
   createdAt?: Prisma.DateTimeFilter<"EventNight"> | Date | string
@@ -882,6 +915,7 @@ export type EventNightCreateWithoutTablesInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -900,6 +934,7 @@ export type EventNightUncheckedCreateWithoutTablesInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -932,6 +967,7 @@ export type EventNightUpdateWithoutTablesInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -950,6 +986,7 @@ export type EventNightUncheckedUpdateWithoutTablesInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -966,6 +1003,7 @@ export type EventNightCreateWithoutReservationsInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -984,6 +1022,7 @@ export type EventNightUncheckedCreateWithoutReservationsInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -1016,6 +1055,7 @@ export type EventNightUpdateWithoutReservationsInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1034,6 +1074,7 @@ export type EventNightUncheckedUpdateWithoutReservationsInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1050,6 +1091,7 @@ export type EventNightCreateWithoutProductsInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -1068,6 +1110,7 @@ export type EventNightUncheckedCreateWithoutProductsInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -1100,6 +1143,7 @@ export type EventNightUpdateWithoutProductsInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1118,6 +1162,7 @@ export type EventNightUncheckedUpdateWithoutProductsInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1134,6 +1179,7 @@ export type EventNightCreateManyClubInput = {
   date: Date | string
   musicGenre?: string | null
   backgroundImage?: string | null
+  flyerImageUrl?: string | null
   defaultConsumptionPercent?: number
   isActive?: boolean
   createdAt?: Date | string
@@ -1146,6 +1192,7 @@ export type EventNightUpdateWithoutClubInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1163,6 +1210,7 @@ export type EventNightUncheckedUpdateWithoutClubInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1180,6 +1228,7 @@ export type EventNightUncheckedUpdateManyWithoutClubInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   musicGenre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   backgroundImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  flyerImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   defaultConsumptionPercent?: Prisma.IntFieldUpdateOperationsInput | number
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1260,6 +1309,7 @@ export type EventNightSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   date?: boolean
   musicGenre?: boolean
   backgroundImage?: boolean
+  flyerImageUrl?: boolean
   defaultConsumptionPercent?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -1280,6 +1330,7 @@ export type EventNightSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   date?: boolean
   musicGenre?: boolean
   backgroundImage?: boolean
+  flyerImageUrl?: boolean
   defaultConsumptionPercent?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -1294,6 +1345,7 @@ export type EventNightSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   date?: boolean
   musicGenre?: boolean
   backgroundImage?: boolean
+  flyerImageUrl?: boolean
   defaultConsumptionPercent?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -1308,13 +1360,14 @@ export type EventNightSelectScalar = {
   date?: boolean
   musicGenre?: boolean
   backgroundImage?: boolean
+  flyerImageUrl?: boolean
   defaultConsumptionPercent?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EventNightOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clubId" | "name" | "date" | "musicGenre" | "backgroundImage" | "defaultConsumptionPercent" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["eventNight"]>
+export type EventNightOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clubId" | "name" | "date" | "musicGenre" | "backgroundImage" | "flyerImageUrl" | "defaultConsumptionPercent" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["eventNight"]>
 export type EventNightInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   club?: boolean | Prisma.ClubDefaultArgs<ExtArgs>
   tables?: boolean | Prisma.EventNight$tablesArgs<ExtArgs>
@@ -1348,6 +1401,7 @@ export type $EventNightPayload<ExtArgs extends runtime.Types.Extensions.Internal
     date: Date
     musicGenre: string | null
     backgroundImage: string | null
+    flyerImageUrl: string | null
     defaultConsumptionPercent: number
     isActive: boolean
     createdAt: Date
@@ -1787,6 +1841,7 @@ export interface EventNightFieldRefs {
   readonly date: Prisma.FieldRef<"EventNight", 'DateTime'>
   readonly musicGenre: Prisma.FieldRef<"EventNight", 'String'>
   readonly backgroundImage: Prisma.FieldRef<"EventNight", 'String'>
+  readonly flyerImageUrl: Prisma.FieldRef<"EventNight", 'String'>
   readonly defaultConsumptionPercent: Prisma.FieldRef<"EventNight", 'Int'>
   readonly isActive: Prisma.FieldRef<"EventNight", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"EventNight", 'DateTime'>

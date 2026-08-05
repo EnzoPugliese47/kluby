@@ -236,6 +236,22 @@ body.kluby-public .section-title {
 .k-event-row:hover { border-color: rgba(34, 211, 238, 0.35); }
 .k-event-row .info h4 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
 .k-event-row .info small { color: var(--muted); font-size: 13px; }
+.k-event-row.has-flyer { align-items: flex-start; }
+.k-event-row.has-flyer .info { flex: 1; min-width: 0; }
+.k-flyer-thumb {
+  flex-shrink: 0; width: 52px; height: 70px; border-radius: 10px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25);
+}
+.k-flyer-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.k-event-flyer-banner {
+  margin: 0 0 18px; border-radius: 16px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.35);
+  max-height: min(420px, 55vh);
+}
+.k-event-flyer-banner img {
+  display: block; width: 100%; max-height: min(420px, 55vh);
+  object-fit: contain; background: #08080c;
+}
 
 /* Ficha boliche */
 .k-club-hero {

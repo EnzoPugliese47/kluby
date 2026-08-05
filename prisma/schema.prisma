@@ -315,6 +315,7 @@ model EventNight {
   date       DateTime
   musicGenre String?
   backgroundImage String? // URL del plano/mapa del salon para este evento
+  flyerImageUrl   String? // Flyer promocional del evento (opcional)
   defaultConsumptionPercent Int @default(100) // Default para mesas nuevas del evento (% del precio)
   isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())

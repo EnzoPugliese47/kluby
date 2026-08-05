@@ -228,6 +228,7 @@ export const EventNightScalarFieldEnum = {
   date: 'date',
   musicGenre: 'musicGenre',
   backgroundImage: 'backgroundImage',
+  flyerImageUrl: 'flyerImageUrl',
   defaultConsumptionPercent: 'defaultConsumptionPercent',
   isActive: 'isActive',
   createdAt: 'createdAt',

@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
 import { asRecord, requireString } from "../utils/validation";
-import { assertLogoDimensions, assertProfileDimensions } from "../utils/imageDimensions";
+import { assertLogoDimensions, assertProfileDimensions, assertFlyerDimensions } from "../utils/imageDimensions";
 import { saveStoredAsset } from "../utils/storedAsset";
 
 const MIME_EXT: Record<string, string> = {
@@ -101,6 +101,35 @@ export const uploadProfile = async (
     try {
       const dims = assertProfileDimensions(buffer, mime);
       const url = await saveStoredAsset(mime, buffer, `profile.${ext}`);
+      sendSuccess(res, { url, width: dims.width, height: dims.height }, 201);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Imagen invalida";
+      throw new AppError(msg, 400);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/uploads/flyer
+ * Flyer de evento (3:4, recortado en el cliente). Max 1080x1440 px.
+ */
+export const uploadFlyer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const body = asRecord(req.body);
+    const dataUrl = requireString(body, "image");
+    const { mime, buffer, ext } = parseDataUrlImage(dataUrl);
+    if (buffer.length > 3 * 1024 * 1024) {
+      throw new AppError("El flyer supera el limite de 3 MB", 400);
+    }
+    try {
+      const dims = assertFlyerDimensions(buffer, mime);
+      const url = await saveStoredAsset(mime, buffer, `flyer.${ext}`);
       sendSuccess(res, { url, width: dims.width, height: dims.height }, 201);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Imagen invalida";

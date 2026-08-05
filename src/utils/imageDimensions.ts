@@ -60,6 +60,8 @@ export const readImageDimensions = (
 
 export const MAX_LOGO_SIZE = 500;
 export const MAX_PROFILE_SIZE = 400;
+export const MAX_FLYER_WIDTH = 1080;
+export const MAX_FLYER_HEIGHT = 1440;
 
 export const assertLogoDimensions = (
   buffer: Buffer,
@@ -88,6 +90,22 @@ export const assertProfileDimensions = (
   if (dims.width > MAX_PROFILE_SIZE || dims.height > MAX_PROFILE_SIZE) {
     throw new Error(
       `La foto debe ser como maximo ${MAX_PROFILE_SIZE}x${MAX_PROFILE_SIZE}px (recibido: ${dims.width}x${dims.height})`
+    );
+  }
+  return dims;
+};
+
+export const assertFlyerDimensions = (
+  buffer: Buffer,
+  mime: string
+): { width: number; height: number } => {
+  const dims = readImageDimensions(buffer, mime);
+  if (dims === null) {
+    throw new Error("No se pudieron leer las dimensiones de la imagen");
+  }
+  if (dims.width > MAX_FLYER_WIDTH || dims.height > MAX_FLYER_HEIGHT) {
+    throw new Error(
+      `El flyer debe ser como maximo ${MAX_FLYER_WIDTH}x${MAX_FLYER_HEIGHT}px (recibido: ${dims.width}x${dims.height})`
     );
   }
   return dims;

@@ -45,6 +45,7 @@ export const createEvent = async (
     const dateRaw = requireString(body, "date");
     const musicGenre = optionalString(body, "musicGenre");
     const backgroundImage = optionalString(body, "backgroundImage");
+    const flyerImageUrl = optionalString(body, "flyerImageUrl");
     const defaultConsumptionPercent = optionalNumber(body, "defaultConsumptionPercent");
     const copyFromEventId = optionalString(body, "copyFromEventId");
     const setupMode = optionalString(body, "setupMode");
@@ -151,6 +152,10 @@ export const createEvent = async (
         date,
         musicGenre: resolvedGenre,
         backgroundImage: resolvedBackground,
+        flyerImageUrl:
+          body["flyerImageUrl"] === null
+            ? null
+            : flyerImageUrl ?? null,
         defaultConsumptionPercent: resolvedConsPct,
       },
     });
@@ -207,6 +212,7 @@ export const updateEvent = async (
     const dateRaw = optionalString(body, "date");
     const musicGenre = optionalString(body, "musicGenre");
     const backgroundImage = optionalString(body, "backgroundImage");
+    const flyerImageUrl = optionalString(body, "flyerImageUrl");
     const defaultConsumptionPercent = optionalNumber(body, "defaultConsumptionPercent");
     if (name !== undefined) data.name = name;
     if (musicGenre !== undefined) data.musicGenre = musicGenre;
@@ -214,6 +220,11 @@ export const updateEvent = async (
       data.backgroundImage = null;
     } else if (backgroundImage !== undefined) {
       data.backgroundImage = backgroundImage;
+    }
+    if (body["flyerImageUrl"] === null) {
+      data.flyerImageUrl = null;
+    } else if (flyerImageUrl !== undefined) {
+      data.flyerImageUrl = flyerImageUrl;
     }
     if (typeof body["isActive"] === "boolean") data.isActive = body["isActive"];
     if (defaultConsumptionPercent !== undefined) {
@@ -733,6 +744,7 @@ export const listExploreEvents = async (
         name: e.name,
         date: e.date,
         musicGenre: e.musicGenre,
+        flyerImageUrl: e.flyerImageUrl,
         club: e.club,
         availableTableCount: availCounts.get(e.id) ?? 0,
       }))

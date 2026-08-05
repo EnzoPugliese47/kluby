@@ -519,7 +519,8 @@ window.KlubyUI = (function () {
         ? `<button type="button" class="k-btn-cyan" style="padding:10px 20px;font-size:13px;border:none;cursor:pointer" onclick="wizardGo(3,{clubId:'${cid}',eventId:'${eid}'})">Elegir mesa</button>`
         : `<button type="button" class="k-btn-cyan" style="padding:10px 20px;font-size:13px;border:none;cursor:pointer" onclick="go('event',{id:'${eid}',club:'${cid}'})">Ver mapa</button>`;
     return `
-      <div class="k-event-row">
+      <div class="k-event-row${event.flyerImageUrl ? " has-flyer" : ""}">
+        ${eventFlyerThumbHtml(event.flyerImageUrl)}
         <div class="info">
           <h4>${esc(event.name)}</h4>
           <small>🗓 ${fdatetime(event.date)}${event.musicGenre ? " · 🎵 " + esc(event.musicGenre) : ""}</small>
@@ -541,6 +542,16 @@ window.KlubyUI = (function () {
     return `<span class="tag cyan">${count} mesa${count === 1 ? "" : "s"} libre${count === 1 ? "" : "s"}</span>`;
   }
 
+  function eventFlyerThumbHtml(url) {
+    if (!url) return "";
+    return `<div class="k-flyer-thumb"><img src="${esc(url)}" alt="Flyer" loading="lazy" /></div>`;
+  }
+
+  function eventFlyerBannerHtml(event) {
+    if (!event?.flyerImageUrl) return "";
+    return `<div class="k-event-flyer-banner"><img src="${esc(event.flyerImageUrl)}" alt="Flyer · ${esc(event.name || "evento")}" loading="lazy" /></div>`;
+  }
+
   function exploreEventRowHtml(item) {
     const club = item.club || {};
     const cid = esc(club.id);
@@ -548,7 +559,8 @@ window.KlubyUI = (function () {
     const loc = clubLocationMeta(club);
     const avail = availBadge(item.availableTableCount);
     return `
-      <div class="k-event-row k-explore-event-row">
+      <div class="k-event-row k-explore-event-row${item.flyerImageUrl ? " has-flyer" : ""}">
+        ${eventFlyerThumbHtml(item.flyerImageUrl)}
         <div class="info">
           <h4>${esc(item.name)} ${avail}</h4>
           <small>🗓 ${fdatetime(item.date)}${genre ? " · 🎵 " + esc(genre) : ""}</small>
@@ -562,7 +574,8 @@ window.KlubyUI = (function () {
     const isPast = new Date(event.date) < new Date();
     const avail = !isPast ? availBadge(event.availableTableCount) : "";
     return `
-      <div class="k-event-row">
+      <div class="k-event-row${event.flyerImageUrl ? " has-flyer" : ""}">
+        ${eventFlyerThumbHtml(event.flyerImageUrl)}
         <div class="info">
           <h4>${esc(event.name)} ${avail}</h4>
           <small>🗓 ${fdatetime(event.date)}${event.musicGenre ? " · 🎵 " + esc(event.musicGenre) : ""}</small>
@@ -829,6 +842,8 @@ window.KlubyUI = (function () {
     clubsQueryString,
     eventsQueryString,
     openTablesQueryString,
+    eventFlyerThumbHtml,
+    eventFlyerBannerHtml,
     exploreEventRowHtml,
     clubCoverHtml,
     clubCardHtml,
