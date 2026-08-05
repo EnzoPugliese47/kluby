@@ -745,8 +745,8 @@
         _wizardHoldTableId = null;
         _wizardHoldExpiresAt = null;
         try {
-          await api("/reservations/" + id + "/cancel", { method: "POST" });
-        } catch { /* ya expiró o se confirmó */ }
+          await api("/reservations/" + id + "/release-hold", { method: "POST" });
+        } catch { /* ya expiró, se confirmó o no existe */ }
       }
 
       async function ensureWizardHold(tableId, eventId) {
@@ -1592,9 +1592,10 @@
           if (!stillOn("mine")) return;
           const live = livePage("mine"); if (!live) return;
           const now = Date.now();
-          const upcoming = rs.filter((r) => new Date(r.event.date).getTime() >= now)
+          const visible = (r) => !["CANCELLED", "EXPIRED"].includes(r.status);
+          const upcoming = rs.filter((r) => visible(r) && new Date(r.event.date).getTime() >= now)
             .sort((a, b) => new Date(a.event.date) - new Date(b.event.date));
-          const past = rs.filter((r) => new Date(r.event.date).getTime() < now)
+          const past = rs.filter((r) => visible(r) && ["COMPLETED", "CHECKED_IN", "NO_SHOW"].includes(r.status) && new Date(r.event.date).getTime() < now)
             .sort((a, b) => new Date(b.event.date) - new Date(a.event.date));
 
           const el = live.querySelector("#list");

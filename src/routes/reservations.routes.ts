@@ -9,6 +9,7 @@ import {
   getReservationByCode,
   getReservationById,
   patchPendingReservation,
+  releaseReservationHold,
   payReservation,
 } from "../controllers/reservations.controller";
 import {
@@ -40,6 +41,7 @@ router.get("/by-code/:code", ...doorOnly, getReservationByCode);
 router.get("/:id/cancel-preview", authenticate, getCancelPreview);
 router.get("/:id", authenticate, getReservationById);
 router.patch("/:id/pending", authenticate, patchPendingReservation);
+router.post("/:id/release-hold", authenticate, releaseReservationHold);
 router.post("/:id/pay", authenticate, payReservation);
 router.post("/:id/cancel", authenticate, cancelReservation);
 router.post("/:id/check-in", ...doorOnly, checkInReservation);

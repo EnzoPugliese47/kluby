@@ -220,6 +220,50 @@ export const patchPendingReservation = async (
 };
 
 /**
+ * POST /api/reservations/:id/release-hold
+ * Abandona el bloqueo transitorio al salir del wizard: libera la mesa y elimina
+ * la reserva sin marcarla como cancelada en el historial del usuario.
+ */
+export const releaseReservationHold = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = requireParam(req.params, "id");
+    const auth = getAuthUser(req);
+
+    const current = await prisma.reservation.findUnique({
+      where: { id },
+      include: {
+        payments: { where: { status: PaymentStatus.APPROVED } },
+      },
+    });
+    if (current === null) {
+      sendSuccess(res, { released: true });
+      return;
+    }
+    if (current.hostId !== auth.sub) {
+      throw new AppError("No autorizado", 403);
+    }
+    if (current.status !== ReservationStatus.PENDING_PAYMENT) {
+      throw new AppError("Solo se puede liberar un bloqueo pendiente de pago", 400);
+    }
+    if (
+      current.payments.length > 0 ||
+      current.amountPaid.greaterThan(0)
+    ) {
+      throw new AppError("La reserva ya tiene pagos; usá cancelar en su lugar", 400);
+    }
+
+    await prisma.reservation.delete({ where: { id } });
+    sendSuccess(res, { released: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * POST /api/reservations/:id/pay
  * Procesa el pago (simulado) de la sena o del total y confirma la reserva.
  */
