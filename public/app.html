@@ -245,6 +245,7 @@
     <div class="toast" id="toast"></div>
 
     <script src="/kluby-ui.js"></script>
+    <script src="/kluby-offline.js"></script>
     <script>
       const API = "/api";
       const state = {
@@ -730,6 +731,8 @@
       let _alertsAt = 0;
       let _notifPollTimer = null;
       let _notifOutsideBound = false;
+      let _knownChatAlertIds = new Set();
+      let _notifWarm = false;
       const NOTIF_DISMISS_KEY = "kluby_notif_dismissed";
       const CHAT_SEEN_KEY = "kluby_chat_seen";
       const CHAT_ACTIVE_MS = 24 * 60 * 60 * 1000;
@@ -941,8 +944,9 @@
             if (isChatAlertSeen(row)) continue;
             alerts.push({
               id: `chat-${row.reservationId}-${row.messageId}`,
+              reservationId: row.reservationId,
               kind: "green",
-              text: `Mensaje nuevo en ${row.tableLabel || "Mesa"} · ${row.authorName || "Alguien"}`,
+              text: `${row.authorName || "Alguien"} te escribió en ${row.tableLabel || "mesa"}`,
               label: "Abrir chat",
               action: `setChatSeen('${row.reservationId}','${row.messageId}');openTableChat('${row.reservationId}','mine');closeNotifPanel()`,
             });
@@ -1039,6 +1043,54 @@
           </div>`).join("");
       }
 
+      function getChatAlerts(alerts) {
+        return (alerts || _alertsCache || []).filter((a) => a.id?.startsWith("chat-"));
+      }
+
+      function updateMineChatBadges() {
+        const chatAlerts = getChatAlerts(_alertsCache);
+        const count = chatAlerts.length;
+        const show = count > 0;
+        const label = count > 9 ? "9+" : String(count);
+        for (const id of ["k-mine-nav-badge", "k-bnav-mine-badge"]) {
+          const el = document.getElementById(id);
+          if (!el) continue;
+          if (show) {
+            el.style.display = "";
+            el.textContent = label;
+          } else {
+            el.style.display = "none";
+          }
+        }
+        const prev = window._prevMineChatCount ?? -1;
+        if (count !== prev && stillOn("mine")) {
+          const live = livePage("mine");
+          if (live) renderMine(live);
+        }
+        window._prevMineChatCount = count;
+      }
+
+      function mineChatDot(reservationId) {
+        if (!reservationId) return "";
+        const unread = getChatAlerts(_alertsCache).some((a) => a.reservationId === reservationId);
+        return unread ? `<span class="k-chat-unread-dot" title="Mensaje nuevo"></span>` : "";
+      }
+
+      function notifyNewChatAlerts(alerts) {
+        if (!_notifWarm) return;
+        for (const a of alerts) {
+          if (!a.id?.startsWith("chat-")) continue;
+          if (_knownChatAlertIds.has(a.id)) continue;
+          if (state.view === "chat" && state.params.id === a.reservationId) continue;
+          toast(a.text, "ok");
+        }
+      }
+
+      function syncChatAlertIds(alerts) {
+        _knownChatAlertIds = new Set(alerts.filter((a) => a.id?.startsWith("chat-")).map((a) => a.id));
+        _notifWarm = true;
+      }
+
       async function refreshNotifications() {
         if (!state.user) return;
         try {
@@ -1048,6 +1100,8 @@
           _alertsCache = [];
         }
         const alerts = _alertsCache || [];
+        notifyNewChatAlerts(alerts);
+        syncChatAlertIds(alerts);
         const badge = document.getElementById("k-notif-badge");
         const btn = document.getElementById("k-notif-btn");
         if (badge) {
@@ -1059,6 +1113,7 @@
           }
         }
         if (btn) btn.classList.toggle("has-notif", alerts.length > 0);
+        updateMineChatBadges();
         const panel = document.getElementById("k-notif-panel");
         if (panel && !panel.hidden) renderNotifPanelBody(alerts);
       }
@@ -1376,6 +1431,20 @@
           ["mine", "Mis mesas"],
           ["profile", "Mi perfil"],
         ].filter(([v]) => state.user.role === "CLIENT" || v !== "invites");
+        const bottomNav = [
+          ["home", "Explorar", "⌂"],
+          ["mine", "Mis mesas", "▦"],
+          ["open", "Abiertas", "◉"],
+          ["profile", "Perfil", "☺"],
+        ];
+        const bottomActive = (() => {
+          const v = state.view;
+          if (["home", "club", "event", "wizard"].includes(v)) return "home";
+          if (v === "open") return "open";
+          if (["mine", "detail", "chat", "ticket", "joins"].includes(v)) return "mine";
+          if (v === "profile") return "profile";
+          return "home";
+        })();
         const staffLinks = state.user.role === "STAFF"
           ? `<a class="k-btn-ghost" href="/publi.html">Panel publi</a>`
           : state.user.role === "PUERTA"
@@ -1392,7 +1461,7 @@
                 <div><h1>KLUBY</h1><span>Tu noche, tu mesa</span></div>
               </a>
               <div class="k-app-tabs">
-                ${nav.map(([v, l]) => `<button type="button" class="${state.view === v ? "active" : ""}" onclick="go('${v}')">${l}</button>`).join("")}
+                ${nav.map(([v, l]) => `<button type="button" class="${state.view === v ? "active" : ""}" onclick="go('${v}')">${l}${v === "mine" ? `<span class="k-nav-dot" id="k-mine-nav-badge" style="display:none">0</span>` : ""}</button>`).join("")}
             </div>
               <div class="k-app-user">
               ${staffLinks}
@@ -1426,6 +1495,9 @@
               </div>
             </header>
             <main class="k-main"><div class="k-page" id="page"></div></main>
+            <nav class="k-bottom-nav" id="k-bottom-nav" aria-label="Navegación principal">
+              ${bottomNav.map(([v, l, ic]) => `<button type="button" class="${bottomActive === v ? "active" : ""}" onclick="go('${v}')"><span class="k-bnav-ic" aria-hidden="true">${ic}</span><span>${l}${v === "mine" ? `<span class="k-bnav-dot" id="k-bnav-mine-badge" style="display:none">0</span>` : ""}</span></button>`).join("")}
+            </nav>
           </div>`;
         const page = $("page");
         if (state.view === "home") renderHome(page);
@@ -1890,14 +1962,14 @@
           actions.push(`<span class="hint">Confirmado · sin costo</span>`);
         }
         if (g.status === "CONFIRMED") {
-          actions.push(`<button type="button" class="btn-sm btn-accent" onclick="openTableChat('${r.id}','mine')">💬 Chat</button>`);
+          actions.push(`<button type="button" class="btn-sm btn-accent" onclick="openTableChat('${r.id}','mine')">💬 Chat${mineChatDot(r.id)}</button>`);
           actions.push(`<button type="button" class="btn-sm btn-accent" onclick="go('ticket',{id:'${r.id}'})">Ver QR</button>`);
         }
         if (g.status === "ACCEPTED_PENDING_PAYMENT" || g.status === "CONFIRMED") {
           actions.push(`<button type="button" class="btn-sm ghost" onclick='openConsumptionPlanner(${JSON.stringify({ reservationId: r.id, guestView })})'>Calculadora 🍾</button>`);
         }
         return `<div class="card list-card">
-          <div class="head"><div class="title">${esc(r.table.label)}</div>${mineBadgesHtml("guest", g.status)}</div>
+          <div class="head"><div class="title">${esc(r.table.label)}${mineChatDot(r.id)}</div>${mineBadgesHtml("guest", g.status)}</div>
           <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}<br/>👤 Anfitrión: ${esc(r.host.fullName)}</div>
           ${guestFinanceHtml(guestView)}
           <div class="btn-row">${actions.join("") || '<span class="hint">Esperando respuesta del anfitrión</span>'}</div>
@@ -1911,14 +1983,14 @@
         if (r.mode === "OPEN_TABLE") {
           actions.push(`<button class="btn-sm" onclick="go('detail',{id:'${r.id}'})">Invitados</button>`);
           if (["CONFIRMED", "CHECKED_IN"].includes(r.status)) {
-            actions.push(`<button class="btn-sm btn-accent" onclick="openTableChat('${r.id}','mine')">💬 Chat</button>`);
+            actions.push(`<button class="btn-sm btn-accent" onclick="openTableChat('${r.id}','mine')">💬 Chat${mineChatDot(r.id)}</button>`);
           }
         }
         if (r.status === "CONFIRMED" || r.status === "CHECKED_IN") actions.push(`<button class="btn-sm btn-accent" onclick="go('ticket',{id:'${r.id}'})">Ver QR</button>`);
         actions.push(`<button class="btn-sm ghost" onclick="openConsumptionPlanner({ reservationId: '${r.id}' })">Calculadora 🍾</button>`);
         if (r.status === "PENDING_PAYMENT" || r.status === "CONFIRMED") actions.push(`<button class="btn-sm btn-danger" onclick="cancelReservation('${r.id}')">Cancelar</button>`);
         return `<div class="card list-card">
-          <div class="head"><div class="title">${esc(r.table.label)}</div>${mineBadgesHtml("host", r.status)}</div>
+          <div class="head"><div class="title">${esc(r.table.label)}${mineChatDot(r.id)}</div>${mineBadgesHtml("host", r.status)}</div>
           <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}${r.mode === "OPEN_TABLE" ? `<br/>👥 Mesa abierta (vos + ${Math.max(0, (r.maxGuests || 1) - 1)} invitados)` : ""}</div>
           ${reservationFinanceHtml(r, true)}
           ${reservationConsumptionHtml(r)}

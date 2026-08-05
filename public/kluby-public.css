@@ -376,6 +376,54 @@ html.cap-native .k-app-install {
   display: none;
 }
 
+html.cap-native a[href="#app-android"],
+html.cap-native a[href*="/downloads/kluby.apk"],
+html.cap-native .k-app-install-actions {
+  display: none !important;
+}
+
+#k-offline-banner {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(5, 5, 8, 0.92);
+  backdrop-filter: blur(8px);
+}
+
+#k-offline-banner[hidden] {
+  display: none !important;
+}
+
+#k-offline-banner .k-offline-inner {
+  max-width: 320px;
+  text-align: center;
+  padding: 28px 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 77, 141, 0.35);
+  background: rgba(20, 10, 18, 0.95);
+}
+
+#k-offline-banner .k-offline-inner b {
+  display: block;
+  font-family: "Syne", sans-serif;
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+#k-offline-banner .k-offline-inner span {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+html.k-offline body {
+  overflow: hidden;
+}
+
 /* Login card */
 .k-login-wrap { width: 100%; max-width: 420px; margin: 40px auto; padding: 0 20px 60px; }
 .k-login-card {

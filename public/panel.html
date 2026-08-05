@@ -288,6 +288,17 @@
       .events-past-wrap summary::before { content: "▸ "; display: inline-block; transition: transform 0.15s; }
       .events-past-wrap[open] summary::before { transform: rotate(90deg); }
       .events-past-wrap .data-table-wrap { margin-top: 10px; opacity: 0.92; }
+      .events-cards { display: none; flex-direction: column; gap: 12px; }
+      .event-card {
+        padding: 16px; border-radius: 14px; border: 1px solid var(--border);
+        background: var(--surface-2);
+      }
+      .event-card.past { opacity: 0.88; }
+      .event-card-head { margin-bottom: 10px; }
+      .event-card-head b { display: block; font-size: 15px; margin-bottom: 4px; }
+      .event-card-meta { font-size: 12px; color: var(--muted); line-height: 1.5; }
+      .event-card .btn-row { margin-top: 12px; gap: 8px; }
+      .event-card .btn-row button { flex: 1 1 calc(50% - 4px); min-width: 0; }
       tr.event-past td { color: var(--muted); }
       table.data th, table.data td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); }
       table.data th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
@@ -480,6 +491,9 @@
         table.data th, table.data td { padding: 10px 8px; }
         table.data td:last-child { min-width: 220px; }
         .data-table-wrap { touch-action: pan-x; }
+        .events-table-desktop { display: none !important; }
+        .events-cards { display: flex !important; }
+        .event-card .btn-row button { flex: 1 1 100%; }
         .modal { padding: 20px 16px; border-radius: 14px; }
         .modal.wide { max-width: 100%; }
         .img-crop-viewport { width: min(280px, 100%); height: auto; aspect-ratio: 1; }
@@ -755,6 +769,7 @@
     <div class="toast" id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:12px 20px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:60"></div>
 
     <script src="/ops-native.js"></script>
+    <script src="/kluby-offline.js"></script>
     <script>
       const API = "/api";
       let token = localStorage.getItem("kluby_token") || "";
@@ -2142,9 +2157,38 @@
       }
       let _eventsCache = [];
       let _eventsPastCache = [];
+      function isPanelMobile() {
+        return window.matchMedia("(max-width: 900px)").matches;
+      }
+      function eventActionsHtml(e, isPast) {
+        return isPast
+          ? `<button class="btn-sm btn-accent" onclick='openEventTables(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Ver mesas</button>
+             <button class="btn-sm" onclick='openEventBottles(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Botellas</button>
+             <button class="btn-sm btn-danger" onclick='deleteEvent(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Eliminar</button>`
+          : `<button class="btn-sm btn-accent" onclick='openEventTables(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Ver mesas</button>
+             <button class="btn-sm" onclick='openDesigner(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Diseñar mesas</button>
+             <button class="btn-sm" onclick='openEventBottles(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Botellas</button>
+             <button type="button" class="btn-sm ghost" onclick="editEvent('${e.id}')">Editar</button>
+             <button class="btn-sm btn-danger" onclick='deleteEvent(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Eliminar</button>`;
+      }
+      function eventsCardsHtml(rows, isPast) {
+        return `<div class="events-cards">${rows.map((e) => {
+          const tableHint = e._count?.tables ? `${e._count.tables} mesas` : "";
+          return `<article class="event-card${isPast ? " past" : ""}">
+            <div class="event-card-head">
+              <b>${esc(e.name)}</b>
+              <div class="event-card-meta">
+                ${fdt(e.date)}${e.musicGenre ? ` · ${esc(e.musicGenre)}` : ""}${tableHint ? ` · ${esc(tableHint)}` : ""}
+              </div>
+            </div>
+            <div class="btn-row">${eventActionsHtml(e, isPast)}</div>
+          </article>`;
+        }).join("")}</div>`;
+      }
       function eventsTableHtml(rows, isPast) {
         if (!rows.length) return "";
-        return `<div class="data-table-wrap"><table class="data">
+        if (isPanelMobile()) return eventsCardsHtml(rows, isPast);
+        return `<div class="data-table-wrap events-table-desktop"><table class="data">
           <thead><tr><th>Evento</th><th>Fecha</th><th>Género</th><th></th></tr></thead>
           <tbody>${rows.map((e) => eventRow(e, isPast)).join("")}</tbody></table></div>`;
       }
@@ -2179,21 +2223,12 @@
       }
       function eventRow(e, isPast) {
         const pastCls = isPast ? ' class="event-past"' : "";
-        const actions = isPast
-          ? `<button class="btn-sm btn-accent" onclick='openEventTables(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Ver mesas</button>
-             <button class="btn-sm" onclick='openEventBottles(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Botellas</button>
-             <button class="btn-sm btn-danger" onclick='deleteEvent(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Eliminar</button>`
-          : `<button class="btn-sm btn-accent" onclick='openEventTables(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Ver mesas</button>
-             <button class="btn-sm" onclick='openDesigner(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Diseñar mesas</button>
-             <button class="btn-sm" onclick='openEventBottles(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Botellas</button>
-             <button type="button" class="btn-sm ghost" onclick="editEvent('${e.id}')">Editar</button>
-             <button class="btn-sm btn-danger" onclick='deleteEvent(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Eliminar</button>`;
         const tableHint = e._count?.tables ? ` · ${e._count.tables} mesas` : "";
         return `<tr${pastCls}>
           <td><b>${esc(e.name)}</b>${isPast ? `<span style="font-size:11px;color:var(--muted)">${tableHint}</span>` : ""}</td>
           <td>${fdt(e.date)}</td>
           <td>${esc(e.musicGenre || "—")}</td>
-          <td><div class="btn-row">${actions}</div></td>
+          <td><div class="btn-row">${eventActionsHtml(e, isPast)}</div></td>
         </tr>`;
       }
       async function deleteEvent(id, name) {

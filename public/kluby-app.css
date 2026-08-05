@@ -436,6 +436,122 @@ body.kluby-app .k-back {
     padding-right: 16px;
     padding-bottom: calc(48px + var(--safe-bottom, 0px));
   }
+
+  .k-app-tabs {
+    display: none !important;
+  }
+
+  .k-bottom-nav {
+    display: flex;
+  }
+
+  body.kluby-app .k-page {
+    padding-bottom: calc(76px + var(--safe-bottom, 0px));
+  }
+}
+
+.k-bottom-nav {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 55;
+  padding: 6px max(8px, var(--safe-left, 0px)) calc(6px + var(--safe-bottom, 0px)) max(8px, var(--safe-right, 0px));
+  background: rgba(5, 5, 8, 0.94);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  justify-content: space-around;
+  gap: 4px;
+}
+
+.k-bottom-nav button {
+  flex: 1;
+  max-width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.k-bottom-nav button .k-bnav-ic {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.k-bottom-nav button.active {
+  color: var(--neon-cyan);
+  background: rgba(45, 226, 198, 0.1);
+}
+
+.k-bottom-nav button:hover {
+  opacity: 1;
+  color: var(--text);
+}
+
+.k-nav-dot,
+.k-bnav-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: var(--neon-pink);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.k-bnav-dot {
+  position: absolute;
+  top: 2px;
+  right: calc(50% - 22px);
+  margin-left: 0;
+  min-width: 14px;
+  height: 14px;
+  font-size: 8px;
+}
+
+.k-bottom-nav button {
+  position: relative;
+}
+
+.k-bottom-nav button > span:last-child {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.k-chat-unread-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--neon-pink);
+  box-shadow: 0 0 8px rgba(255, 45, 149, 0.6);
+  vertical-align: middle;
+}
+
+.list-card .title {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 html.cap-native .k-app-nav .brand span {

@@ -700,6 +700,7 @@ window.KlubyUI = (function () {
     fdate,
     getSession,
     appDest,
+    isNativeApp: () => document.documentElement.classList.contains("cap-native"),
     markClientAppVisit,
     clearClientAppVisit,
     resolveAppEntry,
