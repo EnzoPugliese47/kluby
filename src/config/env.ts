@@ -39,6 +39,20 @@ export const env = {
   loyaltyCheckInBonus: optionalNumber("LOYALTY_CHECKIN_BONUS", 5),
   /** Mercado Pago (opcional). Token TEST-... = sandbox. */
   mpAccessToken: process.env["MP_ACCESS_TOKEN"]?.trim() ?? "",
+  /**
+   * true = credenciales de prueba (Checkout Pro sandbox).
+   * Si no se define, se infiere por TEST- en el token (legacy).
+   */
+  mpSandbox:
+    process.env["MP_SANDBOX"] === "1" ||
+    process.env["MP_SANDBOX"]?.toLowerCase() === "true" ||
+    (process.env["MP_SANDBOX"] === undefined &&
+      (process.env["MP_ACCESS_TOKEN"]?.trim() ?? "").startsWith("TEST-")),
+  /**
+   * Email del usuario comprador de prueba (panel MP → Cuentas de prueba → Comprador).
+   * Obligatorio en sandbox: no se puede mezclar email real con token de prueba.
+   */
+  mpTestPayerEmail: process.env["MP_TEST_PAYER_EMAIL"]?.trim() ?? "",
   /** URL publica HTTPS del deploy (Railway). Requerida si MP esta activo. */
   publicAppUrl:
     process.env["PUBLIC_APP_URL"]?.trim() ||

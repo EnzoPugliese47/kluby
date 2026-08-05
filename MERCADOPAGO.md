@@ -15,13 +15,17 @@ Integración **Checkout Pro** para reservas e invitados. Si no configurás MP, l
 ## 2. Variables en Railway (y local `.env`)
 
 ```env
-MP_ACCESS_TOKEN=TEST-xxxxxxxx...
+MP_ACCESS_TOKEN=TEST-xxxxxxxx...   # o APP_USR-... (Credenciales de prueba)
+MP_SANDBOX=true                    # obligatorio si el token es APP_USR- de prueba
+MP_TEST_PAYER_EMAIL=test_user_123456@testuser.com
 PUBLIC_APP_URL=https://kluby-production-2fa4.up.railway.app
 ```
 
 | Variable | Obligatoria | Descripción |
 |----------|-------------|-------------|
 | `MP_ACCESS_TOKEN` | No* | Sin esto → solo pago demo |
+| `MP_SANDBOX` | Sí con APP_USR- | `true` si usás credenciales de **prueba** |
+| `MP_TEST_PAYER_EMAIL` | Sí en sandbox | Email del **comprador de prueba** (panel MP → Cuentas de prueba → Comprador). Sin esto el botón Pagar queda deshabilitado. |
 | `PUBLIC_APP_URL` | Sí con MP | URL HTTPS pública (Railway) |
 
 \* Si falta `MP_ACCESS_TOKEN`, no pasa nada: la demo sigue igual.
@@ -44,6 +48,12 @@ Railway ya expone HTTPS; MP lo exige.
 
 ## 4. Probar en sandbox
 
+**Importante:** en sandbox no podés usar el email de Kluby (`anfitrion@kluby.com`) como pagador. Mercado Pago exige el email del **usuario comprador de prueba** que creás en el panel.
+
+1. Panel MP → **Tus integraciones** → tu app → **Cuentas de prueba** → **Comprador**
+2. Copiá el **email/usuario** del comprador de prueba → ponelo en Railway como `MP_TEST_PAYER_EMAIL`
+3. Probá en **ventana de incógnito** (o cerrá sesión en mercadopago.com)
+
 Tarjetas de prueba (Argentina): [documentación MP](https://www.mercadopago.com.ar/developers/es/docs/checkout-pro/additional-content/test-cards)
 
 Ejemplo aprobada:
@@ -60,7 +70,8 @@ Flujo:
 1. Login `anfitrion@kluby.com` / `password123`
 2. Reservar mesa en Kora → **Confirmar y pagar**
 3. Te redirige a Mercado Pago (sandbox)
-4. Pagás con tarjeta de prueba → volvés a la app con QR
+4. Elegí **Tarjeta de crédito o débito** (no Pago Fácil / Rapipago: en sandbox el botón queda deshabilitado)
+5. Pagá con tarjeta de prueba → volvés a la app con QR
 
 Para forzar **pago demo** (sin MP): agregá en el body `provider: "demo"` (útil si MP falla en la demo).
 

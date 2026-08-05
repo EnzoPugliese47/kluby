@@ -5,7 +5,19 @@ export function isMercadoPagoEnabled(): boolean {
 }
 
 export function isMercadoPagoSandbox(): boolean {
-  return env.mpAccessToken.startsWith("TEST-");
+  return env.mpSandbox;
+}
+
+/** Email del pagador en la preferencia MP (sandbox exige cuenta de prueba). */
+export function resolveMercadoPagoPayerEmail(fallbackEmail: string): string {
+  if (isMercadoPagoSandbox() && env.mpTestPayerEmail) {
+    return env.mpTestPayerEmail;
+  }
+  return fallbackEmail;
+}
+
+export function mercadoPagoSandboxReady(): boolean {
+  return !isMercadoPagoSandbox() || env.mpTestPayerEmail.length > 0;
 }
 
 function mpHeaders(): Record<string, string> {
@@ -46,7 +58,20 @@ export async function createMercadoPagoCheckout(
     throw new Error("Monto invalido para Mercado Pago");
   }
 
-  const body = {
+  if (isMercadoPagoSandbox() && !env.mpTestPayerEmail) {
+    throw new Error(
+      "Configurá MP_TEST_PAYER_EMAIL con el email del comprador de prueba de Mercado Pago (panel → Cuentas de prueba → Comprador)"
+    );
+  }
+
+  const payerEmail = resolveMercadoPagoPayerEmail(input.payerEmail);
+  const payer: Record<string, unknown> = { email: payerEmail.slice(0, 254) };
+  if (isMercadoPagoSandbox()) {
+    payer.name = "APRO";
+    payer.identification = { type: "DNI", number: "12345678" };
+  }
+
+  const body: Record<string, unknown> = {
     items: [
       {
         title: input.title.slice(0, 256),
@@ -55,7 +80,7 @@ export async function createMercadoPagoCheckout(
         currency_id: "ARS",
       },
     ],
-    payer: { email: input.payerEmail.slice(0, 254) },
+    payer,
     back_urls: {
       success: input.successUrl,
       failure: input.failureUrl,
@@ -66,6 +91,14 @@ export async function createMercadoPagoCheckout(
     notification_url: `${env.publicAppUrl.replace(/\/$/, "")}/api/webhooks/mercadopago`,
     metadata: input.metadata ?? {},
   };
+
+  // En sandbox, Pago Fácil / Rapipago suelen dejar el botón "Pagar" deshabilitado.
+  // Forzamos tarjeta (y cuenta MP) para la demo con tarjetas de prueba.
+  if (isMercadoPagoSandbox()) {
+    body.payment_methods = {
+      excluded_payment_types: [{ id: "ticket" }, { id: "atm" }, { id: "bank_transfer" }],
+    };
+  }
 
   const res = await fetch("https://api.mercadopago.com/checkout/preferences", {
     method: "POST",
@@ -87,7 +120,6 @@ export async function createMercadoPagoCheckout(
   }
 
   const checkoutUrl =
-    (isMercadoPagoSandbox() ? data.sandbox_init_point : data.init_point) ||
     data.init_point ||
     data.sandbox_init_point;
 

@@ -614,7 +614,20 @@
 
       async function handlePayResponse(data, onConfirmed) {
         if (data?.mode === "checkout" && data.checkoutUrl) {
-          if (data.sandbox) toast("Mercado Pago · modo prueba", "ok");
+          if (data.sandbox) {
+            window._mpCheckoutUrl = data.checkoutUrl;
+            openModal(`<div class="k-onboard-box">
+              <h3 style="margin:0 0 12px">Mercado Pago · modo prueba</h3>
+              <ol class="hint" style="margin:0;padding-left:18px;line-height:1.6;text-align:left">
+                <li>Abrí el checkout en <b>incógnito</b> o cerrá sesión en Mercado Pago.</li>
+                <li>Elegí <b>Tarjeta de crédito o débito</b>.</li>
+                <li>Número: <code>5031 7557 3453 0604</code> · CVV <code>123</code> · venc. <code>11/30</code></li>
+                <li>Titular: <code>APRO</code> · DNI: <code>12345678</code></li>
+              </ol>
+              <button type="button" class="btn-full btn-accent" style="margin-top:18px" onclick="closeModal();window.location.href=_mpCheckoutUrl">Ir a pagar</button>
+            </div>`);
+            return null;
+          }
           window.location.href = data.checkoutUrl;
           return null;
         }
