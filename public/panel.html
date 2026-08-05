@@ -2490,6 +2490,41 @@
       let _pendingEventTables = [];
       let _eventFormDraft = null;
       let _eventPreviewGen = 0;
+      let _pendingEventFloors = [{ floorIndex: 1, name: "Piso 1", backgroundImage: null, tables: [] }];
+
+      function defaultFloorName(idx) {
+        return "Piso " + idx;
+      }
+
+      function ensurePendingEventFloors() {
+        if (!_pendingEventFloors?.length) {
+          _pendingEventFloors = [{
+            floorIndex: 1,
+            name: defaultFloorName(1),
+            backgroundImage: _eventBg || null,
+            tables: (_pendingEventTables || []).map(tableToPending),
+          }];
+        }
+        return _pendingEventFloors;
+      }
+
+      function pendingFloor1() {
+        const floors = ensurePendingEventFloors();
+        return floors.find((f) => f.floorIndex === 1) ?? floors[0];
+      }
+
+      /** Mantiene _eventBg y el plano del piso 1 del borrador sincronizados. */
+      function setEventDraftBg(url) {
+        _eventBg = url || null;
+        _eventBgManual = true;
+        pendingFloor1().backgroundImage = url || null;
+      }
+
+      function syncEventBgWithPendingFloors() {
+        const f1 = pendingFloor1();
+        if (_eventBg && !f1.backgroundImage) f1.backgroundImage = _eventBg;
+        else if (f1.backgroundImage && !_eventBg) _eventBg = f1.backgroundImage;
+      }
 
       function productToPending(p) {
         return {
@@ -2544,6 +2579,7 @@
         );
         _pendingEventBottles = (products || []).map(productToPending);
         if (!_eventBgManual) _eventBg = _pendingEventFloors[0]?.backgroundImage || bg || null;
+        syncEventBgWithPendingFloors();
         const list = document.getElementById("ev-bottles-list");
         if (list) list.innerHTML = renderPendingBottlesHtml();
       }
@@ -2593,8 +2629,7 @@
             r.readAsDataURL(file);
           });
           const res = await api("/uploads/map", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
-          _eventBg = res.url;
-          _eventBgManual = true;
+          setEventDraftBg(res.url);
           renderEventPreviewMap();
           toast("Plano cargado", "ok");
         } catch (err) { toast(err.message, "err"); }
@@ -2602,13 +2637,13 @@
 
       function clearEventDraftMap() {
         if (!confirm("¿Quitar la imagen del plano?")) return;
-        _eventBg = null;
-        _eventBgManual = true;
+        setEventDraftBg(null);
         renderEventPreviewMap();
       }
 
       function openDraftEventDesigner() {
         _eventFormDraft = captureEventFormDraft();
+        syncEventBgWithPendingFloors();
         const clubId = document.getElementById("event-club-select")?.value;
         _designer = {
           isDraft: true,
@@ -2616,24 +2651,17 @@
           eventId: null,
           clubId,
           name: document.getElementById("ev-name")?.value?.trim() || "Nuevo evento",
-          floors: (_pendingEventFloors || []).map((f) => ({
+          floors: ensurePendingEventFloors().map((f) => ({
             id: "f" + f.floorIndex,
             floorIndex: f.floorIndex,
             name: f.name || defaultFloorName(f.floorIndex),
-            backgroundImage: f.backgroundImage,
-            tables: (f.tables || []).map((t) => pendingTableToDesigner({ ...t, _localId: t._localId || ("t" + Math.random().toString(36).slice(2, 8)) })),
+            backgroundImage: f.backgroundImage ?? (f.floorIndex === 1 ? _eventBg : null),
+            tables: (f.tables?.length ? f.tables : (f.floorIndex === 1 ? _pendingEventTables : [])).map((t) =>
+              pendingTableToDesigner({ ...t, _localId: t._localId || ("t" + Math.random().toString(36).slice(2, 8)) })
+            ),
           })),
           activeFloor: 0,
         };
-        if (!_designer.floors.length) {
-          _designer.floors = [{
-            id: "f1",
-            floorIndex: 1,
-            name: defaultFloorName(1),
-            backgroundImage: _eventBg,
-            tables: _pendingEventTables.map(pendingTableToDesigner),
-          }];
-        }
         document.getElementById("modal-content").classList.add("wide");
         renderDesigner();
       }
@@ -2770,10 +2798,6 @@
         }
       }
 
-      function defaultFloorName(idx) {
-        return "Piso " + idx;
-      }
-
       function onEventPastCopyChange() {
         _eventBgManual = false;
         refreshEventSetupPreview(true);
@@ -2874,6 +2898,7 @@
         else if (!editing) _pendingEventBottles = [];
         if (draft?.pendingFloors) _pendingEventFloors = draft.pendingFloors;
         else if (!editing) _pendingEventFloors = [{ floorIndex: 1, name: defaultFloorName(1), backgroundImage: null, tables: [] }];
+        syncEventBgWithPendingFloors();
         if (draft?.pendingTables) _pendingEventTables = draft.pendingTables;
         else if (!editing) _pendingEventTables = [];
 
@@ -2986,7 +3011,7 @@
             r.readAsDataURL(file);
           });
           const res = await api("/uploads/map", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
-          _eventBg = res.url;
+          setEventDraftBg(res.url);
           prev.innerHTML = `<img src="${esc(_eventBg)}" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border)"/>`;
           toast("Imagen cargada", "ok");
         } catch (err) { prev.innerHTML = `<span style="color:var(--pink)">${esc(err.message)}</span>`; }
@@ -3434,10 +3459,8 @@
           const cur = designerCur();
           cur.backgroundImage = res.url;
           if (_designer.isDraft) {
-            if (cur.floorIndex === 1) {
-              _eventBg = res.url;
-              _eventBgManual = true;
-            }
+            cur.backgroundImage = res.url;
+            if (cur.floorIndex === 1) setEventDraftBg(res.url);
             renderDesigner();
             toast("Plano cargado", "ok");
             return;
@@ -3506,7 +3529,6 @@
         _eventBg = floors[0]?.backgroundImage ?? null;
       }
 
-      let _pendingEventFloors = [{ floorIndex: 1, name: "Piso 1", backgroundImage: null, tables: [] }];
       function shortLabel(l) { return String(l).split(" ").pop(); }
 
       async function openDesigner(eventId, eventName) {
@@ -3580,10 +3602,7 @@
         try {
           if (_designer.isDraft) {
             cur.backgroundImage = null;
-            if (cur.floorIndex === 1) {
-              _eventBg = null;
-              _eventBgManual = true;
-            }
+            if (cur.floorIndex === 1) setEventDraftBg(null);
             renderDesigner();
             toast("Plano eliminado", "ok");
             return;
