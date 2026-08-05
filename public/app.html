@@ -1497,7 +1497,7 @@
             </header>
             <main class="k-main"><div class="k-page" id="page"></div></main>
             <nav class="k-bottom-nav" id="k-bottom-nav" aria-label="Navegación principal">
-              ${bottomNav.map(([v, l, ic]) => `<button type="button" class="${bottomActive === v ? "active" : ""}" onclick="go('${v}')"><span class="k-bnav-ic" aria-hidden="true">${ic}</span><span>${l}${v === "mine" ? `<span class="k-bnav-dot" id="k-bnav-mine-badge" style="display:none">0</span>` : ""}</span></button>`).join("")}
+              ${bottomNav.map(([v, l, ic]) => `<button type="button" class="k-bnav-btn ${bottomActive === v ? "active" : ""}" onclick="go('${v}')"><span class="k-bnav-icon-wrap"><span class="k-bnav-ic" aria-hidden="true">${ic}</span>${v === "mine" ? `<span class="k-bnav-dot" id="k-bnav-mine-badge" style="display:none">0</span>` : ""}</span><span class="k-bnav-label">${l}</span></button>`).join("")}
             </nav>
           </div>`;
         const page = $("page");

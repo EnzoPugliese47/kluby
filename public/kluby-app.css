@@ -212,7 +212,7 @@ body.kluby-app .logo {
   background: transparent;
 }
 
-body.kluby-app button:not(.ghost):not(.k-btn-ghost):not(.k-app-tabs button):not(.k-notif-btn) {
+body.kluby-app button:not(.ghost):not(.k-btn-ghost):not(.k-app-tabs button):not(.k-notif-btn):not(.k-bnav-btn) {
   background: linear-gradient(135deg, var(--neon-violet), var(--neon-pink));
   box-shadow: 0 4px 18px rgba(168, 85, 247, 0.22);
   border-radius: 12px;
@@ -339,45 +339,81 @@ body.kluby-app .k-back {
   right: 0;
   bottom: 0;
   z-index: 55;
-  padding: 6px max(8px, var(--safe-left, 0px)) calc(6px + var(--safe-bottom, 0px)) max(8px, var(--safe-right, 0px));
-  background: rgba(5, 5, 8, 0.94);
+  padding: 8px max(10px, var(--safe-left, 0px)) calc(8px + var(--safe-bottom, 0px)) max(10px, var(--safe-right, 0px));
+  background: rgba(5, 5, 8, 0.96);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
   justify-content: space-around;
-  gap: 4px;
+  gap: 2px;
 }
 
-.k-bottom-nav button {
+.k-bottom-nav button.k-bnav-btn {
   flex: 1;
-  max-width: 96px;
+  max-width: 88px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 8px 4px;
+  gap: 5px;
+  padding: 4px 2px;
   border: none;
-  border-radius: 12px;
-  background: transparent;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
   color: var(--muted);
   font-size: 10px;
   font-weight: 600;
-  box-shadow: none;
   cursor: pointer;
   position: relative;
+  min-width: 0;
+}
+
+.k-bnav-icon-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
 .k-bottom-nav button .k-bnav-ic {
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1;
 }
 
-.k-bottom-nav button.active {
-  color: var(--neon-cyan);
-  background: rgba(45, 226, 198, 0.1);
+.k-bnav-label {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  line-height: 1.2;
 }
 
-.k-bottom-nav button:hover {
-  opacity: 1;
+.k-bottom-nav button.active .k-bnav-icon-wrap {
+  border-color: rgba(45, 226, 198, 0.45);
+  background: rgba(45, 226, 198, 0.1);
+  color: var(--neon-cyan);
+}
+
+.k-bottom-nav button.active .k-bnav-label {
+  color: var(--neon-cyan);
+}
+
+.k-bottom-nav button:hover .k-bnav-icon-wrap {
+  border-color: rgba(45, 226, 198, 0.35);
+  background: rgba(45, 226, 198, 0.06);
+}
+
+.k-bottom-nav button:hover .k-bnav-label {
   color: var(--text);
 }
 
@@ -389,31 +425,30 @@ body.kluby-app .k-back {
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  margin-left: 6px;
   border-radius: 999px;
   background: var(--neon-pink);
   color: #fff;
   font-size: 9px;
   font-weight: 800;
   line-height: 1;
-  vertical-align: middle;
+  border: 2px solid rgba(5, 5, 8, 0.95);
+  box-sizing: border-box;
 }
 
 .k-bnav-dot {
   position: absolute;
-  top: 2px;
-  right: calc(50% - 22px);
-  margin-left: 0;
-  min-width: 14px;
-  height: 14px;
+  top: -3px;
+  right: -3px;
+  margin: 0;
+  min-width: 15px;
+  height: 15px;
   font-size: 8px;
+  pointer-events: none;
 }
 
-.k-bottom-nav button > span:last-child {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.k-nav-dot {
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 @media (max-width: 960px) {
