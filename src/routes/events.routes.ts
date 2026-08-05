@@ -13,6 +13,7 @@ import {
 } from "../controllers/products.controller";
 import {
   createEventInvite,
+  listEventInviteGuests,
   listEventInvites,
 } from "../controllers/invites.controller";
 import { bulkCreateTablesForEvent, deleteAllEventTables } from "../controllers/tables.controller";
@@ -44,5 +45,6 @@ router.post("/:eventId/release", ...adminOnly, releaseTable);
 router.post("/:eventId/products", ...adminOnly, createProductForEvent);
 router.post("/:eventId/invites", ...promoOrAdmin, createEventInvite);
 router.get("/:eventId/invites", ...promoOrAdmin, listEventInvites);
+router.get("/:eventId/invite-guests", ...promoOrAdmin, listEventInviteGuests);
 
 export default router;

@@ -319,6 +319,58 @@ export const listEventInvites = async (
   }
 };
 
+/** GET /api/events/:eventId/invite-guests — clientes que canjearon invitacion al evento. */
+export const listEventInviteGuests = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const eventId = requireParam(req.params, "eventId");
+    await assertCanManageEventInvites(req, eventId);
+    const user = getAuthUser(req);
+
+    const inviteFilter: { eventId: string; createdBy?: string } = { eventId };
+    if (user.role === UserRole.STAFF) {
+      inviteFilter.createdBy = user.sub;
+    }
+
+    const rows = await prisma.eventInviteGuest.findMany({
+      where: { eventId, invite: inviteFilter },
+      orderBy: { redeemedAt: "desc" },
+      take: 200,
+      include: {
+        user: {
+          select: { id: true, fullName: true, email: true, phone: true },
+        },
+        invite: {
+          select: {
+            id: true,
+            code: true,
+            creator: { select: { id: true, fullName: true } },
+          },
+        },
+      },
+    });
+
+    sendSuccess(
+      res,
+      rows.map((row) => ({
+        id: row.id,
+        redeemedAt: row.redeemedAt,
+        user: row.user,
+        invite: {
+          id: row.invite.id,
+          code: row.invite.code,
+          creator: row.invite.creator,
+        },
+      }))
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 /** POST /api/invites/event/redeem */
 export const redeemEventInvite = async (
   req: Request,

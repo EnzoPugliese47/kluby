@@ -22,6 +22,7 @@
       let events = [];
       let selectedEventId = "";
       let invitesForSelected = [];
+      let inviteGuestsForSelected = [];
       let loadingInvites = false;
 
       const $ = (id) => document.getElementById(id);
@@ -49,12 +50,27 @@
         return events.find((ev) => ev.id === selectedEventId) || null;
       }
 
-      function inviteCardHtml(inv, eventName) {
+      function inviteGuestsHtml(guests, { showPubli = false } = {}) {
+        if (!guests.length) {
+          return '<p class="hint" style="margin:10px 0 0;text-align:center">Nadie canjeó esta invitación todavía.</p>';
+        }
+        return `<ul class="ops-history" style="margin-top:12px">${guests.map((g) => `
+          <li>
+            <div>
+              <div class="name">${esc(g.user.fullName)}</div>
+              <div class="meta">${esc(g.user.email)}${g.user.phone ? " · " + esc(g.user.phone) : ""}${showPubli && g.invite?.creator ? " · publi: " + esc(g.invite.creator.fullName) : ""}</div>
+            </div>
+            <div class="time">${fdt(g.redeemedAt)}</div>
+          </li>`).join("")}</ul>`;
+      }
+
+      function inviteCardHtml(inv, eventName, guests) {
         const link = inviteLink(inv.code);
-        const uses = inv._count?.guests ?? 0;
+        const uses = inv._count?.guests ?? guests.length;
         const max = inv.maxUses ? ` / ${inv.maxUses}` : "";
         const codeAttr = esc(inv.code);
         const nameAttr = esc(eventName);
+        const invGuests = guests.filter((g) => g.invite?.id === inv.id);
         return `
           <div class="ops-invite-card">
             <img class="ops-invite-qr" src="${qrUrl(link)}" alt="QR invitación" width="168" height="168" />
@@ -65,11 +81,13 @@
               <button type="button" class="ops-btn-lg" data-share="${codeAttr}" data-event-name="${nameAttr}">Compartir</button>
             </div>
             <p class="hint" style="text-align:center;margin-top:10px">${uses}${max} usos · ${inv.expiresAt ? "vence " + fdt(inv.expiresAt) : "sin vencimiento"}</p>
+            <div class="section-title" style="margin-top:14px;font-size:14px">Canjeados (${invGuests.length})</div>
+            ${inviteGuestsHtml(invGuests)}
           </div>`;
       }
 
       function logout() {
-        token = ""; user = null; memberships = []; events = []; selectedEventId = ""; invitesForSelected = [];
+        token = ""; user = null; memberships = []; events = []; selectedEventId = ""; invitesForSelected = []; inviteGuestsForSelected = [];
         localStorage.removeItem("kluby_token");
         localStorage.removeItem("kluby_user");
         location.href = "/login.html";
@@ -95,19 +113,27 @@
         events = await api("/clubs/" + clubId + "/staff-events");
         selectedEventId = "";
         invitesForSelected = [];
+        inviteGuestsForSelected = [];
       }
 
       async function loadInvitesForSelected() {
         if (!selectedEventId) {
           invitesForSelected = [];
+          inviteGuestsForSelected = [];
           return;
         }
         loadingInvites = true;
         renderInviteSection();
         try {
-          invitesForSelected = await api("/events/" + selectedEventId + "/invites");
+          const [invites, guests] = await Promise.all([
+            api("/events/" + selectedEventId + "/invites"),
+            api("/events/" + selectedEventId + "/invite-guests"),
+          ]);
+          invitesForSelected = invites;
+          inviteGuestsForSelected = guests;
         } catch {
           invitesForSelected = [];
+          inviteGuestsForSelected = [];
         } finally {
           loadingInvites = false;
           renderInviteSection();
@@ -151,6 +177,7 @@
       async function onClubChange() {
         selectedEventId = "";
         invitesForSelected = [];
+        inviteGuestsForSelected = [];
         if ($("event-sel")) $("event-sel").innerHTML = `<option value="">Cargando eventos…</option>`;
         if ($("invites-wrap")) $("invites-wrap").innerHTML = "";
         if ($("event-summary")) $("event-summary").innerHTML = "";
@@ -195,10 +222,15 @@
           return;
         }
 
-        const cards = invitesForSelected.slice(0, 5).map((inv) => inviteCardHtml(inv, ev.name)).join("");
+        const cards = invitesForSelected.slice(0, 5).map((inv) => inviteCardHtml(inv, ev.name, inviteGuestsForSelected)).join("");
+        const totalGuests = inviteGuestsForSelected.length;
         wrap.innerHTML = `
           <div class="section-title" style="margin-top:22px;font-size:16px">Invitaciones de este evento</div>
-          ${cards || '<div class="empty">Todavía no hay invitaciones para este evento. Tocá «Generar invitación».</div>'}`;
+          ${cards || '<div class="empty">Todavía no hay invitaciones para este evento. Tocá «Generar invitación».</div>'}
+          ${totalGuests ? `
+            <div class="section-title" style="margin-top:24px;font-size:16px">Todos los canjeados (${totalGuests})</div>
+            <div class="section-sub">Clientes que ingresaron con tu link de invitación.</div>
+            ${inviteGuestsHtml(inviteGuestsForSelected)}` : ""}`;
 
         wrap.querySelectorAll("[data-copy]").forEach((el) => {
           el.addEventListener("click", () => copyInvite(el.getAttribute("data-copy")));

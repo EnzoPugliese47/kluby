@@ -2165,13 +2165,16 @@
         return window.matchMedia("(max-width: 900px)").matches;
       }
       function eventActionsHtml(e, isPast) {
+        const inviteBtn = `<button class="btn-sm" onclick='openEventInviteGuests(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Invitados</button>`;
         return isPast
           ? `<button class="btn-sm btn-accent" onclick='openEventTables(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Ver mesas</button>
              <button class="btn-sm" onclick='openEventBottles(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Botellas</button>
+             ${inviteBtn}
              <button class="btn-sm btn-danger" onclick='deleteEvent(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Eliminar</button>`
           : `<button class="btn-sm btn-accent" onclick='openEventTables(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Ver mesas</button>
              <button class="btn-sm" onclick='openDesigner(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Diseñar mesas</button>
              <button class="btn-sm" onclick='openEventBottles(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Botellas</button>
+             ${inviteBtn}
              <button type="button" class="btn-sm ghost" onclick="editEvent('${e.id}')">Editar</button>
              <button class="btn-sm btn-danger" onclick='deleteEvent(${JSON.stringify(e.id)}, ${JSON.stringify(e.name)})'>Eliminar</button>`;
       }
@@ -2781,6 +2784,29 @@
           errEl.textContent = e.message;
           toast(e.message, "err");
           if (btn) { btn.disabled = false; btn.textContent = eventId ? "Guardar cambios" : "Crear evento"; }
+        }
+      }
+
+      // Invitados que canjearon link de publi
+      async function openEventInviteGuests(eventId, eventName) {
+        openModal('<div class="empty">Cargando invitados…</div>');
+        try {
+          const guests = await api("/events/" + eventId + "/invite-guests");
+          const rows = guests.length
+            ? guests.map((g) => `
+              <div class="pick-row"><div>
+                <b>${esc(g.user.fullName)}</b>
+                <small>${esc(g.user.email)}${g.user.phone ? " · " + esc(g.user.phone) : ""}</small>
+                <small>Código ${esc(g.invite.code)} · publi ${esc(g.invite.creator?.fullName || "—")}</small>
+              </div><span class="badge muted">${fdt(g.redeemedAt)}</span></div>`).join("")
+            : '<div class="empty">Todavía nadie canjeó una invitación para este evento.</div>';
+          openModal(`
+            <h3>Invitados por link · ${esc(eventName)}</h3>
+            <p class="sub">Clientes que canjearon un código de publi para este evento (${guests.length}).</p>
+            <div class="pick-list">${rows}</div>
+            <button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`);
+        } catch (e) {
+          openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`);
         }
       }
 
