@@ -1027,7 +1027,7 @@
             ? `<a class="k-btn-ghost" href="/staff.html">Puerta</a>`
             : ["SUPER_ADMIN", "CLUB_ADMIN"].includes(state.user.role)
               ? `<a class="k-btn-ghost" href="/panel.html">Panel</a>`
-              : "";
+            : "";
         $("root").innerHTML = `
           <div class="k-app-wrap">
             <header class="k-app-nav">
@@ -1038,16 +1038,16 @@
               </a>
               <div class="k-app-tabs">
                 ${nav.map(([v, l]) => `<button type="button" class="${state.view === v ? "active" : ""}" onclick="go('${v}')">${l}</button>`).join("")}
-              </div>
+            </div>
               <div class="k-app-user">
-                ${staffLinks}
+              ${staffLinks}
                 <a class="k-btn-ghost k-link-inicio" href="/">Inicio</a>
                 <div class="profile-link" onclick="go('profile')" title="Mi perfil">
-                  ${avatarHtml(state.user, 40)}
-                  <div class="who"><b>${esc(state.user.fullName)}</b><small>${esc(state.user.email)}</small></div>
-                </div>
+              ${avatarHtml(state.user, 40)}
+              <div class="who"><b>${esc(state.user.fullName)}</b><small>${esc(state.user.email)}</small></div>
+            </div>
                 <button type="button" class="ghost btn-sm" onclick="doLogout()">Salir</button>
-              </div>
+          </div>
               </div>
             </header>
             <div id="app-alerts" class="k-app-alerts"></div>
@@ -1083,15 +1083,15 @@
           <div class="k-page-head">
             <h1>Explorá boliches</h1>
             <p>Elegí un local o buscá por fecha. Reservá tu mesa desde el mapa.</p>
-          </div>
+              </div>
           <div class="k-hero-cta-inline">
             <button type="button" class="k-btn-cyan" style="border:none;cursor:pointer;font-size:15px;padding:14px 28px" onclick="wizardGo(1)">Reservar mesa →</button>
             <span class="hint" style="align-self:center">Paso a paso: boliche · fecha · mesa · pago</span>
-          </div>
+            </div>
           <div class="k-explore-tabs" role="tablist">
             <button type="button" class="${homeTab === "clubs" ? "active" : ""}" onclick="setHomeTab('clubs')">Por boliche</button>
             <button type="button" class="${homeTab === "events" ? "active" : ""}" onclick="setHomeTab('events')">Por evento</button>
-          </div>
+            </div>
           <div id="home-filters"></div>
           <div id="home-list"><div class="empty">Cargando...</div></div>`;
         const filtersEl = page.querySelector("#home-filters");
@@ -1174,7 +1174,7 @@
               <h1>${esc(club.name)}</h1>
               <p class="meta" style="margin-bottom:12px">📍 ${esc(KlubyUI.clubLocationMeta(club))} ${club.musicGenre ? "· <span class='k-tag'>" + esc(club.musicGenre) + "</span>" : ""}${club.zone ? " · <span class='k-tag violet'>" + esc(KlubyUI.zoneShort(club.zone)) + "</span>" : ""}</p>
               ${club.description ? `<p class="desc">${esc(club.description)}</p>` : ""}
-              ${club.contactEmail ? `
+            ${club.contactEmail ? `
               <div class="contact" style="margin-top:16px">
                 ✉️ <a href="mailto:${esc(club.contactEmail)}">${esc(club.contactEmail)}</a>
                 ${club.contactPhone ? `<br/>📞 <a href="tel:${esc(club.contactPhone.replace(/\s/g, ""))}">${esc(club.contactPhone)}</a>` : ""}
@@ -1325,12 +1325,12 @@
             <div>
               <div class="name">${esc(p.name)}</div>
               <div class="price">${esc(p.category || "General")} · ${money(p.price)} c/u</div>
-            </div>
+          </div>
             <div class="k-calc-qty">
               <button type="button" onclick="setCalcQty('${p.id}', -1)">−</button>
               <span>${q}</span>
               <button type="button" onclick="setCalcQty('${p.id}', 1)">+</button>
-            </div>
+          </div>
             <div class="k-calc-line-total">${q ? money(lineTotal) : "—"}</div>
           </div>`;
         }).join("");
@@ -2161,7 +2161,7 @@
           history.replaceState({}, "", "/app.html");
           go("wizard", { step: 2, clubId });
         } else {
-          render();
+      render();
         }
         }
       }

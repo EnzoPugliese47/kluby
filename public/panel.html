@@ -636,8 +636,8 @@
           <h3>⭐ Kluby Points</h3>
           <p class="sub">Puntos emitidos y canjeados · el descuento por punto lo configurás en Editar boliche</p>
           <div class="kpis" id="loyalty-kpis"></div>
-        </div>
       </div>
+    </div>
 
       <!-- VISTA: BOLICHES (admin) -->
       <div class="container view" id="view-clubs">
@@ -821,14 +821,14 @@
         const fillSelect = (selId, saved) => {
           const sel = document.getElementById(selId);
           if (!sel) return;
-          sel.innerHTML = "";
+        sel.innerHTML = "";
           if (!clubs.length) { sel.innerHTML = '<option value="">(sin boliches)</option>'; return; }
-          clubs.forEach((c) => {
-            const opt = document.createElement("option");
-            opt.value = c.id;
-            opt.textContent = c.name + " · " + c.city;
-            sel.appendChild(opt);
-          });
+        clubs.forEach((c) => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = c.name + " · " + c.city;
+          sel.appendChild(opt);
+        });
           if (saved && clubs.some((c) => c.id === saved)) sel.value = saved;
         };
         fillSelect("club-select", savedStats);

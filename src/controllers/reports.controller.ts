@@ -129,20 +129,21 @@ const resolvePeriod = async (
     return { range, label: "Últimos 30 días", ...rollingBounds(30) };
   }
 
+  const now = new Date();
   const event = await prisma.eventNight.findFirst({
-    where: { clubId },
+    where: { clubId, date: { lt: now } },
     orderBy: { date: "desc" },
     select: { id: true, date: true, name: true },
   });
   if (event === null) {
-    return { range, label: "Sin eventos (7 días)", ...rollingBounds(7) };
+    return { range, label: "Sin eventos pasados (7 días)", ...rollingBounds(7) };
   }
 
   const { from, to } = dayBounds(event.date);
   const prevEvent = await prisma.eventNight.findFirst({
     where: { clubId, date: { lt: event.date } },
     orderBy: { date: "desc" },
-    select: { date: true },
+    select: { id: true, date: true },
   });
   const prevBounds = prevEvent
     ? dayBounds(prevEvent.date)
@@ -155,6 +156,8 @@ const resolvePeriod = async (
     to,
     prevFrom: prevBounds.from,
     prevTo: prevBounds.to,
+    eventId: event.id,
+    prevEventId: prevEvent?.id,
   };
 };
 
