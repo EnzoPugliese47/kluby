@@ -781,9 +781,7 @@
         releaseWizardHoldOnExit();
         void releaseWizardHold();
         state.token = ""; state.user = null;
-        KlubyUI.clearClientAppVisit();
-        localStorage.removeItem("kluby_token"); localStorage.removeItem("kluby_user");
-        location.href = "/login.html";
+        KlubyUI.logoutToLogin();
       }
 
       function requireAuth() {

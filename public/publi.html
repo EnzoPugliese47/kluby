@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/kluby.css" />
     <link rel="stylesheet" href="/ops-mobile.css" />
     <link rel="stylesheet" href="/kluby-public.css" />
+    <script src="/kluby-ui.js"></script>
     <script src="/ops-native.js"></script>
     <script src="/kluby-offline.js"></script>
   </head>
@@ -87,10 +88,15 @@
       }
 
       function logout() {
-        token = ""; user = null; memberships = []; events = []; selectedEventId = ""; invitesForSelected = []; inviteGuestsForSelected = [];
-        localStorage.removeItem("kluby_token");
-        localStorage.removeItem("kluby_user");
-        location.href = "/login.html";
+        token = "";
+        user = null;
+        memberships = [];
+        events = [];
+        selectedEventId = "";
+        invitesForSelected = [];
+        inviteGuestsForSelected = [];
+        if (typeof KlubyUI !== "undefined") KlubyUI.logoutToLogin();
+        else { localStorage.removeItem("kluby_token"); localStorage.removeItem("kluby_user"); location.href = "/login.html"; }
       }
 
       async function bootstrap() {

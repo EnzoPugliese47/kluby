@@ -307,11 +307,10 @@
       function logout() {
         stopScanner();
         clearInterval(checkInsTimer);
-        token = ""; user = null; memberships = [];
-        localStorage.removeItem("kluby_token");
-        localStorage.removeItem("kluby_user");
-        localStorage.removeItem("kluby_staff_clubs");
-        location.href = "/login.html?next=" + encodeURIComponent("/staff.html");
+        token = "";
+        user = null;
+        memberships = [];
+        KlubyUI.logoutToLogin();
       }
 
       async function lookup(codeArg) {

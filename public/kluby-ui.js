@@ -93,17 +93,53 @@ window.KlubyUI = (function () {
     return home;
   }
 
-  /** Tras login: respeta ?next= solo si es válido para el rol. */
+  function canAccessPath(user, path) {
+    if (!path || !path.startsWith("/")) return false;
+    const base = path.split("?")[0];
+    const role = user?.role;
+    if (base.startsWith("/panel.html")) return ["SUPER_ADMIN", "CLUB_ADMIN"].includes(role);
+    if (base.startsWith("/publi.html")) return ["STAFF", "CLUB_ADMIN", "SUPER_ADMIN"].includes(role);
+    if (base.startsWith("/staff.html")) return ["PUERTA", "CLUB_ADMIN", "SUPER_ADMIN"].includes(role);
+    if (base.startsWith("/app.html")) {
+      if (role === "CLIENT") return true;
+      return ["SUPER_ADMIN", "CLUB_ADMIN"].includes(role) && sessionStorage.getItem(ADMIN_CLIENT_KEY) === "1";
+    }
+    return true;
+  }
+
+  /** Tras login: respeta ?next= solo si la ruta corresponde al rol del usuario. */
   function redirectAfterAuth(user, nextUrl) {
     const home = appDest(user);
-    if (nextUrl && nextUrl.startsWith("/")) {
-      const wantsClient = nextUrl.startsWith("/app.html");
-      const wantsPanel = nextUrl.startsWith("/panel.html");
-      if (wantsClient && home !== "/app.html") return home;
-      if (wantsPanel && !["SUPER_ADMIN", "CLUB_ADMIN"].includes(user.role)) return home;
-      return nextUrl;
-    }
+    if (nextUrl && canAccessPath(user, nextUrl)) return nextUrl;
     return home;
+  }
+
+  /** Datos operativos del usuario anterior (no borra token hasta logout completo). */
+  function clearRoleSessionData() {
+    localStorage.removeItem("kluby_staff_token");
+    localStorage.removeItem("kluby_staff_user");
+    localStorage.removeItem("kluby_publi_token");
+    localStorage.removeItem("kluby_publi_user");
+    localStorage.removeItem("kluby_staff_clubs");
+    sessionStorage.removeItem(ADMIN_CLIENT_KEY);
+    try {
+      sessionStorage.removeItem("kluby_wizard_hold");
+      sessionStorage.removeItem("kluby_wizard_hold_checkout");
+    } catch { /* ignore */ }
+  }
+
+  /** Cierra sesión por completo (auth + códigos pendientes). */
+  function clearSession() {
+    localStorage.removeItem("kluby_token");
+    localStorage.removeItem("kluby_user");
+    clearRoleSessionData();
+    localStorage.removeItem("kluby_pending_event");
+    localStorage.removeItem("kluby_pending_equipo");
+  }
+
+  function logoutToLogin() {
+    clearSession();
+    location.href = "/login.html";
   }
 
   function captureInviteFromUrl() {
@@ -756,6 +792,10 @@ window.KlubyUI = (function () {
     isNativeApp: () => document.documentElement.classList.contains("cap-native"),
     markClientAppVisit,
     clearClientAppVisit,
+    canAccessPath,
+    clearRoleSessionData,
+    clearSession,
+    logoutToLogin,
     resolveAppEntry,
     redirectAfterAuth,
     captureInviteFromUrl,

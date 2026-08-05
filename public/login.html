@@ -63,12 +63,9 @@
       }
 
       function saveSession(data) {
+        UI.clearRoleSessionData();
         localStorage.setItem("kluby_token", data.token);
         localStorage.setItem("kluby_user", JSON.stringify(data.user));
-        localStorage.removeItem("kluby_staff_token");
-        localStorage.removeItem("kluby_staff_user");
-        localStorage.removeItem("kluby_publi_token");
-        localStorage.removeItem("kluby_publi_user");
       }
 
       async function api(path, options = {}) {
