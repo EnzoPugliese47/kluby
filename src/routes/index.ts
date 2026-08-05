@@ -11,6 +11,8 @@ import loyaltyRoutes from "./loyalty.routes";
 import uploadsRoutes from "./uploads.routes";
 import invitesRoutes from "./invites.routes";
 import assetsRoutes from "./assets.routes";
+import paymentsRoutes from "./payments.routes";
+import webhooksRoutes from "./webhooks.routes";
 
 const router = Router();
 
@@ -30,5 +32,7 @@ router.use("/loyalty", loyaltyRoutes);
 router.use("/uploads", uploadsRoutes);
 router.use("/invites", invitesRoutes);
 router.use("/assets", assetsRoutes);
+router.use("/payments", paymentsRoutes);
+router.use("/webhooks", webhooksRoutes);
 
 export default router;

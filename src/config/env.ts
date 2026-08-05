@@ -37,6 +37,14 @@ export const env = {
   loyaltyMaxRedeemPointsCap: optionalNumber("LOYALTY_MAX_REDEEM_POINTS_CAP", 3000),
   loyaltyFirstReservationBonus: optionalNumber("LOYALTY_FIRST_RESERVATION_BONUS", 25),
   loyaltyCheckInBonus: optionalNumber("LOYALTY_CHECKIN_BONUS", 5),
+  /** Mercado Pago (opcional). Token TEST-... = sandbox. */
+  mpAccessToken: process.env["MP_ACCESS_TOKEN"]?.trim() ?? "",
+  /** URL publica HTTPS del deploy (Railway). Requerida si MP esta activo. */
+  publicAppUrl:
+    process.env["PUBLIC_APP_URL"]?.trim() ||
+    (process.env["RAILWAY_PUBLIC_DOMAIN"]
+      ? `https://${process.env["RAILWAY_PUBLIC_DOMAIN"]}`
+      : `http://localhost:${optionalNumber("PORT", 3000)}`),
 } as const;
 
 export const isProduction = env.nodeEnv === "production";

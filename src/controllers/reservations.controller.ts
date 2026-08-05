@@ -38,27 +38,18 @@ import {
   computeRefundAmount,
   refundPolicyPayload,
 } from "../utils/refundPolicy";
+import {
+  computeReservationPayAmount,
+  confirmReservationPaymentInTx,
+  reservationInclude,
+  startReservationMercadoPagoCheckout,
+  isMercadoPagoEnabled,
+} from "../services/klubyPayment.service";
+import { isMercadoPagoSandbox } from "../services/mercadopago.service";
 import { parseClubRefundTiers } from "../utils/clubRefundPolicy";
 
 const PAYMENT_OPTION_VALUES = Object.values(PaymentOption);
 const RESERVATION_MODE_VALUES = Object.values(ReservationMode);
-
-const reservationInclude = {
-  table: true,
-  event: true,
-  club: { select: { id: true, name: true } },
-  host: { select: { id: true, fullName: true, email: true } },
-  guests: {
-    include: { user: { select: { id: true, fullName: true } } },
-  },
-  payments: true,
-  orders: {
-    orderBy: { createdAt: "desc" as const },
-    include: {
-      items: { include: { product: { select: { id: true, name: true, category: true } } } },
-    },
-  },
-} satisfies Prisma.ReservationInclude;
 
 /**
  * POST /api/reservations
@@ -282,101 +273,51 @@ export const payReservation = async (
       loyaltyPointsRaw !== undefined ? Math.floor(loyaltyPointsRaw) : 0;
     const auth = getAuthUser(req);
 
-    const reservation = await prisma.$transaction(async (tx) => {
-      const current = await tx.reservation.findUnique({ where: { id } });
-      if (current === null) {
-        throw new AppError("Reserva no encontrada", 404);
-      }
-      if (current.hostId !== auth.sub) {
-        throw new AppError("Solo el anfitrion puede pagar esta reserva", 403);
-      }
-      if (current.status !== ReservationStatus.PENDING_PAYMENT) {
-        throw new AppError(
-          `La reserva no esta pendiente de pago (estado actual: ${current.status})`,
-          400
-        );
-      }
-      if (current.expiresAt.getTime() <= Date.now()) {
-        await tx.reservation.update({
-          where: { id },
-          data: { status: ReservationStatus.EXPIRED },
-        });
-        throw new AppError(
-          "El bloqueo de la mesa expiro, la reserva fue liberada (RN05)",
-          410
-        );
-      }
+    const useDemo = provider === "demo" || !isMercadoPagoEnabled();
 
-      const club = await tx.club.findUnique({ where: { id: current.clubId } });
-      if (club === null) throw new AppError("Boliche no encontrado", 404);
-
-      const isFull = current.paymentOption === PaymentOption.FULL_PAYMENT;
-      const baseAmount = isFull ? current.totalAmount : current.depositAmount;
-
-      let loyaltyDiscount = new Prisma.Decimal(0);
-      let pointsRedeemed = 0;
-
-      if (loyaltyPointsToRedeem > 0) {
-        const txns = await tx.loyaltyTransaction.findMany({
-          where: { userId: current.hostId, clubId: current.clubId },
-          select: { clubId: true, type: true, points: true },
-        });
-        const balance = computeBalances(txns).get(current.clubId) ?? 0;
-        validateRedeemPoints(
-          loyaltyPointsToRedeem,
-          balance,
-          baseAmount,
-          club.pointValue
-        );
-        loyaltyDiscount = computeDiscountValue(
-          loyaltyPointsToRedeem,
-          club.pointValue
-        );
-        pointsRedeemed = loyaltyPointsToRedeem;
-
-        await tx.loyaltyTransaction.create({
-          data: {
-            userId: current.hostId,
-            clubId: current.clubId,
-            reservationId: id,
-            type: LoyaltyTxType.REDEEMED,
-            points: pointsRedeemed,
-            description: LOYALTY_DESC.REDEEM,
-          },
-        });
-      }
-
-      const amount = Prisma.Decimal.max(
-        baseAmount.sub(loyaltyDiscount),
-        new Prisma.Decimal(0)
-      );
-      const paymentType = isFull ? PaymentType.FULL : PaymentType.DEPOSIT;
-
-      if (amount.greaterThan(0)) {
-        await tx.payment.create({
-          data: {
-            reservationId: id,
-            userId: current.hostId,
-            type: paymentType,
-            amount,
-            status: PaymentStatus.APPROVED,
-            provider: provider ?? null,
-            externalRef: externalRef ?? null,
-          },
-        });
-      }
-
-      return tx.reservation.update({
-        where: { id },
-        data: {
-          status: ReservationStatus.CONFIRMED,
-          confirmedAt: new Date(),
-          amountPaid: amount,
-          loyaltyPointsRedeemed: pointsRedeemed,
-          loyaltyDiscount,
-        },
-        include: reservationInclude,
+    if (!useDemo) {
+      const host = await prisma.user.findUnique({
+        where: { id: auth.sub },
+        select: { email: true },
       });
+      if (!host?.email) throw new AppError("Usuario sin email para Mercado Pago", 400);
+
+      const result = await startReservationMercadoPagoCheckout(
+        id,
+        auth.sub,
+        host.email,
+        loyaltyPointsToRedeem
+      );
+
+      if (result.mode === "checkout") {
+        sendSuccess(res, {
+          mode: "checkout",
+          checkoutUrl: result.checkoutUrl,
+          paymentId: result.paymentId,
+          sandbox: isMercadoPagoSandbox(),
+        });
+        return;
+      }
+
+      sendSuccess(res, result.reservation);
+      return;
+    }
+
+    const reservation = await prisma.$transaction(async (tx) => {
+      const { breakdown } = await computeReservationPayAmount(
+        tx,
+        id,
+        auth.sub,
+        loyaltyPointsToRedeem
+      );
+      return confirmReservationPaymentInTx(
+        tx,
+        id,
+        auth.sub,
+        breakdown,
+        provider ?? "demo",
+        externalRef ?? null
+      );
     });
 
     sendSuccess(res, reservation);

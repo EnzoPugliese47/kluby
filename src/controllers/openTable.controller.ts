@@ -11,6 +11,12 @@ import {
 import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
+import { getAuthUser } from "../middlewares/auth";
+import {
+  startGuestMercadoPagoCheckout,
+  isMercadoPagoEnabled,
+} from "../services/klubyPayment.service";
+import { isMercadoPagoSandbox } from "../services/mercadopago.service";
 import {
   asRecord,
   requireNumber,
@@ -413,6 +419,37 @@ export const payGuestShare = async (
   try {
     const guestId = requireParam(req.params, "guestId");
     const body = asRecord(req.body);
+    const provider =
+      typeof body["provider"] === "string" ? (body["provider"] as string) : null;
+    const auth = getAuthUser(req);
+
+    const useDemo = provider === "demo" || !isMercadoPagoEnabled();
+
+    if (!useDemo) {
+      const user = await prisma.user.findUnique({
+        where: { id: auth.sub },
+        select: { email: true },
+      });
+      if (!user?.email) throw new AppError("Usuario sin email para Mercado Pago", 400);
+
+      const result = await startGuestMercadoPagoCheckout(guestId, auth.sub, user.email);
+      if (result.mode === "checkout") {
+        sendSuccess(res, {
+          mode: "checkout",
+          checkoutUrl: result.checkoutUrl,
+          paymentId: result.paymentId,
+          sandbox: isMercadoPagoSandbox(),
+        });
+        return;
+      }
+      sendSuccess(res, { guest: result.guest, reservation: result.reservation });
+      return;
+    }
+
+    const externalRef =
+      typeof body["externalRef"] === "string"
+        ? (body["externalRef"] as string)
+        : null;
 
     const result = await prisma.$transaction(async (tx) => {
       const guest = await tx.reservationGuest.findUnique({
@@ -420,6 +457,9 @@ export const payGuestShare = async (
       });
       if (guest === null) {
         throw new AppError("Postulacion no encontrada", 404);
+      }
+      if (guest.userId !== auth.sub) {
+        throw new AppError("Solo el invitado puede pagar su parte", 403);
       }
       if (guest.status !== GuestStatus.ACCEPTED_PENDING_PAYMENT) {
         throw new AppError(
@@ -442,13 +482,6 @@ export const payGuestShare = async (
         return { guest: confirmedGuest, reservation };
       }
 
-      const provider =
-        typeof body["provider"] === "string" ? (body["provider"] as string) : null;
-      const externalRef =
-        typeof body["externalRef"] === "string"
-          ? (body["externalRef"] as string)
-          : null;
-
       await tx.payment.create({
         data: {
           reservationId: guest.reservationId,
@@ -457,7 +490,7 @@ export const payGuestShare = async (
           type: PaymentType.GUEST_SHARE,
           amount: guest.shareAmount,
           status: PaymentStatus.APPROVED,
-          provider,
+          provider: provider ?? "demo",
           externalRef,
         },
       });

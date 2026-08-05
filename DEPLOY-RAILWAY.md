@@ -97,10 +97,11 @@ https://TU-DOMINIO.up.railway.app
 
 Railway **no bloquea** nada de esto. Solo agregás variables y código:
 
-### Mercado Pago
-- Variables: `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `PUBLIC_APP_URL`
+### Mercado Pago (sandbox)
+- Guía completa: **`MERCADOPAGO.md`**
+- Variables: `MP_ACCESS_TOKEN` (TEST-...), `PUBLIC_APP_URL`
 - Webhook: `https://TU-DOMINIO.up.railway.app/api/webhooks/mercadopago`
-- HTTPS público incluido — requisito de MP
+- Sin `MP_ACCESS_TOKEN` → pagos demo siguen funcionando
 
 ### Emails (registro / olvidé contraseña)
 - Variables: `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` (o Resend/SendGrid API key)

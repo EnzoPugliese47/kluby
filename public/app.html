@@ -603,6 +603,75 @@
         return json.data;
       }
 
+      let _paymentConfig = { mercadoPagoEnabled: false, sandbox: false, defaultProvider: "demo" };
+      async function loadPaymentConfig() {
+        try {
+          _paymentConfig = await api("/payments/config");
+        } catch {
+          _paymentConfig = { mercadoPagoEnabled: false, sandbox: false, defaultProvider: "demo" };
+        }
+      }
+
+      async function handlePayResponse(data, onConfirmed) {
+        if (data?.mode === "checkout" && data.checkoutUrl) {
+          if (data.sandbox) toast("Mercado Pago · modo prueba", "ok");
+          window.location.href = data.checkoutUrl;
+          return null;
+        }
+        if (onConfirmed) onConfirmed(data);
+        return data;
+      }
+
+      function payProviderBody(extra = {}) {
+        const body = { ...extra };
+        if (body.provider === undefined) {
+          body.provider = _paymentConfig.mercadoPagoEnabled ? "mercadopago" : "demo";
+        }
+        return body;
+      }
+
+      async function handleMercadoPagoReturn() {
+        const p = new URLSearchParams(location.search);
+        if (p.get("mp") !== "return") return false;
+        const status = p.get("status");
+        const kind = p.get("kind");
+        const id = p.get("id");
+        history.replaceState({}, "", "/app.html");
+        if (status === "fail") {
+          toast("El pago no se completó. Podés intentar de nuevo.", "err");
+          go(kind === "reservation" && id ? "home" : "mine");
+          return true;
+        }
+        if (status === "pending") {
+          toast("Pago pendiente. Revisá Mis mesas en unos segundos.", "ok");
+          go("mine");
+          return true;
+        }
+        if (status === "ok" && kind === "reservation" && id) {
+          toast("Verificando pago…", "ok");
+          for (let i = 0; i < 10; i++) {
+            await new Promise((r) => setTimeout(r, 1500));
+            try {
+              const r = await api("/reservations/" + id);
+              if (r.status === "CONFIRMED") {
+                go("ticket", { id });
+                return true;
+              }
+            } catch { /* retry */ }
+          }
+          toast("Pago en proceso. Revisá Mis mesas.", "ok");
+          go("mine");
+          return true;
+        }
+        if (status === "ok" && kind === "guest") {
+          toast("¡Pago recibido! Ya sos parte de la mesa.", "ok");
+          state.mineFilter = "guest";
+          go("mine");
+          return true;
+        }
+        return false;
+      }
+
       const emptyHtml = (opts) => KlubyUI.emptyStateHtml(opts);
 
       const statusBadge = (s) => {
@@ -1375,14 +1444,16 @@
               body: JSON.stringify({ paymentOption: _reserveSel }),
             });
           }
-          const payBody = { provider: "demo" };
+          const payBody = payProviderBody();
           if (_wizardLoyalty?.pointsToUse > 0) payBody.loyaltyPointsToRedeem = _wizardLoyalty.pointsToUse;
-          const paid = await api("/reservations/" + reservationId + "/pay", { method: "POST", body: JSON.stringify(payBody) });
-          _wizardHoldId = null;
-          _wizardHoldTableId = null;
-          _wizardHoldExpiresAt = null;
-          _alertsCache = null;
-          go("ticket", { id: paid.id });
+          const paid = await payReservationApi("/reservations/" + reservationId + "/pay", payBody);
+          await handlePayResponse(paid, (r) => {
+            _wizardHoldId = null;
+            _wizardHoldTableId = null;
+            _wizardHoldExpiresAt = null;
+            _alertsCache = null;
+            go("ticket", { id: r.id });
+          });
         } catch (e) {
           const err = document.getElementById("reserve-err");
           if (err) err.textContent = e.message;
@@ -2133,13 +2204,19 @@
         const cards = pastItems.map((item) => item.card).join("");
         wrap.innerHTML = `<div class="section-sub" style="margin-top:26px;display:flex;justify-content:space-between;align-items:center"><span>Eventos pasados</span><button class="ghost btn-sm" onclick="state.showPast=false;renderMine($('page'))">Ocultar</button></div><div class="grid-cards">${cards}</div>`;
       }
+      async function payReservationApi(path, body) {
+        return api(path, { method: "POST", body: JSON.stringify(body) });
+      }
+
       async function payReservation(id) {
         try {
-          await api("/reservations/" + id + "/pay", { method: "POST", body: JSON.stringify({ provider: "demo" }) });
-          _alertsCache = null;
-          toast("¡Pago confirmado!", "ok");
-          renderMine($("page"));
-          void refreshAlerts();
+          const data = await payReservationApi("/reservations/" + id + "/pay", payProviderBody());
+          await handlePayResponse(data, () => {
+            _alertsCache = null;
+            toast("¡Pago confirmado!", "ok");
+            renderMine($("page"));
+            void refreshAlerts();
+          });
         } catch (e) { toast(e.message, "err"); }
       }
       async function cancelReservation(id) {
@@ -2540,12 +2617,14 @@
 
       async function payShare(guestId) {
         try {
-          await api("/guests/" + guestId + "/pay", { method: "POST", body: JSON.stringify({ provider: "demo" }) });
-          _alertsCache = null;
-          toast("¡Pago confirmado! Ya sos parte de la mesa.", "ok");
-          state.mineFilter = state.mineFilter || "guest";
-          renderMine($("page"));
-          void refreshAlerts();
+          const data = await payReservationApi("/guests/" + guestId + "/pay", payProviderBody());
+          await handlePayResponse(data, () => {
+            _alertsCache = null;
+            toast("¡Pago confirmado! Ya sos parte de la mesa.", "ok");
+            state.mineFilter = state.mineFilter || "guest";
+            renderMine($("page"));
+            void refreshAlerts();
+          });
         } catch (e) { toast(e.message, "err"); }
       }
 
@@ -2959,6 +3038,9 @@
         if (away) {
           location.href = away;
         } else {
+        void (async () => {
+          await loadPaymentConfig();
+          if (await handleMercadoPagoReturn()) return;
         const p = new URLSearchParams(location.search);
         const clubId = p.get("clubId");
         const eventId = p.get("eventId");
@@ -2971,6 +3053,7 @@
         } else {
       render();
         }
+        })();
         }
       }
     </script>
