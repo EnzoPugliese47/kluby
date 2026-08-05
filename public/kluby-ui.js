@@ -511,21 +511,63 @@ window.KlubyUI = (function () {
       </div>`;
   }
 
+  function eventFlyerViewBtnHtml(url, title) {
+    if (!url) return "";
+    return `<button type="button" class="ghost btn-sm k-flyer-view-btn" onclick="KlubyUI.openFlyerLightbox(${JSON.stringify(url)}, ${JSON.stringify(title || "Evento")})">Ver flyer</button>`;
+  }
+
+  function eventFlyerThumbHtml(url, title) {
+    if (!url) return "";
+    return `<button type="button" class="k-flyer-thumb" title="Ver flyer ampliado" onclick="KlubyUI.openFlyerLightbox(${JSON.stringify(url)}, ${JSON.stringify(title || "Evento")})"><img src="${esc(url)}" alt="Flyer" loading="lazy" /></button>`;
+  }
+
+  function eventFlyerInlineHtml(event) {
+    if (!event?.flyerImageUrl) return "";
+    const title = event.name || "Evento";
+    return `<button type="button" class="k-event-flyer-inline" title="Tocá para agrandar" onclick="KlubyUI.openFlyerLightbox(${JSON.stringify(event.flyerImageUrl)}, ${JSON.stringify(title)})"><img src="${esc(event.flyerImageUrl)}" alt="Flyer · ${esc(title)}" loading="lazy" /></button>`;
+  }
+
+  function openFlyerLightbox(url, title) {
+    if (!url) return;
+    document.getElementById("k-flyer-lightbox")?.remove();
+    const overlay = document.createElement("div");
+    overlay.id = "k-flyer-lightbox";
+    overlay.className = "k-flyer-lightbox";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-label", "Flyer del evento");
+    const close = () => {
+      overlay.remove();
+      document.body.style.overflow = "";
+    };
+    overlay.innerHTML = `
+      <button type="button" class="k-flyer-lightbox-close" aria-label="Cerrar">×</button>
+      <img src="${esc(url)}" alt="${esc(title || "Flyer")}" />
+      <p class="k-flyer-lightbox-cap">${esc(title || "")}</p>`;
+    overlay.querySelector(".k-flyer-lightbox-close")?.addEventListener("click", close);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+    document.body.style.overflow = "hidden";
+    document.body.appendChild(overlay);
+  }
+
   function eventRowAppHtml(event, clubId, mode) {
     const eid = esc(event.id);
     const cid = esc(clubId);
+    const flyerTitle = event.name || "Evento";
     const btn =
       mode === "wizard"
         ? `<button type="button" class="k-btn-cyan" style="padding:10px 20px;font-size:13px;border:none;cursor:pointer" onclick="wizardGo(3,{clubId:'${cid}',eventId:'${eid}'})">Elegir mesa</button>`
         : `<button type="button" class="k-btn-cyan" style="padding:10px 20px;font-size:13px;border:none;cursor:pointer" onclick="go('event',{id:'${eid}',club:'${cid}'})">Ver mapa</button>`;
     return `
       <div class="k-event-row${event.flyerImageUrl ? " has-flyer" : ""}">
-        ${eventFlyerThumbHtml(event.flyerImageUrl)}
+        ${eventFlyerThumbHtml(event.flyerImageUrl, flyerTitle)}
         <div class="info">
           <h4>${esc(event.name)}</h4>
           <small>🗓 ${fdatetime(event.date)}${event.musicGenre ? " · 🎵 " + esc(event.musicGenre) : ""}</small>
         </div>
-        ${btn}
+        <div class="k-event-row-btns">
+          ${eventFlyerViewBtnHtml(event.flyerImageUrl, flyerTitle)}
+          ${btn}
+        </div>
       </div>`;
   }
 
@@ -542,49 +584,45 @@ window.KlubyUI = (function () {
     return `<span class="tag cyan">${count} mesa${count === 1 ? "" : "s"} libre${count === 1 ? "" : "s"}</span>`;
   }
 
-  function eventFlyerThumbHtml(url) {
-    if (!url) return "";
-    return `<div class="k-flyer-thumb"><img src="${esc(url)}" alt="Flyer" loading="lazy" /></div>`;
-  }
-
-  function eventFlyerBannerHtml(event) {
-    if (!event?.flyerImageUrl) return "";
-    return `<div class="k-event-flyer-banner"><img src="${esc(event.flyerImageUrl)}" alt="Flyer · ${esc(event.name || "evento")}" loading="lazy" /></div>`;
-  }
-
   function exploreEventRowHtml(item) {
     const club = item.club || {};
-    const cid = esc(club.id);
     const genre = item.musicGenre || club.musicGenre;
     const loc = clubLocationMeta(club);
     const avail = availBadge(item.availableTableCount);
+    const flyerTitle = item.name || "Evento";
     return `
       <div class="k-event-row k-explore-event-row${item.flyerImageUrl ? " has-flyer" : ""}">
-        ${eventFlyerThumbHtml(item.flyerImageUrl)}
+        ${eventFlyerThumbHtml(item.flyerImageUrl, flyerTitle)}
         <div class="info">
           <h4>${esc(item.name)} ${avail}</h4>
           <small>🗓 ${fdatetime(item.date)}${genre ? " · 🎵 " + esc(genre) : ""}</small>
           <small class="k-event-club-line">🏢 ${esc(club.name || "")}${loc ? " · 📍 " + esc(loc) : ""}</small>
         </div>
-        <a class="k-btn-cyan" href="${reserveUrl(club.id, item.id)}" style="padding:10px 20px;font-size:13px;white-space:nowrap">Reservar mesa</a>
+        <div class="k-event-row-btns">
+          ${eventFlyerViewBtnHtml(item.flyerImageUrl, flyerTitle)}
+          <a class="k-btn-cyan" href="${reserveUrl(club.id, item.id)}" style="padding:10px 20px;font-size:13px;white-space:nowrap;text-align:center">Reservar mesa</a>
+        </div>
       </div>`;
   }
 
   function eventRowHtml(event, clubId) {
     const isPast = new Date(event.date) < new Date();
     const avail = !isPast ? availBadge(event.availableTableCount) : "";
+    const flyerTitle = event.name || "Evento";
+    const reserveBtn = isPast
+      ? '<span class="badge muted">Finalizado</span>'
+      : `<a class="k-btn-cyan" href="${reserveUrl(clubId, event.id)}" style="padding:10px 20px;font-size:13px;text-align:center">Reservar mesa</a>`;
     return `
       <div class="k-event-row${event.flyerImageUrl ? " has-flyer" : ""}">
-        ${eventFlyerThumbHtml(event.flyerImageUrl)}
+        ${eventFlyerThumbHtml(event.flyerImageUrl, flyerTitle)}
         <div class="info">
           <h4>${esc(event.name)} ${avail}</h4>
           <small>🗓 ${fdatetime(event.date)}${event.musicGenre ? " · 🎵 " + esc(event.musicGenre) : ""}</small>
         </div>
-        ${
-          isPast
-            ? '<span class="badge muted">Finalizado</span>'
-            : `<a class="k-btn-cyan" href="${reserveUrl(clubId, event.id)}" style="padding:10px 20px;font-size:13px">Reservar mesa</a>`
-        }
+        <div class="k-event-row-btns">
+          ${eventFlyerViewBtnHtml(event.flyerImageUrl, flyerTitle)}
+          ${reserveBtn}
+        </div>
       </div>`;
   }
 
@@ -843,7 +881,9 @@ window.KlubyUI = (function () {
     eventsQueryString,
     openTablesQueryString,
     eventFlyerThumbHtml,
-    eventFlyerBannerHtml,
+    eventFlyerViewBtnHtml,
+    eventFlyerInlineHtml,
+    openFlyerLightbox,
     exploreEventRowHtml,
     clubCoverHtml,
     clubCardHtml,
