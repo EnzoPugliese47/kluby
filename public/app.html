@@ -1376,7 +1376,7 @@
         if (r.status === "PENDING_PAYMENT" || r.status === "CONFIRMED") actions.push(`<button class="btn-sm btn-danger" onclick="cancelReservation('${r.id}')">Cancelar</button>`);
         return `<div class="card list-card">
           <div class="head"><div class="title">${esc(r.table.label)}</div>${statusBadge(r.status)}</div>
-          <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}${r.mode === "OPEN_TABLE" ? `<br/>👥 Mesa abierta (${r.maxGuests} cupos)` : ""}</div>
+          <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}${r.mode === "OPEN_TABLE" ? `<br/>👥 Mesa abierta (vos + ${Math.max(0, (r.maxGuests || 1) - 1)} invitados)` : ""}</div>
           ${reservationFinanceHtml(r, true)}
           ${reservationTimelineHtml(r)}
           <div class="btn-row">${actions.join("")}</div>
@@ -1446,31 +1446,53 @@
         go("ticket", { id });
       }
       function openTableModalInner(id, capacity) {
+        const maxInvitees = Math.max(1, capacity - 1);
+        const defaultInvitees = Math.min(3, maxInvitees);
         openModal(`
           <h3>Abrir mesa a la comunidad</h3>
-          <p class="hint">Otros usuarios podrán pedir sumarse y dividir el costo. Vos aprobás quién entra.</p>
-          <label>Cupos totales (vos + invitados, máx ${capacity})</label>
-          <input id="max-guests" type="number" min="2" max="${capacity}" value="${Math.min(4, capacity)}" />
+          <p class="hint">Otros usuarios podrán pedir sumarse y dividir el costo. Vos aprobás quién entra. Vos ocupás 1 lugar; el resto son invitados.</p>
+          <label>Invitados que pueden sumarse (máx. ${maxInvitees} en mesa de ${capacity})</label>
+          <input id="max-guests" type="number" min="1" max="${maxInvitees}" value="${defaultInvitees}" />
+          <p class="hint" style="margin-top:8px">Total en la mesa: <b id="open-total-preview">${1 + defaultInvitees}</b> personas (vos + invitados)</p>
           <div class="btn-row" style="margin-top:20px">
             <button type="button" class="ghost" onclick="closeModal()">Cancelar</button>
-            <button type="button" style="flex:1" onclick="confirmOpen('${id}')">Abrir mesa</button>
+            <button type="button" style="flex:1" onclick="confirmOpen('${id}', ${capacity})">Abrir mesa</button>
           </div>
           <div class="error" id="open-err"></div>`);
+        const input = document.getElementById("max-guests");
+        const preview = document.getElementById("open-total-preview");
+        if (input && preview) {
+          input.addEventListener("input", () => {
+            const n = Number(input.value) || 0;
+            preview.textContent = String(1 + n);
+          });
+        }
       }
       function openTableModal(id, capacity) {
+        if (capacity < 2) {
+          toast("Esta mesa no tiene capacidad para invitados (mínimo 2 personas)", "err");
+          return;
+        }
         maybeOnboard("kluby_onboard_open_host", `
           <h3>¿Qué es abrir tu mesa?</h3>
           <p class="hint">Compartís la mesa con otros usuarios de Kluby y dividen el costo.</p>
           <ul>
-            <li>Vos definís cuántos cupos hay en total.</li>
+            <li>Vos ocupás un lugar; el resto son invitados que pueden sumarse.</li>
+            <li>En una mesa de 10, podés abrir hasta <b>9</b> cupos para invitados.</li>
             <li>La mesa aparece en <b>Mesas abiertas</b>.</li>
             <li>Aprobás quién se suma antes de que paguen su parte.</li>
           </ul>`, () => openTableModalInner(id, capacity));
       }
-      async function confirmOpen(id) {
+      async function confirmOpen(id, capacity) {
         try {
-          const max = parseInt($("max-guests").value, 10);
-          await api("/reservations/" + id + "/open", { method: "POST", body: JSON.stringify({ maxGuests: max }) });
+          const invitees = parseInt($("max-guests").value, 10);
+          const maxInvitees = Math.max(1, capacity - 1);
+          if (!Number.isFinite(invitees) || invitees < 1 || invitees > maxInvitees) {
+            $("open-err").textContent = `Elegí entre 1 y ${maxInvitees} invitados (mesa de ${capacity}).`;
+            return;
+          }
+          const maxGuests = 1 + invitees;
+          await api("/reservations/" + id + "/open", { method: "POST", body: JSON.stringify({ maxGuests }) });
           closeModal(); toast("¡Mesa abierta! Ya aparece en el muro.", "ok"); renderMine($("page"));
         } catch (e) { $("open-err").textContent = e.message; }
       }
@@ -1489,7 +1511,7 @@
           live.innerHTML = `
             <button type="button" class="ghost btn-sm" onclick="go('mine')">← Volver</button>
             <div class="section-title" style="margin-top:14px">${esc(r.table.label)} · Mesa abierta</div>
-            <div class="section-sub">🗓️ ${fdatetime(r.event.date)} · ${r.maxGuests} cupos · ${r.paymentOption === "FULL_PAYMENT" ? "<b>Mesa pagada</b> · invitados sin costo" : `Parte por persona: <b>${share}</b>`}</div>
+            <div class="section-sub">🗓️ ${fdatetime(r.event.date)} · ${Math.max(0, (r.maxGuests || 1) - 1)} invitados + vos · ${r.paymentOption === "FULL_PAYMENT" ? "<b>Mesa pagada</b> · invitados sin costo" : `Parte por persona: <b>${share}</b>`}</div>
             ${reservationFinanceHtml(r, true)}
             ${reservationTimelineHtml(r)}
             <h3 style="margin:8px 0 14px">Postulaciones</h3>

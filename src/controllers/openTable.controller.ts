@@ -48,6 +48,31 @@ const guestShareAmount = (
   return reservation.totalAmount.div(maxGuests);
 };
 
+const countActiveGuestSlots = async (
+  tx: Prisma.TransactionClient,
+  reservationId: string,
+  excludeGuestId?: string
+): Promise<number> =>
+  tx.reservationGuest.count({
+    where: {
+      reservationId,
+      status: { in: ACTIVE_GUEST_STATUSES },
+      ...(excludeGuestId !== undefined ? { id: { not: excludeGuestId } } : {}),
+    },
+  });
+
+const assertOpenTableCapacity = (
+  maxGuests: number,
+  tableCapacity: number
+): void => {
+  if (maxGuests > tableCapacity) {
+    throw new AppError(
+      `El total de personas (vos + invitados) no puede superar la capacidad de la mesa (${tableCapacity}). Con capacidad ${tableCapacity} el máximo es ${tableCapacity} personas (vos + ${tableCapacity - 1} invitados).`,
+      400
+    );
+  }
+};
+
 /**
  * POST /api/reservations/:id/open
  * El anfitrion convierte su reserva en "Mesa Abierta" y habilita cupos.
@@ -83,12 +108,13 @@ export const openTable = async (
         400
       );
     }
-    if (maxGuests > reservation.table.capacity) {
+    if (reservation.table.capacity < 2) {
       throw new AppError(
-        `maxGuests no puede superar la capacidad de la mesa (${reservation.table.capacity})`,
+        "Esta mesa no tiene capacidad para abrirse a invitados (minimo 2 personas)",
         400
       );
     }
+    assertOpenTableCapacity(maxGuests, reservation.table.capacity);
 
     const updated = await prisma.reservation.update({
       where: { id },
@@ -317,6 +343,12 @@ export const acceptGuest = async (
       });
       if (reservation === null) {
         throw new AppError("Reserva no encontrada", 404);
+      }
+
+      const maxGuests = reservation.maxGuests ?? 0;
+      const activeGuests = await countActiveGuestSlots(tx, guest.reservationId);
+      if (1 + activeGuests > maxGuests) {
+        throw new AppError("La mesa ya no tiene cupos disponibles", 409);
       }
 
       const prepaid = isTablePrepaidByHost(reservation.paymentOption);
