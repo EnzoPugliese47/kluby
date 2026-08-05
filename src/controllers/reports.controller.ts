@@ -934,13 +934,14 @@ export const getDashboard = async (
       req.query["compareEventId"].trim() !== ""
         ? req.query["compareEventId"].trim()
         : undefined;
+    const withCompare = req.query["compare"] === "1";
 
     let eventComparison: {
       current: EventMetricsSnapshot;
       compare: EventMetricsSnapshot;
     } | null = null;
 
-    if (period.eventId !== undefined) {
+    if (period.eventId !== undefined && withCompare) {
       const compareId = compareEventIdParam ?? period.prevEventId;
       if (compareId !== undefined) {
         const [currentSnap, compareSnap] = await Promise.all([
