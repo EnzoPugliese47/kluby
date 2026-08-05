@@ -11,15 +11,31 @@ import {
   UserRole,
 } from "../generated/prisma/client";
 import { prisma } from "../lib/prisma";
+import { hashPassword } from "../utils/password";
 
 /**
  * Crea eventos PASADOS en Kora con reservas, pagos y pedidos simulados
  * para llenar el panel de estadísticas. No toca eventos futuros (ej. agosto).
  *
+ * Usa usuarios ficticios (stats-host-XX@kluby.demo) — NO cuentas de login demo.
+ *
  * Ejecutar: npm run seed:kora-past-stats
  */
 
 const KORA_CLUB_ID = "a13df687-c80f-4440-9c08-264424e57f0f";
+
+/** Cuentas reales de demo — nunca usarlas como anfitriones de stats simuladas. */
+export const REAL_LOGIN_EMAILS = [
+  "anfitrion@kluby.com",
+  "invitado1@kluby.com",
+  "invitado2@kluby.com",
+  "enzo@kluby.com",
+  "miaca@hmail.com",
+];
+
+const STATS_HOST_COUNT = 12;
+const STATS_HOST_EMAIL = (n: number) =>
+  `stats-host-${String(n).padStart(2, "0")}@kluby.demo`;
 
 /** Nombres de eventos en vivo / futuros que este script nunca modifica. */
 const PROTECTED_NAME_PARTS = ["15 de agosto", "fest house", "15 de Agosto"];
@@ -98,6 +114,13 @@ type PastEventDef = {
   reservedTables: number;
 };
 
+/** Nombres de eventos pasados generados por este script (para limpieza). */
+export const PAST_EVENT_NAMES = [
+  "Kora · Sábado 24 de Mayo",
+  "Kora · Sábado 7 de Junio",
+  "Kora · Sábado 14 de Junio",
+] as const;
+
 const PAST_EVENTS: PastEventDef[] = [
   {
     name: "Kora · Sábado 24 de Mayo",
@@ -135,6 +158,31 @@ const daysBeforeForIndex = (i: number): number => {
 const isProtectedEventName = (name: string): boolean => {
   const lower = name.toLowerCase();
   return PROTECTED_NAME_PARTS.some((part) => lower.includes(part.toLowerCase()));
+};
+
+/** Usuarios ficticios solo para datos de estadísticas — no son cuentas de login. */
+const ensureStatsDemoHosts = async (): Promise<{ id: string; email: string }[]> => {
+  const passwordHash = await hashPassword("stats-demo-no-login");
+  const hosts: { id: string; email: string }[] = [];
+
+  for (let i = 1; i <= STATS_HOST_COUNT; i++) {
+    const email = STATS_HOST_EMAIL(i);
+    const user = await prisma.user.upsert({
+      where: { email },
+      create: {
+        email,
+        passwordHash,
+        fullName: `Stats Host ${String(i).padStart(2, "0")}`,
+        role: UserRole.CLIENT,
+        isActive: true,
+      },
+      update: {},
+      select: { id: true, email: true },
+    });
+    hosts.push(user);
+  }
+
+  return hosts;
 };
 
 const clearEventData = async (eventId: string): Promise<void> => {
@@ -452,21 +500,14 @@ const main = async (): Promise<void> => {
     throw new Error("Boliche Kora no encontrado. Ejecutá update-kora o creá el boliche primero.");
   }
 
-  const hosts = await prisma.user.findMany({
-    where: { role: UserRole.CLIENT, isActive: true },
-    orderBy: { createdAt: "asc" },
-    take: 8,
-    select: { id: true, email: true },
-  });
-  if (hosts.length === 0) {
-    throw new Error("No hay usuarios CLIENT para asignar como anfitriones.");
-  }
-
+  const hosts = await ensureStatsDemoHosts();
   const guestUsers = hosts.slice(1);
   const mapUrl = club.floorMapUrl;
 
   console.log(`[kora-past-stats] Boliche: ${club.name}`);
-  console.log(`[kora-past-stats] Anfitriones demo: ${hosts.map((h) => h.email).join(", ")}`);
+  console.log(
+    `[kora-past-stats] Anfitriones stats (ficticios): ${hosts.map((h) => h.email).join(", ")}`
+  );
 
   const protectedFuture = await prisma.eventNight.findMany({
     where: {
@@ -533,11 +574,15 @@ const main = async (): Promise<void> => {
   console.log("==========================================\n");
 };
 
-main()
-  .catch((error) => {
-    console.error("[kora-past-stats] Error:", error);
-    process.exitCode = 1;
-  })
-  .finally(() => {
-    void prisma.$disconnect();
-  });
+const isDirectRun = require.main === module;
+
+if (isDirectRun) {
+  main()
+    .catch((error) => {
+      console.error("[kora-past-stats] Error:", error);
+      process.exitCode = 1;
+    })
+    .finally(() => {
+      void prisma.$disconnect();
+    });
+}
