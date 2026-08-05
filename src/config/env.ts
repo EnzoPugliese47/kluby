@@ -20,6 +20,14 @@ const optionalNumber = (name: string, fallback: number): number => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+const stripEnvQuotes = (value: string | undefined): string =>
+  (value?.trim() ?? "").replace(/^["']|["']$/g, "");
+
+const envFlag = (name: string): boolean => {
+  const v = stripEnvQuotes(process.env[name]).toLowerCase();
+  return v === "1" || v === "true";
+};
+
 export const env = {
   nodeEnv: process.env["NODE_ENV"] ?? "development",
   port: optionalNumber("PORT", 3000),
@@ -38,23 +46,21 @@ export const env = {
   loyaltyFirstReservationBonus: optionalNumber("LOYALTY_FIRST_RESERVATION_BONUS", 25),
   loyaltyCheckInBonus: optionalNumber("LOYALTY_CHECKIN_BONUS", 5),
   /** Mercado Pago (opcional). Token TEST-... = sandbox. */
-  mpAccessToken: process.env["MP_ACCESS_TOKEN"]?.trim() ?? "",
+  mpAccessToken: stripEnvQuotes(process.env["MP_ACCESS_TOKEN"]),
   /**
    * true = credenciales de prueba (Checkout Pro sandbox).
    * Si no se define, se infiere por TEST- en el token (legacy).
    */
   mpSandbox:
-    process.env["MP_SANDBOX"] === "1" ||
-    process.env["MP_SANDBOX"]?.toLowerCase() === "true" ||
-    (process.env["MP_SANDBOX"] === undefined &&
-      (process.env["MP_ACCESS_TOKEN"]?.trim() ?? "").startsWith("TEST-")),
+    envFlag("MP_SANDBOX") ||
+    (process.env["MP_SANDBOX"] === undefined && stripEnvQuotes(process.env["MP_ACCESS_TOKEN"]).startsWith("TEST-")),
   /**
    * Email del usuario comprador de prueba (panel MP → Cuentas de prueba → Comprador).
    * Obligatorio en sandbox: no se puede mezclar email real con token de prueba.
    */
-  mpTestPayerEmail: process.env["MP_TEST_PAYER_EMAIL"]?.trim() ?? "",
+  mpTestPayerEmail: stripEnvQuotes(process.env["MP_TEST_PAYER_EMAIL"]),
   /** User ID del comprador de prueba (panel MP). Si no hay email, se consulta a la API de MP. */
-  mpTestPayerUserId: process.env["MP_TEST_PAYER_USER_ID"]?.trim() ?? "",
+  mpTestPayerUserId: stripEnvQuotes(process.env["MP_TEST_PAYER_USER_ID"]),
   /** URL publica HTTPS del deploy (Railway). Requerida si MP esta activo. */
   publicAppUrl:
     process.env["PUBLIC_APP_URL"]?.trim() ||

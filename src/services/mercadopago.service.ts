@@ -1,4 +1,5 @@
 import { env } from "../config/env";
+import { AppError } from "../utils/appError";
 
 export function isMercadoPagoEnabled(): boolean {
   return env.mpAccessToken.trim().length > 0;
@@ -17,12 +18,20 @@ function mpHeaders(): Record<string, string> {
 
 /** Email del comprador de prueba vía API de MP (User ID del panel). */
 async function fetchMpTestUserEmail(userId: string): Promise<string | null> {
-  const res = await fetch(`https://api.mercadopago.com/users/${encodeURIComponent(userId)}`, {
-    headers: mpHeaders(),
-  });
-  const data = (await res.json()) as { email?: string; message?: string };
-  if (!res.ok || !data.email) return null;
-  return data.email.trim();
+  try {
+    const res = await fetch(`https://api.mercadopago.com/users/${encodeURIComponent(userId)}`, {
+      headers: mpHeaders(),
+    });
+    const data = (await res.json()) as { email?: string };
+    if (!res.ok || !data.email) return null;
+    return data.email.trim();
+  } catch {
+    return null;
+  }
+}
+
+function sandboxPayerEmailFallback(userId: string): string {
+  return `test_user_${userId}@testuser.com`;
 }
 
 /** Resuelve el email del pagador para sandbox (cuenta de prueba, no email real de Kluby). */
@@ -33,11 +42,12 @@ export async function resolveMercadoPagoPayerEmail(fallbackEmail: string): Promi
 
   if (env.mpTestPayerUserId) {
     const fromApi = await fetchMpTestUserEmail(env.mpTestPayerUserId);
-    if (fromApi) return fromApi;
+    return fromApi ?? sandboxPayerEmailFallback(env.mpTestPayerUserId);
   }
 
-  throw new Error(
-    "Configurá MP_TEST_PAYER_EMAIL o MP_TEST_PAYER_USER_ID (3594961386) con el comprador de prueba de Mercado Pago"
+  throw new AppError(
+    "Configurá MP_TEST_PAYER_EMAIL o MP_TEST_PAYER_USER_ID con el comprador de prueba de Mercado Pago",
+    400
   );
 }
 
@@ -78,7 +88,7 @@ export async function createMercadoPagoCheckout(
 ): Promise<MpCheckoutResult> {
   const unitPrice = Number(input.amount.toFixed(2));
   if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
-    throw new Error("Monto invalido para Mercado Pago");
+    throw new AppError("Monto invalido para Mercado Pago", 400);
   }
 
   const payerEmail = await resolveMercadoPagoPayerEmail(input.payerEmail);
@@ -127,7 +137,7 @@ export async function createMercadoPagoCheckout(
 
   if (!res.ok) {
     const detail = data.message || data.error || res.statusText;
-    throw new Error(`Mercado Pago: ${detail}`);
+    throw new AppError(`Mercado Pago: ${detail}`, 400);
   }
 
   const checkoutUrl = isMercadoPagoSandbox()
@@ -135,7 +145,7 @@ export async function createMercadoPagoCheckout(
     : data.init_point || data.sandbox_init_point;
 
   if (!data.id || !checkoutUrl) {
-    throw new Error("Mercado Pago no devolvio URL de checkout");
+    throw new AppError("Mercado Pago no devolvio URL de checkout", 400);
   }
 
   return { preferenceId: data.id, checkoutUrl, payerEmail };
