@@ -4061,7 +4061,7 @@
                 borderRadius: 6,
               }],
             },
-            options: { ...chartOpts({ money: true }), indexAxis: "y" },
+            options: { ...chartOpts({ money: true, horizontal: true }), indexAxis: "y" },
           });
         } else {
           makeChart("chart-tables", {
@@ -4127,16 +4127,37 @@
             </div>`;
       }
 
-      function chartOpts({ money }) {
+      function chartOpts({ money, horizontal } = {}) {
+        const moneyTick = (v) => {
+          const n = Number(v);
+          if (!Number.isFinite(n)) return v;
+          if (n >= 1_000_000) return "$" + Math.round(n / 1_000_000) + "M";
+          if (n >= 1000) return "$" + Math.round(n / 1000) + "k";
+          return "$" + n;
+        };
         return {
           responsive: true, maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            tooltip: { callbacks: { label: (c) => (money ? fmtMoney(c.parsed.y ?? c.parsed.x) : fmtNum(c.parsed.y ?? c.parsed.x)) } },
+            tooltip: {
+              callbacks: {
+                label: (c) => {
+                  const val = horizontal ? c.parsed.x : c.parsed.y;
+                  const formatted = money ? fmtMoney(val ?? 0) : fmtNum(val ?? 0);
+                  return horizontal ? `${c.label}: ${formatted}` : formatted;
+                },
+              },
+            },
           },
           scales: {
-            x: { grid: { display: false } },
-            y: { ticks: { callback: (v) => (money ? "$" + (v / 1000) + "k" : v) } },
+            x: {
+              grid: { display: !!horizontal && !!money },
+              ...(horizontal && money ? { ticks: { callback: moneyTick } } : {}),
+            },
+            y: {
+              grid: { display: false },
+              ...(!horizontal && money ? { ticks: { callback: moneyTick } } : {}),
+            },
           },
         };
       }
