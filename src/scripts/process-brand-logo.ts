@@ -13,6 +13,10 @@ const ICON = path.join(ROOT, "resources", "icon.png");
 
 const BLACK_THRESHOLD = 28;
 
+function readPx(data: Buffer, offset: number): [r: number, g: number, b: number, a: number] {
+  return [data[offset] ?? 0, data[offset + 1] ?? 0, data[offset + 2] ?? 0, data[offset + 3] ?? 0];
+}
+
 async function contentBounds(input: string): Promise<{ left: number; top: number; width: number; height: number }> {
   const { data, info } = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const { width, height, channels } = info;
@@ -24,10 +28,7 @@ async function contentBounds(input: string): Promise<{ left: number; top: number
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const i = (y * width + x) * channels;
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const a = data[i + 3];
+      const [r, g, b, a] = readPx(data, i);
       if (a > 0 && (r > BLACK_THRESHOLD || g > BLACK_THRESHOLD || b > BLACK_THRESHOLD)) {
         if (x < minX) minX = x;
         if (y < minY) minY = y;
@@ -49,9 +50,7 @@ async function contentBounds(input: string): Promise<{ left: number; top: number
 async function keyBlackTransparent(input: Buffer, channels: number): Promise<Buffer> {
   const data = Buffer.from(input);
   for (let i = 0; i < data.length; i += channels) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
+    const [r, g, b] = readPx(data, i);
     if (r <= BLACK_THRESHOLD && g <= BLACK_THRESHOLD && b <= BLACK_THRESHOLD) {
       data[i + 3] = 0;
     }
