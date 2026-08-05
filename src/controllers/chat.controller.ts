@@ -53,6 +53,97 @@ const assertChatAccess = async (
   }
 };
 
+const CHAT_ACTIVE_MS = 24 * 60 * 60 * 1000;
+
+/** Reservas activas (RN12) donde el usuario participa en el chat de mesa. */
+const listActiveChatReservationsForUser = async (userId: string) => {
+  const minEventDate = new Date(Date.now() - CHAT_ACTIVE_MS);
+
+  const [asHost, asGuest] = await Promise.all([
+    prisma.reservation.findMany({
+      where: {
+        hostId: userId,
+        status: { notIn: [ReservationStatus.CANCELLED, ReservationStatus.EXPIRED] },
+        event: { date: { gt: minEventDate } },
+      },
+      include: {
+        event: true,
+        table: { select: { label: true } },
+        guests: { where: { status: GuestStatus.CONFIRMED } },
+      },
+    }),
+    prisma.reservationGuest.findMany({
+      where: {
+        userId,
+        status: GuestStatus.CONFIRMED,
+        reservation: {
+          status: { notIn: [ReservationStatus.CANCELLED, ReservationStatus.EXPIRED] },
+          event: { date: { gt: minEventDate } },
+        },
+      },
+      include: {
+        reservation: {
+          include: {
+            event: true,
+            table: { select: { label: true } },
+            guests: { where: { status: GuestStatus.CONFIRMED } },
+          },
+        },
+      },
+    }),
+  ]);
+
+  const byId = new Map<string, (typeof asHost)[number]>();
+  for (const r of asHost) byId.set(r.id, r);
+  for (const g of asGuest) byId.set(g.reservation.id, g.reservation);
+
+  return [...byId.values()].filter((r) => {
+    if (1 + r.guests.length < 2) return false;
+    const closesAt = new Date(r.event.date.getTime() + CHAT_ACTIVE_MS);
+    return Date.now() <= closesAt.getTime();
+  });
+};
+
+/** GET /api/users/:id/chat-alerts - Ultimo mensaje ajeno por mesa (notificaciones). */
+export const listChatAlertsForUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = requireParam(req.params, "id");
+    const auth = getAuthUser(req);
+    if (auth.sub !== userId) {
+      throw new AppError("No autorizado", 403);
+    }
+
+    const reservations = await listActiveChatReservationsForUser(userId);
+    const alerts = [];
+
+    for (const r of reservations) {
+      const lastFromOther = await prisma.chatMessage.findFirst({
+        where: { reservationId: r.id, userId: { not: userId } },
+        orderBy: { createdAt: "desc" },
+        include: { user: { select: { id: true, fullName: true } } },
+      });
+      if (lastFromOther === null) continue;
+
+      alerts.push({
+        reservationId: r.id,
+        tableLabel: r.table.label,
+        messageId: lastFromOther.id,
+        messageAt: lastFromOther.createdAt,
+        authorName: lastFromOther.user.fullName,
+        preview: lastFromOther.content.slice(0, 120),
+      });
+    }
+
+    sendSuccess(res, alerts);
+  } catch (error) {
+    next(error);
+  }
+};
+
 /** POST /api/reservations/:id/chat - Enviar un mensaje al chat de la mesa. */
 export const postChatMessage = async (
   req: Request,

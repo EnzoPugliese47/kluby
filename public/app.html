@@ -732,6 +732,7 @@
       let _notifOutsideBound = false;
       const NOTIF_DISMISS_KEY = "kluby_notif_dismissed";
       const CHAT_SEEN_KEY = "kluby_chat_seen";
+      const CHAT_ACTIVE_MS = 24 * 60 * 60 * 1000;
       let _reserveSel = "DEPOSIT_ONLY";
 
       function wizardGo(step, extra = {}) {
@@ -852,148 +853,176 @@
         }
       }
 
+      function notifUserKey(base) {
+        return state.user?.id ? `${base}_${state.user.id}` : base;
+      }
+
       function getDismissedNotifs() {
-        return notifLoadJson(NOTIF_DISMISS_KEY, {});
+        return notifLoadJson(notifUserKey(NOTIF_DISMISS_KEY), {});
+      }
+
+      function invalidateNotifications() {
+        _alertsCache = null;
+        _alertsAt = 0;
       }
 
       function dismissNotif(id) {
         const d = getDismissedNotifs();
         d[id] = Date.now();
-        localStorage.setItem(NOTIF_DISMISS_KEY, JSON.stringify(d));
-        _alertsCache = null;
+        localStorage.setItem(notifUserKey(NOTIF_DISMISS_KEY), JSON.stringify(d));
+        invalidateNotifications();
         void refreshNotifications();
       }
 
       function getChatSeen() {
-        return notifLoadJson(CHAT_SEEN_KEY, {});
+        return notifLoadJson(notifUserKey(CHAT_SEEN_KEY), {});
+      }
+
+      function getChatSeenEntry(reservationId) {
+        const raw = getChatSeen()[reservationId];
+        if (!raw) return null;
+        if (typeof raw === "string") return { messageId: raw, at: 0 };
+        return raw;
+      }
+
+      function isChatAlertSeen(alert) {
+        const entry = getChatSeenEntry(alert.reservationId);
+        if (!entry) return false;
+        if (entry.messageId === alert.messageId) return true;
+        if (entry.at && alert.messageAt && new Date(alert.messageAt).getTime() <= entry.at) return true;
+        return false;
       }
 
       function setChatSeen(reservationId, messageId) {
         if (!reservationId || !messageId) return;
         const seen = getChatSeen();
-        seen[reservationId] = messageId;
-        localStorage.setItem(CHAT_SEEN_KEY, JSON.stringify(seen));
-        _alertsCache = null;
+        seen[reservationId] = { messageId, at: Date.now() };
+        localStorage.setItem(notifUserKey(CHAT_SEEN_KEY), JSON.stringify(seen));
+        invalidateNotifications();
+      }
+
+      function chatMessageAuthorId(m) {
+        return String(m?.userId || m?.user?.id || "");
       }
 
       function isUpcomingEventDate(date) {
+        if (!date) return false;
         return new Date(date).getTime() >= Date.now();
+      }
+
+      /** RN12: chat activo hasta 24 h después del evento. */
+      function isChatActiveEventDate(date) {
+        if (!date) return false;
+        return new Date(date).getTime() + CHAT_ACTIVE_MS > Date.now();
+      }
+
+      async function loadUserReservations() {
+        try {
+          return await api("/users/" + state.user.id + "/reservations");
+        } catch {
+          return [];
+        }
+      }
+
+      async function loadUserGuestEntries() {
+        try {
+          return await api("/users/" + state.user.id + "/guest-entries");
+        } catch {
+          return [];
+        }
+      }
+
+      async function fetchChatNotificationAlerts() {
+        const alerts = [];
+        try {
+          const rows = await api("/users/" + state.user.id + "/chat-alerts");
+          for (const row of rows || []) {
+            if (state.view === "chat" && state.params.id === row.reservationId) continue;
+            if (isChatAlertSeen(row)) continue;
+            alerts.push({
+              id: `chat-${row.reservationId}-${row.messageId}`,
+              kind: "green",
+              text: `Mensaje nuevo en ${row.tableLabel || "Mesa"} · ${row.authorName || "Alguien"}`,
+              label: "Abrir chat",
+              action: `setChatSeen('${row.reservationId}','${row.messageId}');openTableChat('${row.reservationId}','mine');closeNotifPanel()`,
+            });
+          }
+        } catch { /* sin alertas de chat */ }
+        return alerts;
       }
 
       async function fetchNotificationsData() {
         const alerts = [];
         const dismissed = getDismissedNotifs();
-        try {
-          const [rs, joins] = await Promise.all([
-            api("/users/" + state.user.id + "/reservations"),
-            api("/users/" + state.user.id + "/guest-entries"),
-          ]);
-          const hostIds = new Set(rs.map((r) => r.id));
+        const [rs, joins] = await Promise.all([
+          loadUserReservations(),
+          loadUserGuestEntries(),
+        ]);
+        const hostIds = new Set(rs.map((r) => r.id));
 
-          for (const r of rs) {
-            if (r.status === "PENDING_PAYMENT" && isUpcomingEventDate(r.event.date)) {
-              alerts.push({
-                id: `pay-host-${r.id}`,
-                kind: "amber",
-                text: `Pago pendiente · ${r.table.label} · ${r.club.name}`,
-                label: "Pagar ahora",
-                action: `payReservation('${r.id}');closeNotifPanel()`,
-              });
-            }
-          }
-
-          for (const g of joins) {
-            const r = g.reservation;
-            if (!r || hostIds.has(r.id)) continue;
-            if (g.status === "ACCEPTED_PENDING_PAYMENT" && r.paymentOption !== "FULL_PAYMENT") {
-              alerts.push({
-                id: `pay-guest-${g.id}`,
-                kind: "green",
-                text: `¡Te aceptaron! Pagá tu parte en ${r.table.label}`,
-                label: "Pagar parte",
-                action: `payShare('${g.id}');closeNotifPanel()`,
-              });
-            }
-            if (g.status === "CONFIRMED" && isUpcomingEventDate(r.event.date)) {
-              const nid = `guest-confirmed-${g.id}`;
-              if (!dismissed[nid]) {
-                alerts.push({
-                  id: nid,
-                  kind: "cyan",
-                  text: `Quedaste confirmado en ${r.table.label} · ${r.club.name}`,
-                  label: "Ver QR",
-                  action: `dismissNotif('${nid}');go('ticket',{id:'${r.id}'});closeNotifPanel()`,
-                });
-              }
-            }
-          }
-
-          const openHost = rs.filter((r) => (
-            r.mode === "OPEN_TABLE"
-            && !["CANCELLED", "EXPIRED"].includes(r.status)
-            && isUpcomingEventDate(r.event.date)
-          ));
-          if (openHost.length) {
-            const guestLists = await Promise.all(
-              openHost.map((r) => api("/reservations/" + r.id + "/guests").catch(() => []))
-            );
-            openHost.forEach((r, i) => {
-              const pending = (guestLists[i] || []).filter((g) => g.status === "REQUESTED").length;
-              if (pending > 0) {
-                alerts.push({
-                  id: `host-pending-${r.id}`,
-                  kind: "violet",
-                  text: `${pending} postulación${pending > 1 ? "es" : ""} en ${r.table.label}`,
-                  label: "Ver invitados",
-                  action: `go('detail',{id:'${r.id}'});closeNotifPanel()`,
-                });
-              }
-            });
-          }
-
-          const chatTargets = [];
-          for (const r of openHost) {
-            if (["CONFIRMED", "CHECKED_IN"].includes(r.status)) {
-              chatTargets.push({ id: r.id, label: r.table.label });
-            }
-          }
-          for (const g of joins) {
-            const r = g.reservation;
-            if (g.status === "CONFIRMED" && r && !hostIds.has(r.id) && isUpcomingEventDate(r.event.date)) {
-              if (!chatTargets.some((t) => t.id === r.id)) {
-                chatTargets.push({ id: r.id, label: r.table.label });
-              }
-            }
-          }
-
-          const chatSeen = getChatSeen();
-          const chatResults = await Promise.all(
-            chatTargets.map(async (t) => {
-              if (state.view === "chat" && state.params.id === t.id) return null;
-              try {
-                const messages = await api("/reservations/" + t.id + "/chat");
-                if (!messages.length) return null;
-                const last = messages[messages.length - 1];
-                if (last.userId === state.user.id) return null;
-                if (chatSeen[t.id] === last.id) return null;
-                return { id: t.id, label: t.label, lastId: last.id, author: last.user.fullName };
-              } catch {
-                return null;
-              }
-            })
-          );
-          for (const c of chatResults) {
-            if (!c) continue;
+        for (const r of rs) {
+          if (r.status === "PENDING_PAYMENT" && isUpcomingEventDate(r.event?.date)) {
             alerts.push({
-              id: `chat-${c.id}-${c.lastId}`,
-              kind: "green",
-              text: `Mensaje nuevo en ${c.label} · ${c.author}`,
-              label: "Abrir chat",
-              action: `setChatSeen('${c.id}','${c.lastId}');openTableChat('${c.id}','mine');closeNotifPanel()`,
+              id: `pay-host-${r.id}`,
+              kind: "amber",
+              text: `Pago pendiente · ${r.table.label} · ${r.club.name}`,
+              label: "Pagar ahora",
+              action: `payReservation('${r.id}');closeNotifPanel()`,
             });
           }
-        } catch { /* sin notificaciones */ }
-        return alerts;
+        }
+
+        for (const g of joins) {
+          const r = g.reservation;
+          if (!r || hostIds.has(r.id)) continue;
+          if (g.status === "ACCEPTED_PENDING_PAYMENT" && r.paymentOption !== "FULL_PAYMENT") {
+            alerts.push({
+              id: `pay-guest-${g.id}`,
+              kind: "green",
+              text: `¡Te aceptaron! Pagá tu parte en ${r.table.label}`,
+              label: "Pagar parte",
+              action: `payShare('${g.id}');closeNotifPanel()`,
+            });
+          }
+          if (g.status === "CONFIRMED" && isUpcomingEventDate(r.event?.date)) {
+            const nid = `guest-confirmed-${g.id}`;
+            if (!dismissed[nid]) {
+              alerts.push({
+                id: nid,
+                kind: "cyan",
+                text: `Quedaste confirmado en ${r.table.label} · ${r.club.name}`,
+                label: "Ver QR",
+                action: `dismissNotif('${nid}');go('ticket',{id:'${r.id}'});closeNotifPanel()`,
+              });
+            }
+          }
+        }
+
+        const openHost = rs.filter((r) => (
+          r.mode === "OPEN_TABLE"
+          && !["CANCELLED", "EXPIRED"].includes(r.status)
+          && isUpcomingEventDate(r.event?.date)
+        ));
+        if (openHost.length) {
+          const guestLists = await Promise.all(
+            openHost.map((r) => api("/reservations/" + r.id + "/guests").catch(() => []))
+          );
+          openHost.forEach((r, i) => {
+            const pending = (guestLists[i] || []).filter((g) => g.status === "REQUESTED").length;
+            if (pending > 0) {
+              alerts.push({
+                id: `host-pending-${r.id}`,
+                kind: "violet",
+                text: `${pending} postulación${pending > 1 ? "es" : ""} en ${r.table.label}`,
+                label: "Ver invitados",
+                action: `go('detail',{id:'${r.id}'});closeNotifPanel()`,
+              });
+            }
+          });
+        }
+
+        const chatAlerts = await fetchChatNotificationAlerts();
+        return [...alerts, ...chatAlerts];
       }
 
       function renderNotifPanelBody(alerts) {
@@ -1012,10 +1041,11 @@
 
       async function refreshNotifications() {
         if (!state.user) return;
-        const now = Date.now();
-        if (!_alertsCache || now - _alertsAt > 12000) {
+        try {
           _alertsCache = await fetchNotificationsData();
-          _alertsAt = now;
+          _alertsAt = Date.now();
+        } catch {
+          _alertsCache = [];
         }
         const alerts = _alertsCache || [];
         const badge = document.getElementById("k-notif-badge");
@@ -1058,11 +1088,17 @@
           const wrap = document.getElementById("k-notif-wrap");
           if (wrap && !wrap.contains(e.target)) closeNotifPanel();
         });
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") {
+            invalidateNotifications();
+            void refreshNotifications();
+          }
+        });
       }
 
       function startNotifPoll() {
         stopNotifPoll();
-        _notifPollTimer = setInterval(() => { void refreshNotifications(); }, 15000);
+        _notifPollTimer = setInterval(() => { void refreshNotifications(); }, 4000);
       }
 
       function stopNotifPoll() {
@@ -1332,6 +1368,7 @@
       // ---------- render shell ----------
       function render() {
         if (!requireAuth()) return;
+        try { localStorage.removeItem("kluby_chat_seen"); } catch { /* migrar a clave por usuario */ }
         const nav = [
           ["home", "Explorar"],
           ["invites", "Mis invitaciones"],
@@ -2249,11 +2286,11 @@
           }
           if (form) form.style.display = "";
           if (input) input.disabled = false;
-          if (messages.length) {
+          if (messages.length && stillOn("chat") && _chatStickBottom) {
             const last = messages[messages.length - 1];
             setChatSeen(id, last.id);
           }
-          void refreshNotifications();
+          if (!silent) void refreshNotifications();
         } catch (e) {
           _chatLocked = true;
           const live = livePage("chat");
@@ -2284,7 +2321,9 @@
           input.disabled = true;
           await api("/reservations/" + id + "/chat", { method: "POST", body: JSON.stringify({ content }) });
           input.value = "";
+          invalidateNotifications();
           await refreshChatMessages(true);
+          void refreshNotifications();
         } catch (e) {
           toast(e.message, "err");
         } finally {

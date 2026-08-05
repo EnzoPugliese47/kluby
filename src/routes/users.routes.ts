@@ -17,6 +17,7 @@ import {
 } from "../controllers/users.controller";
 import { listReservationsByHost } from "../controllers/reservations.controller";
 import { listMyGuestEntries } from "../controllers/openTable.controller";
+import { listChatAlertsForUser } from "../controllers/chat.controller";
 import { authenticate, authorize } from "../middlewares/auth";
 
 const router = Router();
@@ -59,5 +60,6 @@ router.patch("/:id", authenticate, updateUser);
 router.delete("/:id", authenticate, deactivateUser);
 router.get("/:id/reservations", authenticate, listReservationsByHost);
 router.get("/:id/guest-entries", authenticate, listMyGuestEntries);
+router.get("/:id/chat-alerts", authenticate, listChatAlertsForUser);
 
 export default router;
