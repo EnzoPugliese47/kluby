@@ -19,6 +19,13 @@
 })();
 
 window.KlubyUI = (function () {
+  const BRAND_LOGO_SRC = "/brand/kluby-logo.png";
+
+  function brandLogoHtml(size = 40, extraClass = "") {
+    const cls = extraClass ? `logo ${extraClass}` : "logo";
+    return `<img class="${cls}" src="${BRAND_LOGO_SRC}" width="${size}" height="${size}" alt="Kluby" decoding="async" />`;
+  }
+
   const esc = (s) =>
     String(s ?? "").replace(/[&<>"']/g, (c) =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
@@ -132,7 +139,7 @@ window.KlubyUI = (function () {
       <nav class="k-nav">
         <a class="brand" href="/">
           <div class="brand">
-            <div class="logo">K</div>
+            ${brandLogoHtml(40)}
             <div><h1 class="logo-text">KLUBY</h1><span>Nightlife · VIP</span></div>
           </div>
         </a>
@@ -695,6 +702,8 @@ window.KlubyUI = (function () {
   }
 
   return {
+    BRAND_LOGO_SRC,
+    brandLogoHtml,
     esc,
     fdatetime,
     fdate,

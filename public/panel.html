@@ -40,9 +40,8 @@
       .brand { display: flex; align-items: center; gap: 12px; }
       .logo {
         width: 40px; height: 40px; border-radius: 11px;
-        background: linear-gradient(135deg, var(--primary), var(--primary-2));
-        display: grid; place-items: center; font-weight: 800; font-size: 20px;
-        box-shadow: 0 6px 20px rgba(124, 92, 255, 0.45);
+        object-fit: cover; display: block; flex-shrink: 0;
+        box-shadow: 0 6px 20px rgba(124, 92, 255, 0.35);
       }
       .brand h1 { font-size: 18px; letter-spacing: 0.5px; }
       .brand span { color: var(--muted); font-size: 12px; }
@@ -447,7 +446,7 @@
         .topbar > .right { grid-area: right; justify-self: end; gap: 6px; flex-wrap: nowrap; }
         .topbar .brand h1 { font-size: 16px; line-height: 1.1; }
         .topbar .brand span { font-size: 10px; }
-        .topbar .logo { width: 36px; height: 36px; font-size: 17px; border-radius: 10px; }
+        .topbar .logo { width: 36px; height: 36px; border-radius: 10px; }
         .topbar .right .who { display: none; }
         .topbar .topbar-extra { display: none !important; }
         .topbar .right button.ghost { padding: 8px 12px; font-size: 12px; }
@@ -505,7 +504,7 @@
     <div id="app-view" style="display:none">
       <div class="topbar">
         <div class="brand">
-          <div class="logo">K</div>
+          <img class="logo" src="/brand/kluby-logo.png" width="40" height="40" alt="Kluby" />
           <div>
             <h1>KLUBY</h1>
             <span>Panel de Gestión</span>

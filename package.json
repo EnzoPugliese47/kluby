@@ -18,6 +18,7 @@
     "repair:demo-past-reservations": "ts-node-dev --transpile-only src/scripts/repair-demo-past-reservations.ts",
     "ensure:tesis-demo": "ts-node-dev --transpile-only src/scripts/ensure-tesis-demo.ts",
     "smoke:tesis-demo": "ts-node-dev --transpile-only src/scripts/smoke-tesis-demo.ts",
+    "icons:android": "ts-node-dev --transpile-only src/scripts/generate-android-icons.ts",
     "repair:images": "ts-node-dev --transpile-only src/scripts/repair-images.ts",
     "repair:puerta": "ts-node-dev --transpile-only src/scripts/ensure-puerta-user.ts",
     "sync:zones": "ts-node-dev --transpile-only src/scripts/sync-club-zones.ts",
@@ -54,6 +55,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^25.9.3",
     "prisma": "^7.8.0",
+    "sharp": "^0.35.3",
     "ts-node-dev": "^2.0.0",
     "typescript": "^6.0.3"
   }
