@@ -21,7 +21,7 @@
 window.KlubyUI = (function () {
   const BRAND_LOGO_SRC = "/brand/kluby-logo.png";
 
-  function brandLogoHtml(size = 40, extraClass = "") {
+  function brandLogoHtml(size = 48, extraClass = "") {
     const cls = extraClass ? `logo ${extraClass}` : "logo";
     return `<img class="${cls}" src="${BRAND_LOGO_SRC}" width="${size}" height="${size}" alt="Kluby" decoding="async" />`;
   }
@@ -139,7 +139,7 @@ window.KlubyUI = (function () {
       <nav class="k-nav">
         <a class="brand" href="/">
           <div class="brand">
-            ${brandLogoHtml(40)}
+            ${brandLogoHtml(48)}
             <div><h1 class="logo-text">KLUBY</h1><span>Nightlife · VIP</span></div>
           </div>
         </a>

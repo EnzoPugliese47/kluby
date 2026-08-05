@@ -214,7 +214,7 @@
         const isOwnerOrAdmin = ["CLUB_ADMIN", "SUPER_ADMIN"].includes(user.role);
         $("root").innerHTML = `
           <div class="topbar ops-topbar">
-            <div class="brand"><img class="logo" src="/brand/kluby-logo.png" width="40" height="40" alt="Kluby" /><div><h1>KLUBY</h1><span>Puerta</span></div></div>
+            <div class="brand"><img class="logo" src="/brand/kluby-logo.png" width="48" height="48" alt="Kluby" /><div><h1>KLUBY</h1><span>Puerta</span></div></div>
             <div class="right">
               <div class="who"><b>${esc(user.fullName)}</b><small>${esc(clubLabel())}</small></div>
               ${isOwnerOrAdmin ? `<a class="ghost btn-sm ops-link-panel" href="/panel.html" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);text-decoration:none">Gestión</a>` : ""}

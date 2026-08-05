@@ -48,17 +48,8 @@ async function writeIcon(
 
 async function main(): Promise<void> {
   if (!fs.existsSync(SOURCE)) {
-    throw new Error(`Falta ${SOURCE}. Copiá el logo a resources/icon.png`);
+    throw new Error(`Falta ${SOURCE}. Corré: npm run logo:process`);
   }
-
-  // Normalizá el source a PNG cuadrado (evita recortes raros si viene como JPEG).
-  const normalized = path.join(ROOT, "resources", "icon-normalized.png");
-  await sharp(SOURCE)
-    .resize(1024, 1024, { fit: "contain", background: BG })
-    .png()
-    .toFile(normalized);
-  fs.copyFileSync(normalized, SOURCE);
-  fs.unlinkSync(normalized);
 
   for (const [folder, size] of Object.entries(LAUNCHER)) {
     await writeIcon(folder, "ic_launcher", size, 0.06);

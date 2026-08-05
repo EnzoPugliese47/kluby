@@ -108,7 +108,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
 .topbar.ops-topbar .brand { min-width: 0; }
 .topbar.ops-topbar .brand h1 { font-size: 16px; line-height: 1.1; }
 .topbar.ops-topbar .brand span { font-size: 10px; }
-.topbar.ops-topbar .logo { width: 36px; height: 36px; border-radius: 10px; object-fit: contain; object-position: center; background: #000; }
+.topbar.ops-topbar .logo { width: 44px; height: 44px; object-fit: contain; object-position: center; background: transparent; }
 .topbar.ops-topbar .who { display: none; }
 .topbar.ops-topbar .right { gap: 8px; flex-wrap: nowrap; justify-self: end; }
 

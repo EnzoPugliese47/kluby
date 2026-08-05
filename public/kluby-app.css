@@ -208,8 +208,8 @@ body.kluby-app .list-card .title {
 }
 
 body.kluby-app .logo {
-  box-shadow: 0 6px 24px rgba(168, 85, 247, 0.35);
-  background: #000;
+  filter: drop-shadow(0 4px 16px rgba(168, 85, 247, 0.4));
+  background: transparent;
 }
 
 body.kluby-app button:not(.ghost):not(.k-btn-ghost):not(.k-app-tabs button):not(.k-notif-btn) {
@@ -445,12 +445,11 @@ body.kluby-app .k-back {
   }
 
   .k-app-nav .logo {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 44px;
+    height: 44px;
     object-fit: contain;
     object-position: center;
-    background: #000;
+    background: transparent;
   }
 
   .k-app-user {

@@ -19,6 +19,7 @@
     "ensure:tesis-demo": "ts-node-dev --transpile-only src/scripts/ensure-tesis-demo.ts",
     "smoke:tesis-demo": "ts-node-dev --transpile-only src/scripts/smoke-tesis-demo.ts",
     "icons:android": "ts-node-dev --transpile-only src/scripts/generate-android-icons.ts",
+    "logo:process": "ts-node-dev --transpile-only src/scripts/process-brand-logo.ts",
     "repair:images": "ts-node-dev --transpile-only src/scripts/repair-images.ts",
     "repair:puerta": "ts-node-dev --transpile-only src/scripts/ensure-puerta-user.ts",
     "sync:zones": "ts-node-dev --transpile-only src/scripts/sync-club-zones.ts",
