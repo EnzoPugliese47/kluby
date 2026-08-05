@@ -20,7 +20,9 @@
       let user = JSON.parse(localStorage.getItem("kluby_user") || "null");
       let memberships = [];
       let events = [];
-      let invitesByEvent = {};
+      let selectedEventId = "";
+      let invitesForSelected = [];
+      let loadingInvites = false;
 
       const $ = (id) => document.getElementById(id);
       const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -43,25 +45,31 @@
         return "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(link);
       }
 
+      function selectedEvent() {
+        return events.find((ev) => ev.id === selectedEventId) || null;
+      }
+
       function inviteCardHtml(inv, eventName) {
         const link = inviteLink(inv.code);
         const uses = inv._count?.guests ?? 0;
         const max = inv.maxUses ? ` / ${inv.maxUses}` : "";
+        const codeAttr = esc(inv.code);
+        const nameAttr = esc(eventName);
         return `
           <div class="ops-invite-card">
             <img class="ops-invite-qr" src="${qrUrl(link)}" alt="QR invitación" width="168" height="168" />
-            <div class="ops-invite-code">${esc(inv.code)}</div>
+            <div class="ops-invite-code">${codeAttr}</div>
             <div class="ops-invite-link">${esc(link)}</div>
             <div class="ops-btn-row">
-              <button type="button" class="ops-btn-lg secondary" onclick="copyInvite('${esc(inv.code)}')">Copiar</button>
-              <button type="button" class="ops-btn-lg" onclick="shareInvite('${esc(inv.code)}','${esc(eventName)}')">Compartir</button>
+              <button type="button" class="ops-btn-lg secondary" data-copy="${codeAttr}">Copiar</button>
+              <button type="button" class="ops-btn-lg" data-share="${codeAttr}" data-event-name="${nameAttr}">Compartir</button>
             </div>
             <p class="hint" style="text-align:center;margin-top:10px">${uses}${max} usos · ${inv.expiresAt ? "vence " + fdt(inv.expiresAt) : "sin vencimiento"}</p>
           </div>`;
       }
 
       function logout() {
-        token = ""; user = null; memberships = []; events = []; invitesByEvent = {};
+        token = ""; user = null; memberships = []; events = []; selectedEventId = ""; invitesForSelected = [];
         localStorage.removeItem("kluby_token");
         localStorage.removeItem("kluby_user");
         location.href = "/login.html";
@@ -85,14 +93,25 @@
 
       async function loadEvents(clubId) {
         events = await api("/clubs/" + clubId + "/staff-events");
-        invitesByEvent = {};
-        await Promise.all(events.map(async (ev) => {
-          try {
-            invitesByEvent[ev.id] = await api("/events/" + ev.id + "/invites");
-          } catch {
-            invitesByEvent[ev.id] = [];
-          }
-        }));
+        selectedEventId = "";
+        invitesForSelected = [];
+      }
+
+      async function loadInvitesForSelected() {
+        if (!selectedEventId) {
+          invitesForSelected = [];
+          return;
+        }
+        loadingInvites = true;
+        renderInviteSection();
+        try {
+          invitesForSelected = await api("/events/" + selectedEventId + "/invites");
+        } catch {
+          invitesForSelected = [];
+        } finally {
+          loadingInvites = false;
+          renderInviteSection();
+        }
       }
 
       function render() {
@@ -101,6 +120,10 @@
         const clubSelect = memberships.length > 1
           ? `<label>Boliche</label><select id="club-sel" onchange="onClubChange()">${memberships.map((m) => `<option value="${m.club.id}">${esc(m.club.name)}</option>`).join("")}</select>`
           : `<p class="role-pill">${esc(clubName)}</p>`;
+
+        const eventOptions = events.length
+          ? `<option value="">— Elegí un evento —</option>${events.map((ev) => `<option value="${ev.id}">${esc(ev.name)} · ${fdt(ev.date)}</option>`).join("")}`
+          : `<option value="">No hay eventos próximos</option>`;
 
         $("root").innerHTML = `
           <div class="topbar ops-topbar">
@@ -113,48 +136,95 @@
           <div class="ops-shell">
             ${clubSelect}
             <div class="section-title" style="margin-top:18px;font-size:20px">Invitar clientes</div>
-            <div class="section-sub">Generá un link con QR para compartir en el boliche.</div>
-            <div id="events-list"><div class="empty">Cargando eventos…</div></div>
+            <div class="section-sub">Elegí el evento y generá un link con QR para compartir.</div>
+            <label style="margin-top:16px">Evento</label>
+            <select id="event-sel" onchange="onEventChange()">${eventOptions}</select>
+            <div id="event-summary"></div>
+            <button type="button" class="ops-btn-lg" id="create-invite-btn" style="margin-top:16px" onclick="createInvite()" disabled>Generar invitación</button>
+            <div id="invites-wrap"></div>
           </div>`;
         if ($("club-sel")) $("club-sel").value = clubId;
-        renderEvents();
+        if ($("event-sel") && selectedEventId) $("event-sel").value = selectedEventId;
+        renderInviteSection();
       }
 
       async function onClubChange() {
-        $("events-list").innerHTML = `<div class="empty">Cargando eventos…</div>`;
+        selectedEventId = "";
+        invitesForSelected = [];
+        if ($("event-sel")) $("event-sel").innerHTML = `<option value="">Cargando eventos…</option>`;
+        if ($("invites-wrap")) $("invites-wrap").innerHTML = "";
+        if ($("event-summary")) $("event-summary").innerHTML = "";
         await loadEvents($("club-sel").value);
-        renderEvents();
+        render();
       }
 
-      function renderEvents() {
-        const el = $("events-list");
-        if (!events.length) {
-          el.innerHTML = '<div class="empty">No hay eventos próximos en este boliche.</div>';
+      async function onEventChange() {
+        selectedEventId = $("event-sel")?.value || "";
+        await loadInvitesForSelected();
+        renderInviteSection();
+      }
+
+      function renderInviteSection() {
+        const ev = selectedEvent();
+        const summary = $("event-summary");
+        const btn = $("create-invite-btn");
+        const wrap = $("invites-wrap");
+
+        if (summary) {
+          summary.innerHTML = ev
+            ? `<div class="ops-event-card" style="margin-top:12px;margin-bottom:0">
+                <div class="ops-event-head">
+                  <b>${esc(ev.name)}</b>
+                  <small>${fdt(ev.date)}${ev.musicGenre ? " · " + esc(ev.musicGenre) : ""}</small>
+                </div>
+              </div>`
+            : "";
+        }
+
+        if (btn) btn.disabled = !selectedEventId || loadingInvites;
+
+        if (!wrap) return;
+
+        if (!selectedEventId) {
+          wrap.innerHTML = '<div class="empty" style="margin-top:18px">Seleccioná un evento para ver o crear invitaciones.</div>';
           return;
         }
-        el.innerHTML = events.map((ev) => {
-          const invites = (invitesByEvent[ev.id] || []).slice(0, 2);
-          return `
-          <div class="ops-event-card">
-            <div class="ops-event-head">
-              <b>${esc(ev.name)}</b>
-              <small>${fdt(ev.date)}${ev.musicGenre ? " · " + esc(ev.musicGenre) : ""}</small>
-            </div>
-            <button type="button" class="ops-btn-lg" onclick="createInvite('${ev.id}','${esc(ev.name)}')">+ Nueva invitación</button>
-            ${invites.map((inv) => inviteCardHtml(inv, ev.name)).join("")}
-          </div>`;
-        }).join("");
+
+        if (loadingInvites) {
+          wrap.innerHTML = '<div class="empty" style="margin-top:18px">Cargando invitaciones…</div>';
+          return;
+        }
+
+        const cards = invitesForSelected.slice(0, 5).map((inv) => inviteCardHtml(inv, ev.name)).join("");
+        wrap.innerHTML = `
+          <div class="section-title" style="margin-top:22px;font-size:16px">Invitaciones de este evento</div>
+          ${cards || '<div class="empty">Todavía no hay invitaciones para este evento. Tocá «Generar invitación».</div>'}`;
+
+        wrap.querySelectorAll("[data-copy]").forEach((el) => {
+          el.addEventListener("click", () => copyInvite(el.getAttribute("data-copy")));
+        });
+        wrap.querySelectorAll("[data-share]").forEach((el) => {
+          el.addEventListener("click", () => shareInvite(el.getAttribute("data-share"), el.getAttribute("data-event-name")));
+        });
       }
 
-      async function createInvite(eventId, eventName) {
+      async function createInvite() {
+        const ev = selectedEvent();
+        if (!ev) {
+          toast("Elegí un evento primero", "err");
+          return;
+        }
+        const btn = $("create-invite-btn");
+        if (btn) btn.disabled = true;
         try {
-          const inv = await api("/events/" + eventId + "/invites", { method: "POST", body: JSON.stringify({ maxUses: 50, expiresInHours: 336 }) });
-          if (!invitesByEvent[eventId]) invitesByEvent[eventId] = [];
-          invitesByEvent[eventId].unshift(inv);
-          renderEvents();
-          toast("Invitación lista para compartir", "ok");
-          shareInvite(inv.code, eventName);
-        } catch (e) { toast(e.message, "err"); }
+          const inv = await api("/events/" + ev.id + "/invites", { method: "POST", body: JSON.stringify({ maxUses: 50, expiresInHours: 336 }) });
+          invitesForSelected.unshift(inv);
+          renderInviteSection();
+          toast("Invitación creada. Podés copiarla o compartirla cuando quieras.", "ok");
+        } catch (e) {
+          toast(e.message, "err");
+          if (btn) btn.disabled = false;
+        }
       }
 
       function copyInvite(code) {
@@ -178,9 +248,8 @@
       }
 
       window.onClubChange = onClubChange;
+      window.onEventChange = onEventChange;
       window.createInvite = createInvite;
-      window.copyInvite = copyInvite;
-      window.shareInvite = shareInvite;
       window.logout = logout;
 
       if (token && user) {
