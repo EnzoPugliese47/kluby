@@ -923,7 +923,11 @@ export const getDashboard = async (
         reservationCount: row._count._all,
         revenue: Number(row._sum.amountPaid ?? 0),
       }))
-      .sort((a, b) => b.reservationCount - a.reservationCount);
+      .sort((a, b) =>
+        isEventScope
+          ? b.revenue - a.revenue
+          : b.reservationCount - a.reservationCount
+      );
 
     const topProducts = topProductsAll.slice(0, 5);
     const salesByType = byType.map((row) => ({

@@ -647,10 +647,15 @@
             <p class="sub" id="stats-types-sub">Desglose por tipo de pago</p>
             <div class="chart-wrap"><canvas id="chart-types"></canvas></div>
           </div>
-          <div class="card panel col-6 stats-card-shared">
+          <div class="card panel col-6 stats-card-period hidden" id="panel-tables-period">
             <h3>Mesas más reservadas</h3>
-            <p class="sub" id="stats-tables-sub">Por cantidad de reservas</p>
+            <p class="sub">En qué mesas se concentra la demanda a lo largo del período</p>
             <div class="chart-wrap"><canvas id="chart-tables"></canvas></div>
+          </div>
+          <div class="card panel col-6 stats-card-event hidden" id="panel-tables-event">
+            <h3>Ingresos por mesa</h3>
+            <p class="sub">Mesas vendidas esta noche · una reserva por mesa, ordenadas por facturación</p>
+            <div class="chart-wrap"><canvas id="chart-tables-revenue"></canvas></div>
           </div>
           <div class="card panel col-6 stats-card-shared">
             <h3>Resumen</h3>
@@ -969,12 +974,11 @@
         if (titlePeriod) titlePeriod.classList.toggle("hidden", eventView);
         if (titleEvent) titleEvent.classList.toggle("hidden", !eventView);
         if (titleShared) {
-          titleShared.textContent = eventView ? "Ranking de la noche" : "Ranking del período";
+          titleShared.textContent = eventView ? "Ingresos de la noche" : "Ranking del período";
         }
 
         const productsSub = document.getElementById("stats-products-sub");
         const typesSub = document.getElementById("stats-types-sub");
-        const tablesSub = document.getElementById("stats-tables-sub");
         const summarySub = document.getElementById("stats-summary-sub");
         if (productsSub) {
           productsSub.textContent = eventView
@@ -985,11 +989,6 @@
           typesSub.textContent = eventView
             ? "Señas, saldo, consumo y split bill de la noche"
             : "Desglose por tipo de pago en el período";
-        }
-        if (tablesSub) {
-          tablesSub.textContent = eventView
-            ? "Mesas con más reservas esta noche"
-            : "Mesas con más reservas en el período";
         }
         if (summarySub) {
           summarySub.textContent = eventView
@@ -4051,14 +4050,33 @@
         }
 
         const tt = (d.topTables || []).slice(0, 7);
-        makeChart("chart-tables", {
-          type: "bar",
-          data: {
-            labels: tt.map((x) => x.label),
-            datasets: [{ data: tt.map((x) => x.reservationCount), backgroundColor: "#c44bff", borderRadius: 6 }],
-          },
-          options: { ...chartOpts({}), indexAxis: "y" },
-        });
+        if (eventView) {
+          makeChart("chart-tables-revenue", {
+            type: "bar",
+            data: {
+              labels: tt.length ? tt.map((x) => x.label) : ["Sin mesas vendidas"],
+              datasets: [{
+                data: tt.length ? tt.map((x) => x.revenue) : [0],
+                backgroundColor: "#c44bff",
+                borderRadius: 6,
+              }],
+            },
+            options: { ...chartOpts({ money: true }), indexAxis: "y" },
+          });
+        } else {
+          makeChart("chart-tables", {
+            type: "bar",
+            data: {
+              labels: tt.length ? tt.map((x) => x.label) : ["Sin reservas"],
+              datasets: [{
+                data: tt.length ? tt.map((x) => x.reservationCount) : [0],
+                backgroundColor: "#c44bff",
+                borderRadius: 6,
+              }],
+            },
+            options: { ...chartOpts({}), indexAxis: "y" },
+          });
+        }
 
         // Top 5 productos (barras horizontales)
         const tp = (d.topProducts || []).slice(0, 5);
@@ -4089,17 +4107,19 @@
         const topTable = (d.topTables || [])[0];
         const topProduct = (d.topProducts || [])[0];
         const bestDay = [...(d.salesByWeekday || [])].sort((a, b) => b.total - a.total)[0];
+        const freeTables = Math.max(0, (d.kpis.totalTableSlots ?? 0) - (d.kpis.occupiedTableSlots ?? 0));
         document.getElementById("summary").className = "";
         document.getElementById("summary").innerHTML = eventView
           ? `<div style="display:flex;flex-direction:column;gap:14px;font-size:14px">
-              <div>🏆 <b>Mesa estrella:</b> ${topTable ? esc(topTable.label) + " (" + topTable.reservationCount + " reservas)" : "—"}</div>
+              <div>💰 <b>Mayor facturación:</b> ${topTable && topTable.revenue > 0 ? esc(topTable.label) + " · " + fmtMoney(topTable.revenue) : "—"}</div>
+              <div>🪑 <b>Ocupación:</b> ${fmtNum(d.kpis.occupiedTableSlots)}/${fmtNum(d.kpis.totalTableSlots)} mesas vendidas · ${fmtNum(freeTables)} libres</div>
               <div>🍾 <b>Producto top:</b> ${topProduct ? esc(topProduct.name) + " (" + topProduct.unitsSold + " u.)" : "—"}</div>
-              <div>⏰ <b>Hora pico:</b> ${peakHour && peakHour.total > 0 ? peakHour.label + " · " + fmtMoney(peakHour.total) : "—"}</div>
-              <div>👥 <b>Mesas abiertas:</b> ${d.modeBreakdown ? fmtNum(d.modeBreakdown.openTable.count) + " (" + d.modeBreakdown.openTable.pctOfReservations + "%)" : "—"}</div>
-              <div>🎟️ <b>Reservas:</b> ${fmtNum(d.kpis.reservationsCount)} · Ticket prom. ${fmtMoney(d.kpis.avgTicket)}</div>
+              <div>⏰ <b>Hora pico de consumo:</b> ${peakHour && peakHour.total > 0 ? peakHour.label + " · " + fmtMoney(peakHour.total) : "—"}</div>
+              <div>👥 <b>Mesas abiertas (split):</b> ${d.modeBreakdown ? fmtNum(d.modeBreakdown.openTable.count) + " (" + d.modeBreakdown.openTable.pctOfReservations + "%)" : "—"}</div>
+              <div>🎟️ <b>Total reservas:</b> ${fmtNum(d.kpis.reservationsCount)} · Ticket prom. ${fmtMoney(d.kpis.avgTicket)}</div>
             </div>`
           : `<div style="display:flex;flex-direction:column;gap:14px;font-size:14px">
-              <div>🏆 <b>Mesa estrella:</b> ${topTable ? esc(topTable.label) + " (" + topTable.reservationCount + " reservas)" : "—"}</div>
+              <div>🏆 <b>Mesa estrella:</b> ${topTable ? esc(topTable.label) + " (" + topTable.reservationCount + " reservas en el período)" : "—"}</div>
               <div>🍾 <b>Producto top:</b> ${topProduct ? esc(topProduct.name) + " (" + topProduct.unitsSold + " u.)" : "—"}</div>
               <div>📅 <b>Mejor día:</b> ${bestDay && bestDay.total > 0 ? bestDay.weekday + " · " + fmtMoney(bestDay.total) : "—"}</div>
               <div>🎟️ <b>Reservas:</b> ${fmtNum(d.kpis.reservationsCount)} · Ticket prom. ${fmtMoney(d.kpis.avgTicket)}</div>
