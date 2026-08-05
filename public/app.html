@@ -697,6 +697,7 @@
       function go(view, params = {}) {
         clearTimeout(homeTimer);
         clearTimeout(wzClubsTimer);
+        stopChatPoll();
         if (state.view === "wizard" && view !== "wizard") void releaseWizardHold();
         state.view = view;
         state.params = params;
@@ -1191,6 +1192,7 @@
         else if (state.view === "cancelacion") renderCancelacion(page);
         else if (state.view === "invites") renderInvites(page);
         else if (state.view === "detail") renderDetail(page);
+        else if (state.view === "chat") renderChat(page);
         void refreshAlerts();
         void refreshLoyaltyBadge();
       }
@@ -1621,7 +1623,12 @@
         const actions = [];
         if (r.status === "PENDING_PAYMENT") actions.push(`<button class="btn-sm" onclick="payReservation('${r.id}')">Pagar seña</button>`);
         if (r.status === "CONFIRMED" && r.mode === "STANDARD") actions.push(`<button class="btn-sm btn-accent" onclick="openTableModal('${r.id}',${r.table.capacity})">Abrir mesa 👥</button>`);
-        if (r.mode === "OPEN_TABLE") actions.push(`<button class="btn-sm" onclick="go('detail',{id:'${r.id}'})">Invitados</button>`);
+        if (r.mode === "OPEN_TABLE") {
+          actions.push(`<button class="btn-sm" onclick="go('detail',{id:'${r.id}'})">Invitados</button>`);
+          if (["CONFIRMED", "CHECKED_IN"].includes(r.status)) {
+            actions.push(`<button class="btn-sm btn-accent" onclick="openTableChat('${r.id}','mine')">💬 Chat</button>`);
+          }
+        }
         if (r.status === "CONFIRMED" || r.status === "CHECKED_IN") actions.push(`<button class="btn-sm btn-accent" onclick="go('ticket',{id:'${r.id}'})">Ver QR</button>`);
         actions.push(`<button class="btn-sm ghost" onclick="openConsumptionPlanner({ reservationId: '${r.id}' })">Calculadora 🍾</button>`);
         if (r.status === "PENDING_PAYMENT" || r.status === "CONFIRMED") actions.push(`<button class="btn-sm btn-danger" onclick="cancelReservation('${r.id}')">Cancelar</button>`);
@@ -1767,6 +1774,9 @@
             ${reservationFinanceHtml(r, true)}
             ${reservationConsumptionHtml(r)}
             ${reservationTimelineHtml(r)}
+            <div class="btn-row" style="margin:16px 0 8px">
+              <button type="button" class="btn-sm btn-accent" onclick="openTableChat('${r.id}','detail')">💬 Chat de mesa</button>
+            </div>
             <h3 style="margin:8px 0 14px">Postulaciones</h3>
             <div id="guests" class="grid-cards"></div>`;
           const el = live.querySelector("#guests");
@@ -1799,6 +1809,183 @@
       async function guestAction(guestId, action) {
         try { await api("/guests/" + guestId + "/" + action, { method: "POST" }); toast(action === "accept" ? "Invitado aceptado" : "Postulación rechazada", "ok"); renderDetail($("page")); }
         catch (e) { toast(e.message, "err"); }
+      }
+
+      // ---------- TABLE CHAT (RN12) ----------
+      let _chatPollTimer = null;
+      let _chatStickBottom = true;
+      let _chatLocked = false;
+
+      function stopChatPoll() {
+        if (_chatPollTimer) {
+          clearInterval(_chatPollTimer);
+          _chatPollTimer = null;
+        }
+      }
+
+      function openTableChat(reservationId, back) {
+        go("chat", { id: reservationId, back: back || "mine" });
+      }
+
+      function chatBackNav() {
+        const back = state.params.back || "mine";
+        if (back === "detail") go("detail", { id: state.params.id });
+        else go(back);
+      }
+
+      function chatTime(d) {
+        const dt = new Date(d);
+        const now = new Date();
+        const sameDay = dt.toDateString() === now.toDateString();
+        return dt.toLocaleString("es-AR", sameDay
+          ? { hour: "2-digit", minute: "2-digit" }
+          : { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+      }
+
+      function chatMessagesHtml(messages) {
+        if (!messages.length) {
+          return `<div class="k-chat-empty"><p>Todavía no hay mensajes.</p><p class="hint">Coordiná horarios, consumo o punto de encuentro con tu mesa.</p></div>`;
+        }
+        return messages.map((m) => {
+          const mine = m.userId === state.user.id;
+          return `<div class="k-chat-msg ${mine ? "mine" : "theirs"}">
+            <div class="k-chat-bubble">
+              ${mine ? "" : `<div class="k-chat-author">${esc(m.user.fullName)}</div>`}
+              <div class="k-chat-text">${esc(m.content)}</div>
+              <div class="k-chat-time">${chatTime(m.createdAt)}</div>
+            </div>
+          </div>`;
+        }).join("");
+      }
+
+      function scrollChatToBottom(force) {
+        const el = document.getElementById("k-chat-scroll");
+        if (!el) return;
+        if (force || _chatStickBottom) {
+          el.scrollTop = el.scrollHeight;
+          _chatStickBottom = true;
+        }
+      }
+
+      function bindChatScroll() {
+        const el = document.getElementById("k-chat-scroll");
+        if (!el || el._chatBound) return;
+        el._chatBound = true;
+        el.addEventListener("scroll", () => {
+          const gap = el.scrollHeight - el.scrollTop - el.clientHeight;
+          _chatStickBottom = gap < 48;
+        });
+      }
+
+      async function refreshChatMessages(silent) {
+        if (!stillOn("chat")) return;
+        const id = state.params.id;
+        if (!id) return;
+        try {
+          const messages = await api("/reservations/" + id + "/chat");
+          _chatLocked = false;
+          const prevCount = window._chatMsgCount || 0;
+          window._chatMsgCount = messages.length;
+          const live = livePage("chat");
+          if (!live) return;
+          const list = live.querySelector("#k-chat-messages");
+          const status = live.querySelector("#k-chat-status");
+          const form = live.querySelector("#k-chat-form");
+          const input = live.querySelector("#k-chat-input");
+          if (status) status.textContent = "En vivo";
+          if (list) {
+            list.innerHTML = chatMessagesHtml(messages);
+            if (!silent || messages.length > prevCount) scrollChatToBottom(!silent);
+          }
+          if (form) form.style.display = "";
+          if (input) input.disabled = false;
+        } catch (e) {
+          _chatLocked = true;
+          const live = livePage("chat");
+          if (!live) return;
+          const list = live.querySelector("#k-chat-messages");
+          const status = live.querySelector("#k-chat-status");
+          const form = live.querySelector("#k-chat-form");
+          const input = live.querySelector("#k-chat-input");
+          if (status) status.textContent = "No disponible";
+          if (list) {
+            list.innerHTML = `<div class="k-chat-locked"><p>${esc(e.message)}</p></div>`;
+          }
+          if (form) form.style.display = "none";
+          if (input) input.disabled = true;
+        }
+      }
+
+      async function sendChatMessage(ev) {
+        ev.preventDefault();
+        const input = document.getElementById("k-chat-input");
+        if (!input || _chatLocked) return;
+        const content = input.value.trim();
+        if (!content) return;
+        const id = state.params.id;
+        const btn = document.getElementById("k-chat-send");
+        try {
+          if (btn) btn.disabled = true;
+          input.disabled = true;
+          await api("/reservations/" + id + "/chat", { method: "POST", body: JSON.stringify({ content }) });
+          input.value = "";
+          await refreshChatMessages(true);
+        } catch (e) {
+          toast(e.message, "err");
+        } finally {
+          if (btn) btn.disabled = false;
+          if (input && !_chatLocked) input.disabled = false;
+          input?.focus();
+        }
+      }
+
+      function startChatPoll() {
+        stopChatPoll();
+        _chatPollTimer = setInterval(() => { void refreshChatMessages(true); }, 5000);
+      }
+
+      async function renderChat(page) {
+        stopChatPoll();
+        window._chatMsgCount = 0;
+        _chatStickBottom = true;
+        _chatLocked = false;
+        const back = state.params.back || "mine";
+        const backLabel = back === "detail" ? "← Volver a invitados" : back === "joins" ? "← Mis postulaciones" : "← Mis reservas";
+        page.innerHTML = `<div class="empty">Cargando chat…</div>`;
+        try {
+          const r = await api("/reservations/" + state.params.id);
+          if (!stillOn("chat")) return;
+          const live = livePage("chat");
+          if (!live) return;
+          live.innerHTML = `
+            <button type="button" class="ghost btn-sm" onclick="chatBackNav()">${backLabel}</button>
+            <div class="k-page-head" style="margin-top:10px">
+              <h1>Chat de mesa</h1>
+              <p>${esc(r.table.label)} · ${esc(r.club.name)} · ${fdatetime(r.event.date)}</p>
+            </div>
+            <div class="k-chat-panel">
+              <div class="k-chat-head">
+                <span class="k-chat-live-dot"></span>
+                <span id="k-chat-status">Conectando…</span>
+              </div>
+              <div class="k-chat-scroll" id="k-chat-scroll">
+                <div class="k-chat-messages" id="k-chat-messages"></div>
+              </div>
+              <form class="k-chat-form" id="k-chat-form" onsubmit="sendChatMessage(event)">
+                <input type="text" id="k-chat-input" maxlength="500" placeholder="Escribí un mensaje…" autocomplete="off" />
+                <button type="submit" id="k-chat-send" class="btn-sm btn-accent">Enviar</button>
+              </form>
+            </div>`;
+          bindChatScroll();
+          await refreshChatMessages(false);
+          startChatPoll();
+          document.getElementById("k-chat-input")?.focus();
+        } catch (e) {
+          const live = livePage("chat");
+          if (live) {
+            live.innerHTML = `<button type="button" class="ghost btn-sm" onclick="go('mine')">← Mis reservas</button><div class="empty" style="margin-top:16px">${esc(e.message)}</div>`;
+          }
+        }
       }
 
       // ---------- OPEN TABLES WALL ----------
@@ -1895,9 +2082,12 @@
               minConsumption: reservationMinConsumption(r),
               status: g.status,
             };
-            const act = g.status === "ACCEPTED_PENDING_PAYMENT" && !prepaid
+            let act = g.status === "ACCEPTED_PENDING_PAYMENT" && !prepaid
               ? `<button type="button" class="btn-sm btn-accent" onclick="payShare('${g.id}')">Pagar mi parte (${money(g.shareAmount)})</button>`
               : (g.status === "CONFIRMED" && prepaid ? `<span class="hint">Confirmado · sin costo</span>` : "");
+            if (g.status === "CONFIRMED") {
+              act += `<button type="button" class="btn-sm btn-accent" onclick="openTableChat('${r.id}','joins')">💬 Chat</button>`;
+            }
             const canUseCalc = g.status === "ACCEPTED_PENDING_PAYMENT" || g.status === "CONFIRMED";
             const calcBtn = canUseCalc
               ? `<button type="button" class="btn-sm ghost" onclick='openConsumptionPlanner(${JSON.stringify({ reservationId: r.id, guestView })})'>Calculadora 🍾</button>`
