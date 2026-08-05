@@ -349,19 +349,16 @@ body.kluby-app .k-back {
 
 .k-bottom-nav button.k-bnav-btn {
   flex: 1;
-  max-width: 88px;
+  max-width: 72px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 4px 2px;
+  justify-content: center;
+  padding: 6px 4px;
   border: none;
   border-radius: 0;
   background: transparent !important;
   box-shadow: none !important;
   color: var(--muted);
-  font-size: 10px;
-  font-weight: 600;
   cursor: pointer;
   position: relative;
   min-width: 0;
@@ -369,33 +366,21 @@ body.kluby-app .k-back {
 
 .k-bnav-icon-wrap {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
   display: grid;
   place-items: center;
   flex-shrink: 0;
+  color: var(--muted);
   transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
-.k-bottom-nav button .k-bnav-ic {
-  font-size: 17px;
-  line-height: 1;
-}
-
-.k-bnav-label {
+.k-bnav-svg {
   display: block;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--muted);
-  line-height: 1.2;
+  pointer-events: none;
 }
 
 .k-bottom-nav button.active .k-bnav-icon-wrap {
@@ -404,16 +389,9 @@ body.kluby-app .k-back {
   color: var(--neon-cyan);
 }
 
-.k-bottom-nav button.active .k-bnav-label {
-  color: var(--neon-cyan);
-}
-
 .k-bottom-nav button:hover .k-bnav-icon-wrap {
   border-color: rgba(45, 226, 198, 0.35);
   background: rgba(45, 226, 198, 0.06);
-}
-
-.k-bottom-nav button:hover .k-bnav-label {
   color: var(--text);
 }
 
@@ -565,7 +543,7 @@ body.kluby-app .k-back {
   }
 
   body.kluby-app .k-page {
-    padding-bottom: calc(76px + var(--safe-bottom, 0px));
+    padding-bottom: calc(64px + var(--safe-bottom, 0px));
   }
 }
 
@@ -595,7 +573,7 @@ html.cap-native .k-bottom-nav {
 }
 
 html.cap-native body.kluby-app .k-page {
-  padding-bottom: calc(76px + var(--safe-bottom, 0px));
+  padding-bottom: calc(64px + var(--safe-bottom, 0px));
 }
 
 html.cap-native .k-app-user .profile-link {
