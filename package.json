@@ -18,6 +18,8 @@
     "repair:demo-past-reservations": "ts-node-dev --transpile-only src/scripts/repair-demo-past-reservations.ts",
     "ensure:tesis-demo": "ts-node-dev --transpile-only src/scripts/ensure-tesis-demo.ts",
     "smoke:tesis-demo": "ts-node-dev --transpile-only src/scripts/smoke-tesis-demo.ts",
+    "smoke:full": "ts-node-dev --transpile-only src/scripts/smoke-full.ts",
+    "verify:migrations": "ts-node-dev --transpile-only src/scripts/verify-migrations.ts",
     "icons:android": "ts-node-dev --transpile-only src/scripts/generate-android-icons.ts",
     "logo:process": "ts-node-dev --transpile-only src/scripts/process-brand-logo.ts",
     "repair:images": "ts-node-dev --transpile-only src/scripts/repair-images.ts",
