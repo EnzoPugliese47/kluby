@@ -40,7 +40,10 @@
       .brand { display: flex; align-items: center; gap: 12px; }
       .logo {
         width: 40px; height: 40px; border-radius: 11px;
-        object-fit: cover; display: block; flex-shrink: 0;
+        object-fit: contain;
+        object-position: center;
+        background: #000;
+        display: block; flex-shrink: 0;
         box-shadow: 0 6px 20px rgba(124, 92, 255, 0.35);
       }
       .brand h1 { font-size: 18px; letter-spacing: 0.5px; }

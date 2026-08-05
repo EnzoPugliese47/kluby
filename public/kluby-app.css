@@ -209,7 +209,7 @@ body.kluby-app .list-card .title {
 
 body.kluby-app .logo {
   box-shadow: 0 6px 24px rgba(168, 85, 247, 0.35);
-  background: transparent;
+  background: #000;
 }
 
 body.kluby-app button:not(.ghost):not(.k-btn-ghost):not(.k-app-tabs button):not(.k-notif-btn) {
@@ -448,7 +448,9 @@ body.kluby-app .k-back {
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
+    background: #000;
   }
 
   .k-app-user {

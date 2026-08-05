@@ -26,11 +26,22 @@ const FOREGROUND: Record<string, number> = {
   "mipmap-xxxhdpi": 432,
 };
 
-async function writePng(folder: string, name: string, size: number): Promise<void> {
+const BG = { r: 0, g: 0, b: 0, alpha: 1 as const };
+
+async function writeIcon(
+  folder: string,
+  name: string,
+  size: number,
+  insetRatio: number
+): Promise<void> {
   const dir = path.join(RES, folder);
   fs.mkdirSync(dir, { recursive: true });
+  const inset = Math.max(1, Math.round(size * insetRatio));
+  const inner = size - inset * 2;
+
   await sharp(SOURCE)
-    .resize(size, size, { fit: "cover" })
+    .resize(inner, inner, { fit: "contain", background: BG })
+    .extend({ top: inset, bottom: inset, left: inset, right: inset, background: BG })
     .png()
     .toFile(path.join(dir, `${name}.png`));
 }
@@ -40,14 +51,23 @@ async function main(): Promise<void> {
     throw new Error(`Falta ${SOURCE}. Copiá el logo a resources/icon.png`);
   }
 
+  // Normalizá el source a PNG cuadrado (evita recortes raros si viene como JPEG).
+  const normalized = path.join(ROOT, "resources", "icon-normalized.png");
+  await sharp(SOURCE)
+    .resize(1024, 1024, { fit: "contain", background: BG })
+    .png()
+    .toFile(normalized);
+  fs.copyFileSync(normalized, SOURCE);
+  fs.unlinkSync(normalized);
+
   for (const [folder, size] of Object.entries(LAUNCHER)) {
-    await writePng(folder, "ic_launcher", size);
-    await writePng(folder, "ic_launcher_round", size);
+    await writeIcon(folder, "ic_launcher", size, 0.06);
+    await writeIcon(folder, "ic_launcher_round", size, 0.06);
     console.log(`  ✓ ${folder} launcher ${size}px`);
   }
 
   for (const [folder, size] of Object.entries(FOREGROUND)) {
-    await writePng(folder, "ic_launcher_foreground", size);
+    await writeIcon(folder, "ic_launcher_foreground", size, 0.17);
     console.log(`  ✓ ${folder} foreground ${size}px`);
   }
 
