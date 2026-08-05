@@ -77,18 +77,17 @@ async function main(): Promise<void> {
   console.log(`  ✓ web ${path.relative(ROOT, WEB)} (${info.width}x${info.height}, sin fondo)`);
 
   await sharp(cropped)
-    .resize(860, 860, { fit: "inside", withoutEnlargement: false })
+    .resize(992, 992, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 1 } })
     .extend({
-      top: 82,
-      bottom: 82,
-      left: 82,
-      right: 82,
+      top: 16,
+      bottom: 16,
+      left: 16,
+      right: 16,
       background: { r: 0, g: 0, b: 0, alpha: 1 },
     })
-    .resize(1024, 1024, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 1 } })
     .png()
     .toFile(ICON);
-  console.log(`  ✓ icon ${path.relative(ROOT, ICON)} (1024, fondo negro para launcher)`);
+  console.log(`  ✓ icon ${path.relative(ROOT, ICON)} (1024, ~97% fill, fondo negro)`);
   console.log("\n[logo] Listo. Corré: npm run icons:android && npm run cap:sync");
 }
 

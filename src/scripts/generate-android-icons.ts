@@ -52,13 +52,13 @@ async function main(): Promise<void> {
   }
 
   for (const [folder, size] of Object.entries(LAUNCHER)) {
-    await writeIcon(folder, "ic_launcher", size, 0.06);
-    await writeIcon(folder, "ic_launcher_round", size, 0.06);
+    await writeIcon(folder, "ic_launcher", size, 0.02);
+    await writeIcon(folder, "ic_launcher_round", size, 0.02);
     console.log(`  ✓ ${folder} launcher ${size}px`);
   }
 
   for (const [folder, size] of Object.entries(FOREGROUND)) {
-    await writeIcon(folder, "ic_launcher_foreground", size, 0.17);
+    await writeIcon(folder, "ic_launcher_foreground", size, 0.06);
     console.log(`  ✓ ${folder} foreground ${size}px`);
   }
 
