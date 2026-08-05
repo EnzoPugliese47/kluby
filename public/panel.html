@@ -206,7 +206,7 @@
         padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
       }
       .filter-chips button.active { background: var(--surface-2); color: var(--text); border-color: var(--accent); }
-      .data-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); -webkit-overflow-scrolling: touch; }
+      .data-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; max-width: 100%; }
       .data-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; }
       .data-table th {
         text-align: left; padding: 12px 14px; background: var(--surface-2);
@@ -287,7 +287,7 @@
       .events-past-wrap summary::-webkit-details-marker { display: none; }
       .events-past-wrap summary::before { content: "▸ "; display: inline-block; transition: transform 0.15s; }
       .events-past-wrap[open] summary::before { transform: rotate(90deg); }
-      .events-past-wrap .card { margin-top: 10px; opacity: 0.92; }
+      .events-past-wrap .data-table-wrap { margin-top: 10px; opacity: 0.92; }
       tr.event-past td { color: var(--muted); }
       table.data th, table.data td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); }
       table.data th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
@@ -460,7 +460,8 @@
         }
         .topbar-quicklinks a:hover { color: var(--text); border-color: var(--accent); }
         .tab { font-size: 12px; padding: 8px 12px; }
-        .container { padding: 16px; padding-bottom: calc(24px + var(--safe-bottom)); }
+        .container { padding: 16px; padding-bottom: calc(24px + var(--safe-bottom)); min-width: 0; }
+        #events-area, .events-section { min-width: 0; max-width: 100%; }
         .controls { flex-direction: column; align-items: stretch; gap: 10px; }
         .controls .field { min-width: 0 !important; width: 100%; }
         .controls button { width: 100%; }
@@ -475,8 +476,10 @@
         .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .ops-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .clubs-grid { grid-template-columns: 1fr; }
-        table.data { font-size: 12px; }
+        table.data { font-size: 12px; min-width: 640px; }
         table.data th, table.data td { padding: 10px 8px; }
+        table.data td:last-child { min-width: 220px; }
+        .data-table-wrap { touch-action: pan-x; }
         .modal { padding: 20px 16px; border-radius: 14px; }
         .modal.wide { max-width: 100%; }
         .img-crop-viewport { width: min(280px, 100%); height: auto; aspect-ratio: 1; }
@@ -552,7 +555,7 @@
           <button type="button" data-status="CANCELLED" onclick="setLiveFilter('CANCELLED',this)">Canceladas</button>
           <button type="button" data-status="NO_SHOW" onclick="setLiveFilter('NO_SHOW',this)">No-show</button>
         </div>
-        <div class="card panel" style="padding:0;overflow:hidden">
+        <div class="card panel" style="padding:0">
           <div class="data-table-wrap" id="live-table"><div class="empty" style="padding:40px">Elegí un evento para ver las reservas.</div></div>
         </div>
       </div>
@@ -2141,7 +2144,7 @@
       let _eventsPastCache = [];
       function eventsTableHtml(rows, isPast) {
         if (!rows.length) return "";
-        return `<div class="card panel" style="padding:0;overflow:hidden"><table class="data">
+        return `<div class="data-table-wrap"><table class="data">
           <thead><tr><th>Evento</th><th>Fecha</th><th>Género</th><th></th></tr></thead>
           <tbody>${rows.map((e) => eventRow(e, isPast)).join("")}</tbody></table></div>`;
       }

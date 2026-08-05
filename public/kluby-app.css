@@ -1006,6 +1006,45 @@ body.kluby-app .k-notif-btn.has-notif {
   backdrop-filter: blur(12px);
 }
 
+@media (max-width: 720px) {
+  .k-app-nav,
+  .k-app-nav-inner,
+  .k-app-user,
+  .k-app-user-icons,
+  .k-notif-wrap {
+    overflow: visible;
+  }
+
+  .k-notif-panel {
+    position: fixed;
+    top: calc(58px + var(--safe-top, 0px));
+    left: max(12px, var(--safe-left, 0px));
+    right: max(12px, var(--safe-right, 0px));
+    width: auto;
+    max-width: none;
+    max-height: min(460px, calc(100vh - 72px - var(--safe-top, 0px) - var(--safe-bottom, 0px)));
+    z-index: 300;
+  }
+
+  .k-notif-panel-head {
+    padding: 14px 16px;
+  }
+
+  .k-notif-panel-body {
+    padding: 10px 12px 14px;
+  }
+
+  .k-notif-item p {
+    word-break: break-word;
+  }
+
+  .k-notif-item button {
+    align-self: stretch;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 .k-notif-panel[hidden] {
   display: none !important;
 }
@@ -1058,10 +1097,4 @@ body.kluby-app .k-notif-btn.has-notif {
 
 .k-notif-item button {
   align-self: flex-start;
-}
-
-@media (max-width: 720px) {
-  .k-notif-panel {
-    right: -8px;
-  }
 }
