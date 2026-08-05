@@ -677,6 +677,7 @@
         render();
       }
       function doLogout() {
+        stopNotifPoll();
         state.token = ""; state.user = null;
         KlubyUI.clearClientAppVisit();
         localStorage.removeItem("kluby_token"); localStorage.removeItem("kluby_user");
@@ -727,6 +728,10 @@
       let _wizardHoldExpiresAt = null;
       let _alertsCache = null;
       let _alertsAt = 0;
+      let _notifPollTimer = null;
+      let _notifOutsideBound = false;
+      const NOTIF_DISMISS_KEY = "kluby_notif_dismissed";
+      const CHAT_SEEN_KEY = "kluby_chat_seen";
       let _reserveSel = "DEPOSIT_ONLY";
 
       function wizardGo(step, extra = {}) {
@@ -838,53 +843,237 @@
         return { mapBlock, emptyHint };
       }
 
-      async function fetchAlertsData() {
+      function notifLoadJson(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        } catch {
+          return fallback;
+        }
+      }
+
+      function getDismissedNotifs() {
+        return notifLoadJson(NOTIF_DISMISS_KEY, {});
+      }
+
+      function dismissNotif(id) {
+        const d = getDismissedNotifs();
+        d[id] = Date.now();
+        localStorage.setItem(NOTIF_DISMISS_KEY, JSON.stringify(d));
+        _alertsCache = null;
+        void refreshNotifications();
+      }
+
+      function getChatSeen() {
+        return notifLoadJson(CHAT_SEEN_KEY, {});
+      }
+
+      function setChatSeen(reservationId, messageId) {
+        if (!reservationId || !messageId) return;
+        const seen = getChatSeen();
+        seen[reservationId] = messageId;
+        localStorage.setItem(CHAT_SEEN_KEY, JSON.stringify(seen));
+        _alertsCache = null;
+      }
+
+      function isUpcomingEventDate(date) {
+        return new Date(date).getTime() >= Date.now();
+      }
+
+      async function fetchNotificationsData() {
         const alerts = [];
+        const dismissed = getDismissedNotifs();
         try {
           const [rs, joins] = await Promise.all([
             api("/users/" + state.user.id + "/reservations"),
             api("/users/" + state.user.id + "/guest-entries"),
           ]);
-          const now = Date.now();
+          const hostIds = new Set(rs.map((r) => r.id));
+
           for (const r of rs) {
-            if (r.status === "PENDING_PAYMENT" && new Date(r.event.date).getTime() >= now) {
+            if (r.status === "PENDING_PAYMENT" && isUpcomingEventDate(r.event.date)) {
               alerts.push({
+                id: `pay-host-${r.id}`,
                 kind: "amber",
                 text: `Pago pendiente · ${r.table.label} · ${r.club.name}`,
-                action: `payReservation('${r.id}')`,
                 label: "Pagar ahora",
+                action: `payReservation('${r.id}');closeNotifPanel()`,
               });
+            }
+          }
+
+          for (const g of joins) {
+            const r = g.reservation;
+            if (!r || hostIds.has(r.id)) continue;
+            if (g.status === "ACCEPTED_PENDING_PAYMENT" && r.paymentOption !== "FULL_PAYMENT") {
+              alerts.push({
+                id: `pay-guest-${g.id}`,
+                kind: "green",
+                text: `¡Te aceptaron! Pagá tu parte en ${r.table.label}`,
+                label: "Pagar parte",
+                action: `payShare('${g.id}');closeNotifPanel()`,
+              });
+            }
+            if (g.status === "CONFIRMED" && isUpcomingEventDate(r.event.date)) {
+              const nid = `guest-confirmed-${g.id}`;
+              if (!dismissed[nid]) {
+                alerts.push({
+                  id: nid,
+                  kind: "cyan",
+                  text: `Quedaste confirmado en ${r.table.label} · ${r.club.name}`,
+                  label: "Ver QR",
+                  action: `dismissNotif('${nid}');go('ticket',{id:'${r.id}'});closeNotifPanel()`,
+                });
+              }
+            }
+          }
+
+          const openHost = rs.filter((r) => (
+            r.mode === "OPEN_TABLE"
+            && !["CANCELLED", "EXPIRED"].includes(r.status)
+            && isUpcomingEventDate(r.event.date)
+          ));
+          if (openHost.length) {
+            const guestLists = await Promise.all(
+              openHost.map((r) => api("/reservations/" + r.id + "/guests").catch(() => []))
+            );
+            openHost.forEach((r, i) => {
+              const pending = (guestLists[i] || []).filter((g) => g.status === "REQUESTED").length;
+              if (pending > 0) {
+                alerts.push({
+                  id: `host-pending-${r.id}`,
+                  kind: "violet",
+                  text: `${pending} postulación${pending > 1 ? "es" : ""} en ${r.table.label}`,
+                  label: "Ver invitados",
+                  action: `go('detail',{id:'${r.id}'});closeNotifPanel()`,
+                });
+              }
+            });
+          }
+
+          const chatTargets = [];
+          for (const r of openHost) {
+            if (["CONFIRMED", "CHECKED_IN"].includes(r.status)) {
+              chatTargets.push({ id: r.id, label: r.table.label });
             }
           }
           for (const g of joins) {
-            if (g.status === "ACCEPTED_PENDING_PAYMENT" && g.reservation?.paymentOption !== "FULL_PAYMENT") {
-              alerts.push({
-                kind: "green",
-                text: `¡Te aceptaron! Pagá tu parte en ${g.reservation.table.label}`,
-                action: `payShare('${g.id}')`,
-                label: "Pagar parte",
-              });
+            const r = g.reservation;
+            if (g.status === "CONFIRMED" && r && !hostIds.has(r.id) && isUpcomingEventDate(r.event.date)) {
+              if (!chatTargets.some((t) => t.id === r.id)) {
+                chatTargets.push({ id: r.id, label: r.table.label });
+              }
             }
           }
-        } catch { /* sin alertas */ }
+
+          const chatSeen = getChatSeen();
+          const chatResults = await Promise.all(
+            chatTargets.map(async (t) => {
+              if (state.view === "chat" && state.params.id === t.id) return null;
+              try {
+                const messages = await api("/reservations/" + t.id + "/chat");
+                if (!messages.length) return null;
+                const last = messages[messages.length - 1];
+                if (last.userId === state.user.id) return null;
+                if (chatSeen[t.id] === last.id) return null;
+                return { id: t.id, label: t.label, lastId: last.id, author: last.user.fullName };
+              } catch {
+                return null;
+              }
+            })
+          );
+          for (const c of chatResults) {
+            if (!c) continue;
+            alerts.push({
+              id: `chat-${c.id}-${c.lastId}`,
+              kind: "green",
+              text: `Mensaje nuevo en ${c.label} · ${c.author}`,
+              label: "Abrir chat",
+              action: `setChatSeen('${c.id}','${c.lastId}');openTableChat('${c.id}','mine');closeNotifPanel()`,
+            });
+          }
+        } catch { /* sin notificaciones */ }
         return alerts;
       }
 
-      async function refreshAlerts() {
-        const el = document.getElementById("app-alerts");
-        if (!el || !state.user) return;
+      function renderNotifPanelBody(alerts) {
+        const body = document.getElementById("k-notif-panel-body");
+        if (!body) return;
+        if (!alerts.length) {
+          body.innerHTML = `<div class="k-notif-empty">No tenés notificaciones pendientes.</div>`;
+          return;
+        }
+        body.innerHTML = alerts.map((a) => `
+          <div class="k-notif-item ${a.kind}">
+            <p>${esc(a.text)}</p>
+            <button type="button" class="btn-sm ${a.kind === "green" || a.kind === "cyan" ? "btn-accent" : ""}" onclick="${a.action}">${esc(a.label)}</button>
+          </div>`).join("");
+      }
+
+      async function refreshNotifications() {
+        if (!state.user) return;
         const now = Date.now();
         if (!_alertsCache || now - _alertsAt > 12000) {
-          _alertsCache = await fetchAlertsData();
+          _alertsCache = await fetchNotificationsData();
           _alertsAt = now;
         }
-        el.innerHTML = _alertsCache.length
-          ? _alertsCache.map((a) => `
-              <div class="k-alert ${a.kind}">
-                <span>${esc(a.text)}</span>
-                <button type="button" class="btn-sm ${a.kind === "green" ? "btn-accent" : ""}" onclick="${a.action}">${esc(a.label)}</button>
-              </div>`).join("")
-          : "";
+        const alerts = _alertsCache || [];
+        const badge = document.getElementById("k-notif-badge");
+        const btn = document.getElementById("k-notif-btn");
+        if (badge) {
+          if (alerts.length > 0) {
+            badge.style.display = "";
+            badge.textContent = alerts.length > 9 ? "9+" : String(alerts.length);
+          } else {
+            badge.style.display = "none";
+          }
+        }
+        if (btn) btn.classList.toggle("has-notif", alerts.length > 0);
+        const panel = document.getElementById("k-notif-panel");
+        if (panel && !panel.hidden) renderNotifPanelBody(alerts);
+      }
+
+      function toggleNotifPanel(ev) {
+        ev?.stopPropagation();
+        const panel = document.getElementById("k-notif-panel");
+        if (!panel) return;
+        const open = panel.hidden;
+        panel.hidden = !open;
+        if (open) {
+          void refreshNotifications().then(() => {
+            renderNotifPanelBody(_alertsCache || []);
+          });
+        }
+      }
+
+      function closeNotifPanel() {
+        const panel = document.getElementById("k-notif-panel");
+        if (panel) panel.hidden = true;
+      }
+
+      function bindNotifOutsideClick() {
+        if (_notifOutsideBound) return;
+        _notifOutsideBound = true;
+        document.addEventListener("click", (e) => {
+          const wrap = document.getElementById("k-notif-wrap");
+          if (wrap && !wrap.contains(e.target)) closeNotifPanel();
+        });
+      }
+
+      function startNotifPoll() {
+        stopNotifPoll();
+        _notifPollTimer = setInterval(() => { void refreshNotifications(); }, 15000);
+      }
+
+      function stopNotifPoll() {
+        if (_notifPollTimer) {
+          clearInterval(_notifPollTimer);
+          _notifPollTimer = null;
+        }
+      }
+
+      async function refreshAlerts() {
+        return refreshNotifications();
       }
 
       function maybeOnboard(key, html, continueFn) {
@@ -1171,6 +1360,19 @@
               <div class="k-app-user">
               ${staffLinks}
                 <a class="k-btn-ghost k-link-inicio" href="/">Inicio</a>
+                <div class="k-notif-wrap" id="k-notif-wrap">
+                  <button type="button" class="k-notif-btn" id="k-notif-btn" onclick="toggleNotifPanel(event)" title="Notificaciones" aria-label="Notificaciones">
+                    <span class="k-notif-icon" aria-hidden="true">🔔</span>
+                    <span class="k-notif-badge" id="k-notif-badge" style="display:none">0</span>
+                  </button>
+                  <div class="k-notif-panel" id="k-notif-panel" hidden>
+                    <div class="k-notif-panel-head">
+                      <b>Notificaciones</b>
+                      <button type="button" class="ghost btn-sm" onclick="closeNotifPanel()">Cerrar</button>
+                    </div>
+                    <div class="k-notif-panel-body" id="k-notif-panel-body"></div>
+                  </div>
+                </div>
                 <div class="profile-link" onclick="go('profile')" title="Mi perfil">
               <div class="profile-av-wrap">
               ${avatarHtml(state.user, 40)}
@@ -1182,7 +1384,6 @@
           </div>
               </div>
             </header>
-            <div id="app-alerts" class="k-app-alerts"></div>
             <main class="k-main"><div class="k-page" id="page"></div></main>
           </div>`;
         const page = $("page");
@@ -1198,7 +1399,9 @@
         else if (state.view === "invites") renderInvites(page);
         else if (state.view === "detail") renderDetail(page);
         else if (state.view === "chat") renderChat(page);
-        void refreshAlerts();
+        bindNotifOutsideClick();
+        void refreshNotifications();
+        startNotifPoll();
         void refreshLoyaltyBadge();
       }
 
@@ -1950,7 +2153,7 @@
         }
       }
       async function guestAction(guestId, action) {
-        try { await api("/guests/" + guestId + "/" + action, { method: "POST" }); toast(action === "accept" ? "Invitado aceptado" : "Postulación rechazada", "ok"); renderDetail($("page")); }
+        try { await api("/guests/" + guestId + "/" + action, { method: "POST" }); toast(action === "accept" ? "Invitado aceptado" : "Postulación rechazada", "ok"); _alertsCache = null; void refreshNotifications(); renderDetail($("page")); }
         catch (e) { toast(e.message, "err"); }
       }
 
@@ -2042,6 +2245,11 @@
           }
           if (form) form.style.display = "";
           if (input) input.disabled = false;
+          if (messages.length) {
+            const last = messages[messages.length - 1];
+            setChatSeen(id, last.id);
+          }
+          void refreshNotifications();
         } catch (e) {
           _chatLocked = true;
           const live = livePage("chat");

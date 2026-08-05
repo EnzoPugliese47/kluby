@@ -227,6 +227,17 @@
       .status-pill.COMPLETED { background: var(--surface-2); color: var(--muted); }
       .live-meta { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
       .live-meta b { color: var(--text); font-weight: 600; }
+      .live-notif-banner {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+        padding: 12px 16px; margin-bottom: 14px; border-radius: 12px;
+        background: rgba(45, 226, 198, 0.1); border: 1px solid rgba(45, 226, 198, 0.35);
+        font-size: 14px; font-weight: 600; color: var(--accent);
+        animation: liveNotifIn 0.35s ease;
+      }
+      @keyframes liveNotifIn {
+        from { opacity: 0; transform: translateY(-6px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
 
       .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
       @media (max-width: 640px) { .mode-cards { grid-template-columns: 1fr; } }
@@ -531,6 +542,7 @@
           <button type="button" class="ghost btn-export" onclick="exportReservationsCsv()">⬇ CSV reservas</button>
         </div>
         <p class="live-meta" id="live-meta">Operaciones en tiempo real · mesas, reservas y check-in.</p>
+        <div class="live-notif-banner" id="live-notif-banner" style="display:none"></div>
         <div class="ops-kpis" id="live-kpis"></div>
         <div class="filter-chips" id="live-filters">
           <button type="button" class="active" data-status="all" onclick="setLiveFilter('all',this)">Todas</button>
@@ -3432,6 +3444,32 @@
       let _liveFilter = "all";
       let _liveData = null;
       let _livePollTimer = null;
+      let _liveSeenReservationIds = null;
+      let _liveNotifInitialized = false;
+
+      function hideLiveNotifBanner() {
+        const el = document.getElementById("live-notif-banner");
+        if (el) el.style.display = "none";
+      }
+
+      function showLiveNotifBanner(newReservations) {
+        const el = document.getElementById("live-notif-banner");
+        if (!el || !newReservations.length) return;
+        const latest = newReservations[0];
+        const count = newReservations.length;
+        const table = latest.table?.label || "Mesa";
+        const host = latest.host?.fullName || "Cliente";
+        el.style.display = "flex";
+        el.innerHTML = `
+          <span>🔔 ${count === 1 ? `Nueva reserva · ${esc(table)} · ${esc(host)}` : `${count} reservas nuevas · última: ${esc(table)}`}</span>
+          <button type="button" class="ghost btn-sm" onclick="hideLiveNotifBanner()">Cerrar</button>`;
+      }
+
+      function resetLiveNotifBaseline() {
+        _liveNotifInitialized = false;
+        _liveSeenReservationIds = null;
+        hideLiveNotifBanner();
+      }
 
       const RES_STATUS_LABEL = {
         PENDING_PAYMENT: "Pago pendiente",
@@ -3471,6 +3509,7 @@
         if (id) localStorage.setItem("kluby_live_club", id);
         const statsSel = document.getElementById("club-select");
         if (statsSel && id) statsSel.value = id;
+        resetLiveNotifBaseline();
         loadLiveEvents().then(() => loadLiveNight());
       }
 
@@ -3478,6 +3517,7 @@
         const id = document.getElementById("live-event-select")?.value || "";
         if (id) localStorage.setItem("kluby_live_event", id);
         else localStorage.removeItem("kluby_live_event");
+        resetLiveNotifBaseline();
         loadLiveNight();
       }
 
@@ -3507,6 +3547,7 @@
       function setLiveFilter(status, btn) {
         _liveFilter = status;
         document.querySelectorAll("#live-filters button").forEach((b) => b.classList.toggle("active", b === btn));
+        resetLiveNotifBaseline();
         loadLiveNight();
       }
 
@@ -3537,6 +3578,16 @@
           const q = _liveFilter !== "all" ? "?status=" + encodeURIComponent(_liveFilter) : "";
           const d = await api(`/clubs/${clubId}/events/${eventId}/reservations${q}`);
           _liveData = d;
+          const currentIds = new Set((d.reservations || []).map((r) => r.id));
+          if (!_liveNotifInitialized) {
+            _liveSeenReservationIds = currentIds;
+            _liveNotifInitialized = true;
+            hideLiveNotifBanner();
+          } else if (_liveSeenReservationIds) {
+            const newOnes = (d.reservations || []).filter((r) => !_liveSeenReservationIds.has(r.id));
+            if (newOnes.length > 0) showLiveNotifBanner(newOnes);
+            _liveSeenReservationIds = currentIds;
+          }
           const s = d.summary;
           const evDate = formatStatsEventDate(d.event.date);
           if (meta) meta.innerHTML = `<b>${esc(d.event.name)}</b> · ${esc(evDate)} · Actualizado ${new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}`;
