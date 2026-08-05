@@ -1008,30 +1008,78 @@
         return `<div class="k-timeline">${steps.map((s) => `<div class="k-timeline-step ${s.state}"><span>${s.label}</span></div>`).join("")}</div>`;
       }
 
-      function buildEventMapHtml(event, tables, onPick) {
+      function buildEventMapHtml(event, tables, onPick, floors) {
         window._tables = tables;
         _wizardTables = tables;
+        window._mapFloors = floors && floors.length ? floors : [{
+          id: null,
+          floorIndex: 1,
+          name: "Piso 1",
+          backgroundImage: event?.backgroundImage || null,
+        }];
+        window._activeMapFloor = 0;
         if (event?.date) {
           _wizardEventDate = event.date;
           _wizardEventId = event.id || state.params.eventId || null;
         }
-        const pinHtml = (t) => {
-          const short = String(t.label).split(" ").pop();
-          const av = t.status === "AVAILABLE";
-          return `<div class="table-pin ${av ? "available" : "reserved"}"
-               style="left:${t.posX}%;top:${t.posY}%"
-               title="${esc(t.label)} · ${t.capacity}p · ${money(t.price)}${av ? "" : " · Reservada"}"
-               ${av ? `onclick="${onPick(t.id)}"` : ""}>${esc(short)}</div>`;
-        };
-        const pins = tables.map(pinHtml).join("");
-        const sectors = [...new Set(tables.map((t) => t.sector).filter(Boolean))];
-        const mapBlock = event.backgroundImage
-          ? `<div class="floor-map"><img src="${esc(event.backgroundImage)}" alt="Plano del salón" onerror="this.style.display='none'" />${pins}</div>`
-          : `<div class="floor-map default-canvas"><span class="canvas-label">Plano del salón</span>${pins}</div>`;
+
+        function tablesForFloor(floor, idx) {
+          return tables.filter(
+            (t) => t.floorId === floor.id || (!t.floorId && (floor.floorIndex === 1 || idx === 0))
+          );
+        }
+
+        function floorMapPanel(floor, idx) {
+          const floorTables = tablesForFloor(floor, idx);
+          const pinHtml = (t) => {
+            const short = String(t.label).split(" ").pop();
+            const av = t.status === "AVAILABLE";
+            return `<div class="table-pin ${av ? "available" : "reserved"}"
+                 style="left:${t.posX}%;top:${t.posY}%"
+                 title="${esc(t.label)} · ${t.capacity}p · ${money(t.price)}${av ? "" : " · Reservada"}"
+                 ${av ? `onclick="${onPick(t.id)}"` : ""}>${esc(short)}</div>`;
+          };
+          const pins = floorTables.map(pinHtml).join("");
+          const bg = floor.backgroundImage || (floor.floorIndex === 1 ? event?.backgroundImage : null);
+          const inner = bg
+            ? `<img src="${esc(bg)}" alt="${esc(floor.name)}" onerror="this.style.display='none'" />${pins}`
+            : `<span class="canvas-label">${esc(floor.name)}</span>${pins}`;
+          return `<div class="floor-map-panel" data-floor-idx="${idx}" style="${idx === 0 ? "" : "display:none"}"><div class="floor-map${bg ? "" : " default-canvas"}">${inner}</div></div>`;
+        }
+
+        const tabs = window._mapFloors.length > 1
+          ? `<div class="floor-tabs">${window._mapFloors.map((f, i) =>
+              `<button type="button" class="floor-tab${i === 0 ? " active" : ""}" onclick="switchEventMapFloor(${i})">${esc(f.name)}</button>`
+            ).join("")}</div>`
+          : "";
+
+        const mapBlock = `${tabs}<div class="floor-maps-wrap">${window._mapFloors.map(floorMapPanel).join("")}</div>`;
+
+        const activeTables = tablesForFloor(window._mapFloors[0], 0);
+        const sectors = [...new Set(activeTables.map((t) => t.sector).filter(Boolean))];
         const emptyHint = tables.length === 0
           ? `<div class="empty" style="margin-top:14px">Todavía no hay mesas en este evento.</div>`
           : `<div class="sector-legend">${sectors.map((s) => `<span>📍 ${esc(s)}</span>`).join("")}</div>`;
         return { mapBlock, emptyHint };
+      }
+
+      function switchEventMapFloor(idx) {
+        window._activeMapFloor = idx;
+        document.querySelectorAll(".floor-map-panel").forEach((el) => {
+          el.style.display = Number(el.dataset.floorIdx) === idx ? "" : "none";
+        });
+        document.querySelectorAll(".floor-tab").forEach((el, i) => {
+          el.classList.toggle("active", i === idx);
+        });
+        const floor = window._mapFloors?.[idx];
+        const floorTables = (window._tables || []).filter(
+          (t) => t.floorId === floor?.id || (!t.floorId && (floor?.floorIndex === 1 || idx === 0))
+        );
+        const sectors = [...new Set(floorTables.map((t) => t.sector).filter(Boolean))];
+        const legend = document.querySelector(".sector-legend");
+        if (legend) {
+          legend.innerHTML = sectors.map((s) => `<span>📍 ${esc(s)}</span>`).join("");
+        }
       }
 
       function notifLoadJson(key, fallback) {
@@ -1411,7 +1459,7 @@
             const cid = state.params.clubId;
             const eid = state.params.eventId;
             const onPick = (tid) => `wizardGo(4,{clubId:'${cid}',eventId:'${eid}',tableId:'${tid}'})`;
-            const { mapBlock, emptyHint } = buildEventMapHtml(data.event, data.tables, onPick);
+            const { mapBlock, emptyHint } = buildEventMapHtml(data.event, data.tables, onPick, data.floors);
             body.innerHTML = `
               <button type="button" class="ghost btn-sm k-back" onclick="wizardGo(2,{clubId:'${cid}'})">← Cambiar fecha</button>
               <div class="k-page-head"><h1>${esc(data.event.name)}</h1><p>Paso 3 de 4 · Tocá una mesa disponible.</p></div>
@@ -1911,7 +1959,7 @@
           const cid = state.params.club;
           const eid = state.params.id;
           const onPick = (tid) => `wizardGo(4,{clubId:'${cid}',eventId:'${eid}',tableId:'${tid}'})`;
-          const { mapBlock, emptyHint } = buildEventMapHtml(data.event, data.tables, onPick);
+          const { mapBlock, emptyHint } = buildEventMapHtml(data.event, data.tables, onPick, data.floors);
           const header = `
             <button type="button" class="ghost btn-sm k-back" onclick="go('club',{id:'${cid}'})">← Volver</button>
             <div class="section-title" style="margin-top:14px">${esc(data.event.name)}</div>

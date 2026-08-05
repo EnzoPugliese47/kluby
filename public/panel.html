@@ -402,6 +402,14 @@
       }
       .designer-map.tpl-preview { max-height: 320px; margin-top: 8px; }
       .designer-map.tpl-preview.default-canvas { max-width: 100%; }
+      .floor-tabs-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+      .floor-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+      .floor-tab {
+        padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border);
+        background: rgba(255,255,255,0.04); color: var(--muted); font-size: 12px; cursor: pointer;
+      }
+      .floor-tab.active { border-color: rgba(34,211,238,0.5); color: var(--text); background: rgba(34,211,238,0.12); }
+      .floor-tab.add { border-style: dashed; color: var(--accent); }
       .event-setup-preview { margin-top: 12px; margin-bottom: 4px; }
       .event-setup-preview .role-pill { display: inline-block; margin-bottom: 8px; }
       .canvas-label {
@@ -2347,11 +2355,18 @@
           const tpl = await api("/clubs/" + clubId + "/template");
           _designer = {
             isTemplate: true,
+            isDraft: false,
             eventId: null,
             name: name + " (base)",
             clubId,
-            bg: tpl.floorMapUrl,
-            tables: tpl.tables.map((t) => ({ ...t, status: "AVAILABLE" })),
+            floors: [{
+              id: null,
+              floorIndex: 1,
+              name: defaultFloorName(1),
+              backgroundImage: tpl.floorMapUrl,
+              tables: tpl.tables.map((t) => ({ ...t, status: "AVAILABLE" })),
+            }],
+            activeFloor: 0,
           };
           renderDesigner();
         } catch (e) {
@@ -2506,10 +2521,29 @@
         return { ...t, id, status: "AVAILABLE" };
       }
 
-      function syncDraftFromSource(tables, products, bg) {
-        _pendingEventTables = (tables || []).map(tableToPending);
+      function syncDraftFromSource(tables, products, bg, floors) {
+        if (floors && floors.length) {
+          _pendingEventFloors = floors.map((f) => ({
+            floorIndex: f.floorIndex,
+            name: f.name || defaultFloorName(f.floorIndex),
+            backgroundImage: f.backgroundImage ?? (f.floorIndex === 1 ? bg : null),
+            tables: (tables || [])
+              .filter((t) => t.floorId === f.id || (!t.floorId && f.floorIndex === 1))
+              .map(tableToPending),
+          }));
+        } else {
+          _pendingEventFloors = [{
+            floorIndex: 1,
+            name: defaultFloorName(1),
+            backgroundImage: bg || null,
+            tables: (tables || []).map(tableToPending),
+          }];
+        }
+        _pendingEventTables = _pendingEventFloors.flatMap((f) =>
+          f.tables.map((t) => ({ ...t, floorIndex: f.floorIndex }))
+        );
         _pendingEventBottles = (products || []).map(productToPending);
-        if (!_eventBgManual) _eventBg = bg || null;
+        if (!_eventBgManual) _eventBg = _pendingEventFloors[0]?.backgroundImage || bg || null;
         const list = document.getElementById("ev-bottles-list");
         if (list) list.innerHTML = renderPendingBottlesHtml();
       }
@@ -2533,7 +2567,7 @@
           return;
         }
         wrap.innerHTML = `
-          <span class="role-pill">${esc(sourceLabel)} · ${_pendingEventTables.length} mesa${_pendingEventTables.length === 1 ? "" : "s"} · ${_pendingEventBottles.length} producto${_pendingEventBottles.length === 1 ? "" : "s"}</span>
+          <span class="role-pill">${esc(sourceLabel)} · ${_pendingEventFloors.length} piso${_pendingEventFloors.length === 1 ? "" : "s"} · ${_pendingEventTables.length} mesa${_pendingEventTables.length === 1 ? "" : "s"} · ${_pendingEventBottles.length} producto${_pendingEventBottles.length === 1 ? "" : "s"}</span>
           ${templateMapHtml(_eventBg, _pendingEventTables, "tpl-preview")}
           ${renderEventPreviewControls()}`;
       }
@@ -2582,20 +2616,36 @@
           eventId: null,
           clubId,
           name: document.getElementById("ev-name")?.value?.trim() || "Nuevo evento",
-          bg: _eventBg,
-          tables: _pendingEventTables.map(pendingTableToDesigner),
+          floors: (_pendingEventFloors || []).map((f) => ({
+            id: "f" + f.floorIndex,
+            floorIndex: f.floorIndex,
+            name: f.name || defaultFloorName(f.floorIndex),
+            backgroundImage: f.backgroundImage,
+            tables: (f.tables || []).map((t) => pendingTableToDesigner({ ...t, _localId: t._localId || ("t" + Math.random().toString(36).slice(2, 8)) })),
+          })),
+          activeFloor: 0,
         };
+        if (!_designer.floors.length) {
+          _designer.floors = [{
+            id: "f1",
+            floorIndex: 1,
+            name: defaultFloorName(1),
+            backgroundImage: _eventBg,
+            tables: _pendingEventTables.map(pendingTableToDesigner),
+          }];
+        }
         document.getElementById("modal-content").classList.add("wide");
         renderDesigner();
       }
 
       function addLocalBulkTables(sector, count, price, capacity, consumptionPercent, depositPercent) {
-        let nextNum = _designer.tables.reduce(
+        const cur = designerCur();
+        let nextNum = cur.tables.reduce(
           (max, t) => Math.max(max, parseInt(String(t.label).split(" ").pop(), 10) || 0),
           0
         );
         const sectors = [
-          ...new Set(_designer.tables.map((t) => t.sector).filter(Boolean)),
+          ...new Set(cur.tables.map((t) => t.sector).filter(Boolean)),
         ];
         const sectorIndex = sectors.includes(sector)
           ? sectors.indexOf(sector)
@@ -2608,7 +2658,7 @@
           const col = i % cols;
           const row = Math.floor(i / cols);
           const id = "t" + Date.now() + "-" + i;
-          _designer.tables.push({
+          cur.tables.push({
             id,
             _localId: id,
             label: `Mesa ${nextNum}`,
@@ -2679,6 +2729,7 @@
           let tables = [];
           let products = [];
           let bg = null;
+          let floors = null;
 
           if (setup === "club") {
             if (!clubId) {
@@ -2707,15 +2758,20 @@
             tables = avail.tables || [];
             products = prods || [];
             bg = avail.event?.backgroundImage || null;
+            floors = avail.floors || null;
           }
 
           _eventBgManual = false;
-          syncDraftFromSource(tables, products, bg);
+          syncDraftFromSource(tables, products, bg, floors);
           renderEventPreviewMap();
         } catch (e) {
           if (gen !== _eventPreviewGen) return;
           wrap.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
         }
+      }
+
+      function defaultFloorName(idx) {
+        return "Piso " + idx;
       }
 
       function onEventPastCopyChange() {
@@ -2737,6 +2793,7 @@
           eventBg: _eventBg,
           pendingBottles: _pendingEventBottles.map((b) => ({ ...b })),
           pendingTables: _pendingEventTables.map((t) => ({ ...t })),
+          pendingFloors: _pendingEventFloors.map((f) => ({ ...f, tables: f.tables.map((t) => ({ ...t })) })),
           eventBgManual: _eventBgManual,
           eventFlyer: _eventFlyer,
           eventFlyerCleared: _eventFlyerCleared,
@@ -2815,6 +2872,8 @@
         _eventFlyerCleared = draft?.eventFlyerCleared ?? false;
         if (draft?.pendingBottles) _pendingEventBottles = draft.pendingBottles;
         else if (!editing) _pendingEventBottles = [];
+        if (draft?.pendingFloors) _pendingEventFloors = draft.pendingFloors;
+        else if (!editing) _pendingEventFloors = [{ floorIndex: 1, name: defaultFloorName(1), backgroundImage: null, tables: [] }];
         if (draft?.pendingTables) _pendingEventTables = draft.pendingTables;
         else if (!editing) _pendingEventTables = [];
 
@@ -2971,6 +3030,21 @@
               body.copyFromEventId = copyFrom;
             }
             body.useDraftLayout = true;
+            body.draftFloors = (_pendingEventFloors || []).map((f) => ({
+              floorIndex: f.floorIndex,
+              name: f.name,
+              backgroundImage: f.backgroundImage ?? null,
+              tables: (f.tables || []).map((t) => ({
+                label: t.label,
+                sector: t.sector || null,
+                capacity: t.capacity,
+                price: t.price,
+                consumptionPercent: t.consumptionPercent ?? 100,
+                depositPercent: t.depositPercent ?? 10,
+                posX: t.posX,
+                posY: t.posY,
+              })),
+            }));
             body.draftTables = _pendingEventTables.map((t) => ({
               label: t.label,
               sector: t.sector || null,
@@ -2997,6 +3071,7 @@
             toast(parts.length ? `Evento creado · ${parts.join(" · ")}` : "Evento creado", "ok");
             _pendingEventBottles = [];
             _pendingEventTables = [];
+            _pendingEventFloors = [{ floorIndex: 1, name: "Piso 1", backgroundImage: null, tables: [] }];
             _eventFlyer = null;
             _eventFlyerCleared = false;
             _eventBgManual = false;
@@ -3230,7 +3305,208 @@
       }
 
       // ---------- DISEÑADOR DE MESAS ----------
-      let _designer = { isTemplate: false, eventId: null, name: "", clubId: null, bg: null, tables: [] };
+      const MAX_EVENT_FLOORS = 3;
+      let _designer = { isTemplate: false, eventId: null, name: "", clubId: null, floors: [], activeFloor: 0 };
+
+      function designerEnsureFloors() {
+        if (_designer.isTemplate) {
+          if (!_designer.floors?.length) {
+            _designer.floors = [{
+              id: null,
+              floorIndex: 1,
+              name: defaultFloorName(1),
+              backgroundImage: _designer.bg ?? null,
+              tables: _designer.tables ?? [],
+            }];
+            _designer.activeFloor = 0;
+          }
+          return;
+        }
+        if (!_designer.floors?.length) {
+          _designer.floors = [{
+            id: null,
+            floorIndex: 1,
+            name: defaultFloorName(1),
+            backgroundImage: null,
+            tables: [],
+          }];
+          _designer.activeFloor = 0;
+        }
+      }
+
+      function designerCur() {
+        designerEnsureFloors();
+        return _designer.floors[_designer.activeFloor ?? 0];
+      }
+
+      function designerTablesFromApi(allTables, floors) {
+        return (floors || []).map((f) => ({
+          id: f.id,
+          floorIndex: f.floorIndex,
+          name: f.name || defaultFloorName(f.floorIndex),
+          backgroundImage: f.backgroundImage,
+          tables: (allTables || []).filter(
+            (t) => t.floorId === f.id || (!t.floorId && f.floorIndex === 1)
+          ),
+        }));
+      }
+
+      function designerSwitchFloor(idx) {
+        designerEnsureFloors();
+        if (idx < 0 || idx >= _designer.floors.length) return;
+        _designer.activeFloor = idx;
+        renderDesigner();
+      }
+
+      async function designerAddFloor() {
+        if (_designer.isTemplate) return;
+        designerEnsureFloors();
+        if (_designer.floors.length >= MAX_EVENT_FLOORS) {
+          toast("Máximo " + MAX_EVENT_FLOORS + " pisos por evento", "err");
+          return;
+        }
+        if (_designer.isDraft) {
+          const nextIdx = _designer.floors.length + 1;
+          _designer.floors.push({
+            id: "f" + Date.now(),
+            floorIndex: nextIdx,
+            name: defaultFloorName(nextIdx),
+            backgroundImage: null,
+            tables: [],
+          });
+          _designer.activeFloor = _designer.floors.length - 1;
+          renderDesigner();
+          return;
+        }
+        try {
+          const floor = await api("/events/" + _designer.eventId + "/floors", {
+            method: "POST",
+            body: JSON.stringify({ name: defaultFloorName(_designer.floors.length + 1) }),
+          });
+          _designer.floors.push({
+            id: floor.id,
+            floorIndex: floor.floorIndex,
+            name: floor.name,
+            backgroundImage: floor.backgroundImage,
+            tables: [],
+          });
+          _designer.activeFloor = _designer.floors.length - 1;
+          renderDesigner();
+          toast(floor.name + " agregado", "ok");
+        } catch (e) { toast(e.message, "err"); }
+      }
+
+      async function designerRemoveFloor() {
+        if (_designer.isTemplate) return;
+        const cur = designerCur();
+        if (!cur || cur.floorIndex === 1) {
+          toast("No se puede eliminar el piso principal", "err");
+          return;
+        }
+        if (!confirm("¿Eliminar " + cur.name + " y todas sus mesas?")) return;
+        if (_designer.isDraft) {
+          _designer.floors = _designer.floors.filter((f) => f.floorIndex !== cur.floorIndex);
+          _designer.activeFloor = Math.max(0, _designer.activeFloor - 1);
+          renderDesigner();
+          return;
+        }
+        try {
+          await api("/events/" + _designer.eventId + "/floors/" + cur.id, { method: "DELETE" });
+          _designer.floors = _designer.floors.filter((f) => f.id !== cur.id);
+          _designer.activeFloor = Math.min(_designer.activeFloor, _designer.floors.length - 1);
+          renderDesigner();
+          toast("Piso eliminado", "ok");
+        } catch (e) { toast(e.message, "err"); }
+      }
+
+      async function designerUploadMap(input) {
+        const file = input?.files?.[0];
+        if (!file) return;
+        input.value = "";
+        try {
+          const dataUrl = await new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result);
+            r.onerror = reject;
+            r.readAsDataURL(file);
+          });
+          const res = await api("/uploads/map", { method: "POST", body: JSON.stringify({ image: dataUrl }) });
+          const cur = designerCur();
+          cur.backgroundImage = res.url;
+          if (_designer.isDraft) {
+            if (cur.floorIndex === 1) {
+              _eventBg = res.url;
+              _eventBgManual = true;
+            }
+            renderDesigner();
+            toast("Plano cargado", "ok");
+            return;
+          }
+          if (_designer.isTemplate) {
+            await api("/clubs/" + _designer.clubId + "/template", {
+              method: "PATCH",
+              body: JSON.stringify({ floorMapUrl: res.url }),
+            });
+          } else if (cur.id) {
+            await api("/events/" + _designer.eventId + "/floors/" + cur.id, {
+              method: "PATCH",
+              body: JSON.stringify({ backgroundImage: res.url }),
+            });
+          }
+          renderDesigner();
+          toast("Plano cargado", "ok");
+        } catch (e) { toast(e.message, "err"); }
+      }
+
+      function designerFloorTabsHtml() {
+        if (_designer.isTemplate) return "";
+        designerEnsureFloors();
+        const tabs = _designer.floors.map((f, i) =>
+          `<button type="button" class="floor-tab${i === _designer.activeFloor ? " active" : ""}" onclick="designerSwitchFloor(${i})">${esc(f.name)} · ${f.tables.length} mesa${f.tables.length === 1 ? "" : "s"}</button>`
+        ).join("");
+        const addBtn = _designer.floors.length < MAX_EVENT_FLOORS
+          ? `<button type="button" class="floor-tab add" onclick="designerAddFloor()">+ Piso</button>`
+          : "";
+        const removeBtn = designerCur()?.floorIndex > 1
+          ? `<button type="button" class="btn-sm btn-danger" onclick="designerRemoveFloor()">Quitar piso</button>`
+          : "";
+        return `<div class="floor-tabs-row"><div class="floor-tabs">${tabs}${addBtn}</div>${removeBtn}</div>`;
+      }
+
+      function pendingFloorsFromDesigner() {
+        designerEnsureFloors();
+        return _designer.floors.map((f) => ({
+          floorIndex: f.floorIndex,
+          name: f.name,
+          backgroundImage: f.backgroundImage,
+          tables: f.tables.map((t) => ({
+            label: t.label,
+            sector: t.sector || null,
+            capacity: t.capacity,
+            price: Number(t.price),
+            consumptionPercent: t.consumptionPercent ?? 100,
+            depositPercent: t.depositPercent ?? 10,
+            posX: Number(t.posX),
+            posY: Number(t.posY),
+          })),
+        }));
+      }
+
+      function syncPendingFromDesignerFloors() {
+        const floors = pendingFloorsFromDesigner();
+        _pendingEventFloors = floors;
+        _pendingEventTables = floors.flatMap((f) =>
+          f.tables.map((t) => ({
+            _localId: "t" + Math.random().toString(36).slice(2, 10),
+            floorIndex: f.floorIndex,
+            ...t,
+            sector: t.sector || "",
+          }))
+        );
+        _eventBg = floors[0]?.backgroundImage ?? null;
+      }
+
+      let _pendingEventFloors = [{ floorIndex: 1, name: "Piso 1", backgroundImage: null, tables: [] }];
       function shortLabel(l) { return String(l).split(" ").pop(); }
 
       async function openDesigner(eventId, eventName) {
@@ -3238,26 +3514,24 @@
         document.getElementById("modal-content").classList.add("wide");
         try {
           const d = await api("/events/" + eventId + "/availability");
-          _designer = { isTemplate: false, eventId, name: eventName, clubId: d.event.clubId, bg: d.event.backgroundImage, tables: d.tables };
+          _designer = {
+            isTemplate: false,
+            isDraft: false,
+            eventId,
+            name: eventName,
+            clubId: d.event.clubId,
+            floors: designerTablesFromApi(d.tables, d.floors),
+            activeFloor: 0,
+          };
           renderDesigner();
         } catch (e) { openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeDesigner()">Cerrar</button>`); }
       }
       function closeDesigner() {
         document.getElementById("modal-content").classList.remove("wide");
         if (_designer.isDraft) {
-          _pendingEventTables = _designer.tables.map((t) => ({
-            _localId: t._localId || t.id,
-            label: t.label,
-            sector: t.sector || "",
-            capacity: t.capacity,
-            price: Number(t.price),
-            consumptionPercent: t.consumptionPercent ?? 100,
-            depositPercent: t.depositPercent ?? 10,
-            posX: Number(t.posX),
-            posY: Number(t.posY),
-          }));
-          _eventBg = _designer.bg;
+          syncPendingFromDesignerFloors();
           if (_eventFormDraft) {
+            _eventFormDraft.pendingFloors = _pendingEventFloors.map((f) => ({ ...f, tables: f.tables.map((t) => ({ ...t })) }));
             _eventFormDraft.pendingTables = _pendingEventTables.map((t) => ({ ...t }));
             _eventFormDraft.eventBg = _eventBg;
             _eventFormDraft.eventBgManual = _eventBgManual;
@@ -3271,21 +3545,28 @@
 
       function renderDesigner() {
         const d = _designer;
-        const mapClass = d.bg ? "designer-map has-image" : "designer-map default-canvas";
-        const pins = d.tables.map(dpin).join("");
-        const mapInner = d.bg
-          ? `<img id="dmap-img" src="${esc(d.bg)}" alt="plano" onerror="this.style.display='none'" />${pins}`
-          : `<span class="canvas-label">Lienzo 1725 × 2490</span>${pins}`;
+        const cur = designerCur();
+        const bg = cur.backgroundImage;
+        const tables = cur.tables;
+        const mapClass = bg ? "designer-map has-image" : "designer-map default-canvas";
+        const pins = tables.map(dpin).join("");
+        const mapInner = bg
+          ? `<img id="dmap-img" src="${esc(bg)}" alt="plano" onerror="this.style.display='none'" />${pins}`
+          : `<span class="canvas-label">Lienzo 1725 × 2490 · ${esc(cur.name)}</span>${pins}`;
         const title = d.isDraft ? "Mesas del evento (borrador)" : d.isTemplate ? "Mesas base" : "Diseñar mesas";
         openModal(`
           <h3>${title} · ${esc(d.name)}</h3>
-          <p class="sub">${d.isDraft ? "Editá mesas antes de crear el evento. Los cambios se guardan al volver al formulario." : d.isTemplate ? "Layout de mesas que se copia a eventos nuevos." : d.bg ? "Arrastrá las mesas sobre el plano." : "Sin imagen de fondo: usá el lienzo predeterminado. Arrastrá o agregá mesas."}</p>
+          <p class="sub">${d.isDraft ? "Editá mesas y pisos antes de crear el evento." : d.isTemplate ? "Layout de mesas que se copia a eventos nuevos." : bg ? "Arrastrá las mesas sobre el plano del piso activo." : "Sin imagen: usá el lienzo predeterminado por piso."}</p>
+          ${designerFloorTabsHtml()}
           <div class="btn-row" style="margin-bottom:12px;flex-wrap:wrap">
             <button class="btn-sm btn-accent" onclick="openBulkSectorForm()">+ Agregar sector</button>
             <button class="btn-sm" onclick="openSingleTableForm()">+ Agregar mesa</button>
-            <span class="role-pill" style="align-self:center">${d.tables.length} mesas</span>
-            ${d.bg ? `<button type="button" class="btn-sm btn-danger" onclick="clearDesignerMap()">Quitar plano</button>` : ""}
-            ${d.tables.length ? `<button type="button" class="btn-sm btn-danger" onclick="deleteAllDesignerTables()">Eliminar todas las mesas</button>` : ""}
+            <label class="btn-sm ghost" style="cursor:pointer;margin:0;display:inline-flex;align-items:center">
+              <input type="file" accept="image/*" style="display:none" onchange="designerUploadMap(this)" /> Subir plano
+            </label>
+            <span class="role-pill" style="align-self:center">${tables.length} mesas en ${esc(cur.name)}</span>
+            ${bg ? `<button type="button" class="btn-sm btn-danger" onclick="clearDesignerMap()">Quitar plano</button>` : ""}
+            ${tables.length ? `<button type="button" class="btn-sm btn-danger" onclick="deleteAllDesignerTables()">Eliminar mesas del piso</button>` : ""}
           </div>
           <div class="${mapClass}" id="dmap">${mapInner}</div>
           <button class="btn-full ghost" style="margin-top:14px" onclick="closeDesigner()">Listo</button>`);
@@ -3294,12 +3575,15 @@
       }
 
       async function clearDesignerMap() {
-        if (!confirm("¿Quitar la imagen del plano?")) return;
+        if (!confirm("¿Quitar la imagen del plano de este piso?")) return;
+        const cur = designerCur();
         try {
           if (_designer.isDraft) {
-            _designer.bg = null;
-            _eventBg = null;
-            _eventBgManual = true;
+            cur.backgroundImage = null;
+            if (cur.floorIndex === 1) {
+              _eventBg = null;
+              _eventBgManual = true;
+            }
             renderDesigner();
             toast("Plano eliminado", "ok");
             return;
@@ -3309,32 +3593,34 @@
               method: "PATCH",
               body: JSON.stringify({ floorMapUrl: null }),
             });
-          } else {
-            await api("/events/" + _designer.eventId, {
+            cur.backgroundImage = null;
+          } else if (cur.id) {
+            await api("/events/" + _designer.eventId + "/floors/" + cur.id, {
               method: "PATCH",
               body: JSON.stringify({ backgroundImage: null }),
             });
+            cur.backgroundImage = null;
           }
-          _designer.bg = null;
           renderDesigner();
           toast("Plano eliminado", "ok");
         } catch (e) { toast(e.message, "err"); }
       }
 
       async function deleteAllDesignerTables() {
-        if (!confirm("¿Eliminar TODAS las mesas del plano?\nNo se puede deshacer.")) return;
+        if (!confirm("¿Eliminar TODAS las mesas de este piso?\nNo se puede deshacer.")) return;
+        const cur = designerCur();
         try {
           if (_designer.isDraft) {
-            _designer.tables = [];
+            cur.tables = [];
             renderDesigner();
             toast("Mesas eliminadas", "ok");
             return;
           }
           const url = _designer.isTemplate
             ? "/clubs/" + _designer.clubId + "/template/tables"
-            : "/events/" + _designer.eventId + "/tables";
+            : "/events/" + _designer.eventId + "/tables" + (cur.id ? "?floorId=" + encodeURIComponent(cur.id) : "");
           const res = await api(url, { method: "DELETE" });
-          _designer.tables = [];
+          cur.tables = [];
           renderDesigner();
           toast(res.deleted ? `${res.deleted} mesas eliminadas` : "No había mesas para eliminar", "ok");
         } catch (e) { toast(e.message, "err"); }
@@ -3379,12 +3665,12 @@
                 const px = parseFloat(pin.dataset.x);
                 const py = parseFloat(pin.dataset.y);
                 if (_designer.isDraft) {
-                  const t = _designer.tables.find((x) => String(x.id) === pin.dataset.id);
+                  const t = designerCur().tables.find((x) => String(x.id) === pin.dataset.id);
                   if (t) { t.posX = px; t.posY = py; }
                 } else {
                   try {
                     await api("/tables/" + pin.dataset.id, { method: "PATCH", body: JSON.stringify({ posX: px, posY: py }) });
-                    const t = _designer.tables.find((x) => x.id === pin.dataset.id);
+                    const t = designerCur().tables.find((x) => x.id === pin.dataset.id);
                     if (t) { t.posX = px; t.posY = py; }
                   } catch (err) { toast(err.message, "err"); }
                 }
@@ -3402,7 +3688,7 @@
         });
       }
       function designerSectors() {
-        const set = new Set(_designer.tables.map((t) => (t.sector || "General").trim()).filter(Boolean));
+        const set = new Set(designerCur().tables.map((t) => (t.sector || "General").trim()).filter(Boolean));
         return [...set].sort((a, b) => a.localeCompare(b, "es"));
       }
       function sectorOptionsHtml(selected) {
@@ -3452,6 +3738,7 @@
           return;
         }
         try {
+          const cur = designerCur();
           if (_designer.isDraft) {
             addLocalBulkTables(sector, count, price, capacity, consumptionPercent, depositPercent);
             renderDesigner();
@@ -3463,11 +3750,14 @@
             : "/events/" + _designer.eventId + "/tables/bulk";
           const res = await api(bulkUrl, {
             method: "POST",
-            body: JSON.stringify({ sector, count, price, capacity, consumptionPercent, depositPercent }),
+            body: JSON.stringify({
+              sector, count, price, capacity, consumptionPercent, depositPercent,
+              ...(!_designer.isTemplate && cur.id ? { floorId: cur.id } : {}),
+            }),
           });
           for (const t of res.tables) {
             t.status = "AVAILABLE";
-            _designer.tables.push(t);
+            cur.tables.push(t);
           }
           renderDesigner();
           toast(res.count + " mesas creadas en " + sector, "ok");
@@ -3480,7 +3770,7 @@
           <h3>Agregar una mesa</h3>
           <p class="sub">Por si te olvidaste una mesa o querés sumar una extra.</p>
           <label style="margin-top:0">Nombre / etiqueta</label>
-          <input id="sg-label" value="Mesa ${_designer.tables.length + 1}" />
+          <input id="sg-label" value="Mesa ${designerCur().tables.length + 1}" />
           <label>Sector</label>
           <select id="sg-sector-pick" onchange="document.getElementById('sg-sector-new').style.display=this.value?'none':'block'">
             ${sectorOptionsHtml(defaultSector)}
@@ -3515,9 +3805,10 @@
           return;
         }
         try {
+          const cur = designerCur();
           if (_designer.isDraft) {
             const id = "t" + Date.now();
-            _designer.tables.push({
+            cur.tables.push({
               id,
               _localId: id,
               label,
@@ -3539,11 +3830,11 @@
             body: JSON.stringify({
               label, sector, capacity, price, consumptionPercent, depositPercent,
               posX: 50, posY: 50,
-              ...(_designer.isTemplate ? {} : { eventId: _designer.eventId }),
+              ...(_designer.isTemplate ? {} : { eventId: _designer.eventId, floorId: cur.id }),
             }),
           });
           t.status = "AVAILABLE";
-          _designer.tables.push(t);
+          cur.tables.push(t);
           renderDesigner();
           toast("Mesa agregada (arrastrala a su lugar)", "ok");
         } catch (e) { err.textContent = e.message; }
@@ -3552,7 +3843,7 @@
         openSingleTableForm();
       }
       function editDesignerTable(id) {
-        const t = _designer.tables.find((x) => x.id === id);
+        const t = designerCur().tables.find((x) => x.id === id);
         if (!t) return;
         openModal(`
           <h3>Editar mesa</h3>
@@ -3590,8 +3881,9 @@
           return;
         }
         try {
+          const cur = designerCur();
           if (_designer.isDraft) {
-            const t = _designer.tables.find((x) => String(x.id) === String(id));
+            const t = cur.tables.find((x) => String(x.id) === String(id));
             if (t) {
               t.label = label;
               t.sector = sector;
@@ -3608,7 +3900,7 @@
             method: "PATCH",
             body: JSON.stringify({ label, sector, price, capacity, consumptionPercent, depositPercent }),
           });
-          const t = _designer.tables.find((x) => x.id === id);
+          const t = cur.tables.find((x) => x.id === id);
           if (t) {
             t.label = upd.label;
             t.sector = upd.sector;
@@ -3625,14 +3917,15 @@
       async function deleteDesignerTable(id) {
         if (!confirm("¿Eliminar esta mesa del plano?")) return;
         try {
+          const cur = designerCur();
           if (_designer.isDraft) {
-            _designer.tables = _designer.tables.filter((x) => String(x.id) !== String(id));
+            cur.tables = cur.tables.filter((x) => String(x.id) !== String(id));
             renderDesigner();
             toast("Mesa eliminada", "ok");
             return;
           }
           await api("/tables/" + id, { method: "DELETE" });
-          _designer.tables = _designer.tables.filter((x) => x.id !== id);
+          cur.tables = cur.tables.filter((x) => x.id !== id);
           renderDesigner();
           toast("Mesa eliminada", "ok");
         } catch (e) { toast(e.message, "err"); }

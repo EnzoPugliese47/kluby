@@ -59,6 +59,7 @@ export const ModelName = {
   PasswordResetToken: 'PasswordResetToken',
   Club: 'Club',
   ClubTable: 'ClubTable',
+  EventFloor: 'EventFloor',
   EventNight: 'EventNight',
   Reservation: 'Reservation',
   ReservationGuest: 'ReservationGuest',
@@ -215,10 +216,24 @@ export const ClubTableScalarFieldEnum = {
   posY: 'posY',
   isActive: 'isActive',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  floorId: 'floorId'
 } as const
 
 export type ClubTableScalarFieldEnum = (typeof ClubTableScalarFieldEnum)[keyof typeof ClubTableScalarFieldEnum]
+
+
+export const EventFloorScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  floorIndex: 'floorIndex',
+  name: 'name',
+  backgroundImage: 'backgroundImage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventFloorScalarFieldEnum = (typeof EventFloorScalarFieldEnum)[keyof typeof EventFloorScalarFieldEnum]
 
 
 export const EventNightScalarFieldEnum = {

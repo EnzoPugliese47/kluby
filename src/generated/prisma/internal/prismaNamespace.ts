@@ -392,6 +392,7 @@ export const ModelName = {
   PasswordResetToken: 'PasswordResetToken',
   Club: 'Club',
   ClubTable: 'ClubTable',
+  EventFloor: 'EventFloor',
   EventNight: 'EventNight',
   Reservation: 'Reservation',
   ReservationGuest: 'ReservationGuest',
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "clubMember" | "clubJoinInvite" | "eventInvite" | "eventInviteGuest" | "passwordResetToken" | "club" | "clubTable" | "eventNight" | "reservation" | "reservationGuest" | "payment" | "product" | "order" | "orderItem" | "loyaltyTransaction" | "chatMessage" | "storedAsset"
+    modelProps: "user" | "clubMember" | "clubJoinInvite" | "eventInvite" | "eventInviteGuest" | "passwordResetToken" | "club" | "clubTable" | "eventFloor" | "eventNight" | "reservation" | "reservationGuest" | "payment" | "product" | "order" | "orderItem" | "loyaltyTransaction" | "chatMessage" | "storedAsset"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1010,6 +1011,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ClubTableCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ClubTableCountAggregateOutputType> | number
+        }
+      }
+    }
+    EventFloor: {
+      payload: Prisma.$EventFloorPayload<ExtArgs>
+      fields: Prisma.EventFloorFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EventFloorFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventFloorPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EventFloorFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventFloorPayload>
+        }
+        findFirst: {
+          args: Prisma.EventFloorFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventFloorPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EventFloorFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventFloorPayload>
+        }
+        findMany: {
+          args: Prisma.EventFloorFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventFloorPayload>[]
+        }
+        create: {
+          args: Prisma.EventFloorCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventFloorPayload>
+        }
+        createMany: {
+          args: Prisma.EventFloorCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EventFloorCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventFloorPayload>[]
+        }
+        delete: {
+          args: Prisma.EventFloorDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventFloorPayload>
+        }
+        update: {
+          args: Prisma.EventFloorUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventFloorPayload>
+        }
+        deleteMany: {
+          args: Prisma.EventFloorDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EventFloorUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EventFloorUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventFloorPayload>[]
+        }
+        upsert: {
+          args: Prisma.EventFloorUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EventFloorPayload>
+        }
+        aggregate: {
+          args: Prisma.EventFloorAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEventFloor>
+        }
+        groupBy: {
+          args: Prisma.EventFloorGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventFloorGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EventFloorCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EventFloorCountAggregateOutputType> | number
         }
       }
     }
@@ -1920,10 +1995,24 @@ export const ClubTableScalarFieldEnum = {
   posY: 'posY',
   isActive: 'isActive',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  floorId: 'floorId'
 } as const
 
 export type ClubTableScalarFieldEnum = (typeof ClubTableScalarFieldEnum)[keyof typeof ClubTableScalarFieldEnum]
+
+
+export const EventFloorScalarFieldEnum = {
+  id: 'id',
+  eventId: 'eventId',
+  floorIndex: 'floorIndex',
+  name: 'name',
+  backgroundImage: 'backgroundImage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EventFloorScalarFieldEnum = (typeof EventFloorScalarFieldEnum)[keyof typeof EventFloorScalarFieldEnum]
 
 
 export const EventNightScalarFieldEnum = {
@@ -2521,6 +2610,7 @@ export type GlobalOmitConfig = {
   passwordResetToken?: Prisma.PasswordResetTokenOmit
   club?: Prisma.ClubOmit
   clubTable?: Prisma.ClubTableOmit
+  eventFloor?: Prisma.EventFloorOmit
   eventNight?: Prisma.EventNightOmit
   reservation?: Prisma.ReservationOmit
   reservationGuest?: Prisma.ReservationGuestOmit

@@ -24,10 +24,12 @@ import { copyEventLayoutFrom, type EventLayoutCopyResult } from "../utils/eventL
 import { applyClubDefaultsToEvent } from "../utils/clubDefaults";
 import {
   applyDraftLayoutToEvent,
+  parseDraftFloors,
   parseDraftProducts,
   parseDraftTables,
 } from "../utils/eventDraft";
 import { parseClubZone } from "../utils/clubZones";
+import { ensureEventFloors } from "../utils/eventFloors";
 import { countAvailableTablesByEvent } from "../utils/tableAvailability";
 
 const PAYMENT_OPTION_VALUES = Object.values(PaymentOption);
@@ -53,6 +55,7 @@ export const createEvent = async (
       body.useDraftLayout === true || body.useDraftLayout === "true";
     const draftTables = parseDraftTables(body["draftTables"]);
     const draftProducts = parseDraftProducts(body["draftProducts"]);
+    const draftFloors = parseDraftFloors(body["draftFloors"]);
 
     const date = new Date(dateRaw);
     if (Number.isNaN(date.getTime())) {
@@ -163,6 +166,7 @@ export const createEvent = async (
     let layoutCopy: EventLayoutCopyResult | null = null;
     if (useDraftLayout) {
       layoutCopy = await applyDraftLayoutToEvent(clubId, event.id, {
+        floors: draftFloors,
         tables: draftTables ?? [],
         products: draftProducts ?? [],
       });
@@ -170,6 +174,8 @@ export const createEvent = async (
       layoutCopy = await copyEventLayoutFrom(copyFromEventId, event.id, clubId);
     } else if (!startEmpty) {
       layoutCopy = await applyClubDefaultsToEvent(clubId, event.id);
+    } else {
+      await ensureEventFloors(event.id);
     }
 
     if (layoutCopy !== null) {
@@ -254,6 +260,21 @@ export const updateEvent = async (
     }
 
     const event = await prisma.eventNight.update({ where: { id: eventId }, data });
+
+    if (body["backgroundImage"] === null || backgroundImage !== undefined) {
+      const floors = await ensureEventFloors(eventId);
+      const floor1 = floors.find((f) => f.floorIndex === 1) ?? floors[0];
+      if (floor1) {
+        await prisma.eventFloor.update({
+          where: { id: floor1.id },
+          data: {
+            backgroundImage:
+              body["backgroundImage"] === null ? null : (backgroundImage ?? event.backgroundImage),
+          },
+        });
+      }
+    }
+
     sendSuccess(res, event);
   } catch (error) {
     next(error);
@@ -494,7 +515,8 @@ export const getEventAvailability = async (
       throw new AppError("Evento no encontrado", 404);
     }
 
-    const [tables, activeReservations] = await Promise.all([
+    const [floors, tables, activeReservations] = await Promise.all([
+      ensureEventFloors(eventId),
       prisma.clubTable.findMany({
         where: { eventId, isActive: true },
       }),
@@ -527,6 +549,7 @@ export const getEventAvailability = async (
         depositPercent: table.depositPercent,
         posX: table.posX,
         posY: table.posY,
+        floorId: table.floorId,
         status: reservation ? "RESERVED" : "AVAILABLE",
         reservation: reservation ?? null,
       };
@@ -534,6 +557,12 @@ export const getEventAvailability = async (
 
     sendSuccess(res, {
       event,
+      floors: floors.map((f) => ({
+        id: f.id,
+        floorIndex: f.floorIndex,
+        name: f.name,
+        backgroundImage: f.backgroundImage,
+      })),
       tables: map,
       mapWidth: DEFAULT_MAP_WIDTH,
       mapHeight: DEFAULT_MAP_HEIGHT,

@@ -82,6 +82,11 @@ export type Club = Prisma.ClubModel
  */
 export type ClubTable = Prisma.ClubTableModel
 /**
+ * Model EventFloor
+ * Plano/piso de un evento (hasta 3 por evento).
+ */
+export type EventFloor = Prisma.EventFloorModel
+/**
  * Model EventNight
  * Fecha/evento de un boliche. Una reserva siempre apunta a un evento concreto.
  */

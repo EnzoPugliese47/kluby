@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/appError";
+import { defaultFloorName, syncEventBackgroundFromFloor1 } from "./eventFloors";
 import type { EventLayoutCopyResult } from "./eventLayout";
 
 /** Copia plano, mesas y carta maestra del boliche a un evento recién creado. */
@@ -26,7 +27,16 @@ export async function applyClubDefaultsToEvent(
   }
 
   let backgroundCopied = false;
-  if (club.floorMapUrl && !target.backgroundImage) {
+  const floor = await prisma.eventFloor.create({
+    data: {
+      eventId: targetEventId,
+      floorIndex: 1,
+      name: defaultFloorName(1),
+      backgroundImage: club.floorMapUrl,
+    },
+  });
+
+  if (club.floorMapUrl) {
     await prisma.eventNight.update({
       where: { id: targetEventId },
       data: { backgroundImage: club.floorMapUrl },
@@ -39,6 +49,7 @@ export async function applyClubDefaultsToEvent(
       data: club.tables.map((t) => ({
         clubId,
         eventId: targetEventId,
+        floorId: floor.id,
         label: t.label,
         sector: t.sector,
         capacity: t.capacity,
@@ -69,9 +80,12 @@ export async function applyClubDefaultsToEvent(
     });
   }
 
+  await syncEventBackgroundFromFloor1(targetEventId);
+
   return {
     tablesCopied: club.tables.length,
     productsCopied: club.products.length,
     backgroundCopied,
+    floorsCopied: 1,
   };
 }

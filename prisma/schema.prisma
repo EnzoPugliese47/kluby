@@ -299,11 +299,31 @@ model ClubTable {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  floorId        String?
   club         Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
   event        EventNight?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  floor        EventFloor?   @relation(fields: [floorId], references: [id], onDelete: SetNull)
   reservations Reservation[]
 
   @@index([clubId])
+  @@index([eventId])
+  @@index([floorId])
+}
+
+/// Plano/piso de un evento (hasta 3 por evento).
+model EventFloor {
+  id              String   @id @default(uuid())
+  eventId         String
+  floorIndex      Int      // 1, 2 o 3
+  name            String   @default("Piso 1")
+  backgroundImage String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  event  EventNight  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tables ClubTable[]
+
+  @@unique([eventId, floorIndex])
   @@index([eventId])
 }
 
@@ -322,6 +342,7 @@ model EventNight {
   updatedAt  DateTime @updatedAt
 
   club         Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  floors       EventFloor[]
   tables       ClubTable[]
   reservations Reservation[]
   products     Product[]

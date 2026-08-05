@@ -277,6 +277,33 @@ body.kluby-app .floor-map {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
 
+body.kluby-app .floor-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+body.kluby-app .floor-tab {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+body.kluby-app .floor-tab.active {
+  border-color: rgba(34, 211, 238, 0.45);
+  color: var(--text);
+  background: rgba(34, 211, 238, 0.12);
+}
+
+body.kluby-app .floor-maps-wrap .floor-map-panel + .floor-map-panel {
+  margin-top: 0;
+}
+
 body.kluby-app .modal {
   background: linear-gradient(160deg, rgba(28, 28, 43, 0.98), rgba(14, 14, 22, 0.99));
   border: 1px solid rgba(255, 255, 255, 0.08);

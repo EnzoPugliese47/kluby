@@ -9,6 +9,7 @@ import {
   normalizeConsumptionPercent,
 } from "../utils/tableConsumption";
 import { tableNumberFromLabel } from "../utils/tables";
+import { resolveEventFloorId } from "../utils/eventFloors";
 import {
   asRecord,
   optionalNumber,
@@ -59,6 +60,8 @@ export const createTable = async (
     const sector = optionalString(body, "sector");
     const depositPercent = optionalNumber(body, "depositPercent");
     const eventId = optionalString(body, "eventId");
+    const floorIdRaw = optionalString(body, "floorId");
+    const floorIndexRaw = optionalNumber(body, "floorIndex");
     const consumptionPercentRaw = optionalNumber(body, "consumptionPercent");
 
     if (capacity <= 0) {
@@ -92,10 +95,20 @@ export const createTable = async (
       eventDefault
     );
 
+    let floorId: string | null = null;
+    if (eventId !== undefined) {
+      floorId = await resolveEventFloorId(
+        eventId,
+        floorIdRaw ?? null,
+        floorIndexRaw ?? null
+      );
+    }
+
     const table = await prisma.clubTable.create({
       data: {
         clubId,
         eventId: eventId ?? null,
+        floorId,
         label,
         capacity,
         posX,
@@ -132,6 +145,8 @@ export const bulkCreateTablesForEvent = async (
     const price = requireNumber(body, "price");
     const depositPercent = optionalNumber(body, "depositPercent") ?? 10;
     const consumptionPercentRaw = optionalNumber(body, "consumptionPercent");
+    const floorIdRaw = optionalString(body, "floorId");
+    const floorIndexRaw = optionalNumber(body, "floorIndex");
 
     if (count < 1 || count > 50) {
       throw new AppError("La cantidad de mesas debe estar entre 1 y 50", 400);
@@ -157,8 +172,14 @@ export const bulkCreateTablesForEvent = async (
     );
     const minConsumption = minConsumptionFromPercent(price, consumptionPercent);
 
+    const floorId = await resolveEventFloorId(
+      eventId,
+      floorIdRaw ?? null,
+      floorIndexRaw ?? null
+    );
+
     const existing = await prisma.clubTable.findMany({
-      where: { eventId, isActive: true },
+      where: { eventId, floorId, isActive: true },
       select: { label: true, sector: true },
     });
 
@@ -188,6 +209,7 @@ export const bulkCreateTablesForEvent = async (
           data: {
             clubId: event.clubId,
             eventId,
+            floorId,
             label: `Mesa ${nextNum}`,
             sector,
             capacity,
@@ -450,6 +472,10 @@ export const deleteAllEventTables = async (
 ): Promise<void> => {
   try {
     const eventId = requireParam(req.params, "eventId");
+    const floorIdQuery = optionalString(
+      asRecord(req.query as Record<string, unknown>),
+      "floorId"
+    );
 
     const event = await prisma.eventNight.findUnique({ where: { id: eventId } });
     if (event === null) {
@@ -457,7 +483,11 @@ export const deleteAllEventTables = async (
     }
 
     const tables = await prisma.clubTable.findMany({
-      where: { eventId, isActive: true },
+      where: {
+        eventId,
+        isActive: true,
+        ...(floorIdQuery ? { floorId: floorIdQuery } : {}),
+      },
       select: { id: true },
     });
     if (tables.length === 0) {
