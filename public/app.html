@@ -697,6 +697,7 @@
       function go(view, params = {}) {
         clearTimeout(homeTimer);
         clearTimeout(wzClubsTimer);
+        if (state.view === "wizard" && view !== "wizard") void releaseWizardHold();
         state.view = view;
         state.params = params;
         render();
@@ -713,22 +714,65 @@
       let _wizardTables = null;
       let _wizardEventDate = null;
       let _wizardEventId = null;
+      let _wizardHoldId = null;
+      let _wizardHoldTableId = null;
+      let _wizardHoldExpiresAt = null;
       let _alertsCache = null;
       let _alertsAt = 0;
       let _reserveSel = "DEPOSIT_ONLY";
 
       function wizardGo(step, extra = {}) {
-        const p = { ...state.params, ...extra, step: Number(step) || 1 };
+        const nextStep = Number(step) || 1;
+        if (nextStep < 4) void releaseWizardHold();
+        const p = { ...state.params, ...extra, step: nextStep };
         if (p.eventId && p.eventId !== state.params.eventId) {
           _wizardTables = null;
           _wizardEventDate = null;
           _wizardEventId = null;
         }
+        if (p.tableId && p.tableId !== state.params.tableId) void releaseWizardHold();
         const clean = { step: p.step };
         if (p.step >= 2 && p.clubId) clean.clubId = p.clubId;
         if (p.step >= 3 && p.eventId) clean.eventId = p.eventId;
         if (p.step >= 4 && p.tableId) clean.tableId = p.tableId;
         go("wizard", clean);
+      }
+
+      async function releaseWizardHold() {
+        if (!_wizardHoldId) return;
+        const id = _wizardHoldId;
+        _wizardHoldId = null;
+        _wizardHoldTableId = null;
+        _wizardHoldExpiresAt = null;
+        try {
+          await api("/reservations/" + id + "/cancel", { method: "POST" });
+        } catch { /* ya expiró o se confirmó */ }
+      }
+
+      async function ensureWizardHold(tableId, eventId) {
+        if (_wizardHoldId && _wizardHoldTableId === tableId) return _wizardHoldId;
+        await releaseWizardHold();
+        const r = await api("/reservations", {
+          method: "POST",
+          body: JSON.stringify({
+            eventId,
+            tableId,
+            hostId: state.user.id,
+            paymentOption: _reserveSel,
+            mode: "STANDARD",
+          }),
+        });
+        _wizardHoldId = r.id;
+        _wizardHoldTableId = tableId;
+        _wizardHoldExpiresAt = r.expiresAt || null;
+        return r.id;
+      }
+
+      function tableAvailableForUser(t) {
+        if (!t) return false;
+        if (t.status === "AVAILABLE") return true;
+        const hostId = t.reservation?.host?.id || t.reservation?.hostId;
+        return hostId === state.user.id && t.reservation?.status === "PENDING_PAYMENT";
       }
 
       function wizardChrome(step) {
@@ -905,17 +949,39 @@
           if (step === 4) {
             const { clubId, eventId, tableId } = state.params;
             if (!clubId || !eventId || !tableId) { wizardGo(3, { clubId, eventId }); return; }
-            if (!_wizardTables || _wizardEventId !== eventId || !_wizardEventDate) {
-              const data = await api("/events/" + eventId + "/availability");
-              if (!stillOn("wizard")) return;
-              _wizardTables = data.tables;
-              _wizardEventDate = data.event?.date || null;
-              _wizardEventId = eventId;
+            try {
+              await ensureWizardHold(tableId, eventId);
+            } catch (e) {
+              body.innerHTML = emptyHtml({
+                title: "Mesa no disponible",
+                hint: e.message || "Otro usuario está reservando esta mesa. Elegí otra.",
+                actionLabel: "← Elegir otra mesa",
+                actionOnclick: `wizardGo(3,{clubId:'${clubId}',eventId:'${eventId}'})`,
+              });
+              return;
             }
+            if (!stillOn("wizard")) return;
+            const data = await api("/events/" + eventId + "/availability");
+            if (!stillOn("wizard")) return;
+            _wizardTables = data.tables;
+            _wizardEventDate = data.event?.date || null;
+            _wizardEventId = eventId;
             const t = (_wizardTables || []).find((x) => x.id === tableId);
-            if (!t) { body.innerHTML = emptyHtml({ title: "Mesa no disponible", hint: "Esa mesa ya no está libre. Volvé al mapa y elegí otra.", actionLabel: "← Elegir otra mesa", actionOnclick: `wizardGo(3,{clubId:'${state.params.clubId}',eventId:'${eventId}'})` }); return; }
+            if (!tableAvailableForUser(t)) {
+              await releaseWizardHold();
+              body.innerHTML = emptyHtml({
+                title: "Mesa no disponible",
+                hint: "Esa mesa ya no está libre. Volvé al mapa y elegí otra.",
+                actionLabel: "← Elegir otra mesa",
+                actionOnclick: `wizardGo(3,{clubId:'${clubId}',eventId:'${eventId}'})`,
+              });
+              return;
+            }
             const deposit = Math.round(Number(t.price) * (t.depositPercent / 100));
             const minCons = num(t.minConsumption);
+            const holdHint = _wizardHoldExpiresAt
+              ? `<p class="hint" style="margin:0 0 12px;color:var(--amber)">⏱ Mesa reservada para vos · completá el pago antes de ${fdatetime(_wizardHoldExpiresAt)}</p>`
+              : "";
             _reserveSel = "DEPOSIT_ONLY";
             window._wizardTable = t;
             _wizardLoyalty = null;
@@ -943,6 +1009,7 @@
             body.innerHTML = `
               <button type="button" class="ghost btn-sm k-back" onclick="wizardGo(3,{clubId:'${clubId}',eventId:'${eventId}'})">← Cambiar mesa</button>
               <div class="k-page-head"><h1>Confirmá tu reserva</h1><p>Paso 4 de 4 · ${esc(t.label)} · ${esc(t.sector || "")}</p></div>
+              ${holdHint}
               <div class="k-wizard-pay-card">
                 <div class="reserve-info">
                   <div class="stat"><small>Mesa</small><b>${esc(t.label)}</b></div>
@@ -1009,12 +1076,22 @@
         const btn = $("reserve-btn");
         if (btn) { btn.disabled = true; btn.textContent = "Procesando..."; }
         try {
-          const r = await api("/reservations", { method: "POST", body: JSON.stringify({
-            eventId, tableId, hostId: state.user.id, paymentOption: _reserveSel, mode: "STANDARD",
-          }) });
+          let reservationId = _wizardHoldId;
+          if (!reservationId || _wizardHoldTableId !== tableId) {
+            reservationId = await ensureWizardHold(tableId, eventId);
+          }
+          if (_reserveSel) {
+            await api("/reservations/" + reservationId + "/pending", {
+              method: "PATCH",
+              body: JSON.stringify({ paymentOption: _reserveSel }),
+            });
+          }
           const payBody = { provider: "demo" };
           if (_wizardLoyalty?.pointsToUse > 0) payBody.loyaltyPointsToRedeem = _wizardLoyalty.pointsToUse;
-          const paid = await api("/reservations/" + r.id + "/pay", { method: "POST", body: JSON.stringify(payBody) });
+          const paid = await api("/reservations/" + reservationId + "/pay", { method: "POST", body: JSON.stringify(payBody) });
+          _wizardHoldId = null;
+          _wizardHoldTableId = null;
+          _wizardHoldExpiresAt = null;
           _alertsCache = null;
           go("ticket", { id: paid.id });
         } catch (e) {
@@ -1495,6 +1572,12 @@
         const full = $("opt-full");
         if (dep) dep.classList.toggle("sel", opt === "DEPOSIT_ONLY");
         if (full) full.classList.toggle("sel", opt === "FULL_PAYMENT");
+        if (_wizardHoldId) {
+          api("/reservations/" + _wizardHoldId + "/pending", {
+            method: "PATCH",
+            body: JSON.stringify({ paymentOption: opt }),
+          }).catch(() => {});
+        }
         refreshWizardLoyaltyUi();
       }
       function showTicket(r) {

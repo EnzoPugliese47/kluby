@@ -173,6 +173,53 @@ export const createReservation = async (
 };
 
 /**
+ * PATCH /api/reservations/:id/pending
+ * Actualiza opciones de una reserva en bloqueo transitorio (solo anfitrión).
+ */
+export const patchPendingReservation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = requireParam(req.params, "id");
+    const body = asRecord(req.body);
+    const paymentOption = optionalEnum(body, "paymentOption", PAYMENT_OPTION_VALUES);
+    const auth = getAuthUser(req);
+
+    const current = await prisma.reservation.findUnique({ where: { id } });
+    if (current === null) {
+      throw new AppError("Reserva no encontrada", 404);
+    }
+    if (current.hostId !== auth.sub) {
+      throw new AppError("No autorizado", 403);
+    }
+    if (current.status !== ReservationStatus.PENDING_PAYMENT) {
+      throw new AppError("Solo se puede editar una reserva pendiente de pago", 400);
+    }
+    if (current.expiresAt.getTime() <= Date.now()) {
+      await prisma.reservation.update({
+        where: { id },
+        data: { status: ReservationStatus.EXPIRED },
+      });
+      throw new AppError("El bloqueo de la mesa expiró", 410);
+    }
+    if (paymentOption === undefined) {
+      throw new AppError("Nada que actualizar", 400);
+    }
+
+    const reservation = await prisma.reservation.update({
+      where: { id },
+      data: { paymentOption },
+      include: reservationInclude,
+    });
+    sendSuccess(res, reservation);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * POST /api/reservations/:id/pay
  * Procesa el pago (simulado) de la sena o del total y confirma la reserva.
  */

@@ -8,6 +8,7 @@ import {
   getRefundPolicy,
   getReservationByCode,
   getReservationById,
+  patchPendingReservation,
   payReservation,
 } from "../controllers/reservations.controller";
 import {
@@ -38,6 +39,7 @@ const doorOnly = [authenticate, authorize("PUERTA", "CLUB_ADMIN", "SUPER_ADMIN")
 router.get("/by-code/:code", ...doorOnly, getReservationByCode);
 router.get("/:id/cancel-preview", authenticate, getCancelPreview);
 router.get("/:id", authenticate, getReservationById);
+router.patch("/:id/pending", authenticate, patchPendingReservation);
 router.post("/:id/pay", authenticate, payReservation);
 router.post("/:id/cancel", authenticate, cancelReservation);
 router.post("/:id/check-in", ...doorOnly, checkInReservation);

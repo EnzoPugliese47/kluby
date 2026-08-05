@@ -25,7 +25,7 @@ export const env = {
   port: optionalNumber("PORT", 3000),
   databaseUrl: required("DATABASE_URL"),
   // TTL del bloqueo transitorio de una mesa, en minutos (RN05).
-  reservationTtlMinutes: optionalNumber("RESERVATION_TTL_MINUTES", 15),
+  reservationTtlMinutes: optionalNumber("RESERVATION_TTL_MINUTES", 10),
   // Autenticacion JWT.
   jwtSecret: process.env["JWT_SECRET"] ?? "kluby-dev-secret-change-me",
   jwtExpiresIn: process.env["JWT_EXPIRES_IN"] ?? "7d",
