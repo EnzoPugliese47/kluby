@@ -1360,9 +1360,12 @@
               <div class="k-app-user">
               ${staffLinks}
                 <a class="k-btn-ghost k-link-inicio" href="/">Inicio</a>
+                <div class="k-app-user-icons">
                 <div class="k-notif-wrap" id="k-notif-wrap">
                   <button type="button" class="k-notif-btn" id="k-notif-btn" onclick="toggleNotifPanel(event)" title="Notificaciones" aria-label="Notificaciones">
-                    <span class="k-notif-icon" aria-hidden="true">🔔</span>
+                    <svg class="k-notif-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+                    </svg>
                     <span class="k-notif-badge" id="k-notif-badge" style="display:none">0</span>
                   </button>
                   <div class="k-notif-panel" id="k-notif-panel" hidden>
@@ -1380,6 +1383,7 @@
               </div>
               <div class="who"><b>${esc(state.user.fullName)}</b><small>${esc(state.user.email)}</small></div>
             </div>
+                </div>
                 <button type="button" class="ghost btn-sm" onclick="doLogout()">Salir</button>
           </div>
               </div>

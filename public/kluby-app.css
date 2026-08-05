@@ -212,7 +212,7 @@ body.kluby-app .logo {
   box-shadow: 0 6px 24px rgba(168, 85, 247, 0.45);
 }
 
-body.kluby-app button:not(.ghost):not(.k-btn-ghost):not(.k-app-tabs button) {
+body.kluby-app button:not(.ghost):not(.k-btn-ghost):not(.k-app-tabs button):not(.k-notif-btn) {
   background: linear-gradient(135deg, var(--neon-violet), var(--neon-pink));
   box-shadow: 0 4px 18px rgba(168, 85, 247, 0.22);
   border-radius: 12px;
@@ -410,6 +410,20 @@ body.kluby-app .k-back {
   .k-loyalty-badge {
     right: -6px;
     bottom: -6px;
+  }
+
+  .k-app-user-icons {
+    gap: 4px;
+  }
+
+  body.kluby-app .k-notif-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  body.kluby-app .k-notif-btn .k-notif-icon {
+    width: 16px;
+    height: 16px;
   }
 
   .k-app-user .ghost.btn-sm {
@@ -910,50 +924,69 @@ html.cap-native .k-app-user .profile-link {
 }
 
 /* Campana de notificaciones */
-.k-notif-wrap {
-  position: relative;
+.k-app-user-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
-.k-notif-btn {
+.k-notif-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+body.kluby-app .k-notif-btn {
   position: relative;
   width: 40px;
   height: 40px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text);
+  padding: 0;
+  border-radius: 50% !important;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04) !important;
+  box-shadow: none !important;
+  color: var(--muted);
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: border-color 0.15s, background 0.15s;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
-.k-notif-btn:hover,
-.k-notif-btn.has-notif {
+body.kluby-app .k-notif-btn:hover {
+  border-color: rgba(45, 226, 198, 0.4);
+  background: rgba(45, 226, 198, 0.08) !important;
+  color: var(--neon-cyan);
+  opacity: 1;
+}
+
+body.kluby-app .k-notif-btn.has-notif {
   border-color: rgba(45, 226, 198, 0.45);
-  background: rgba(45, 226, 198, 0.08);
+  background: rgba(45, 226, 198, 0.1) !important;
+  color: var(--neon-cyan);
 }
 
 .k-notif-icon {
-  font-size: 18px;
-  line-height: 1;
+  display: block;
+  pointer-events: none;
 }
 
 .k-notif-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
+  top: -2px;
+  right: -2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
   border-radius: 999px;
-  background: var(--pink);
+  background: var(--neon-pink);
   color: #fff;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
-  display: grid;
-  place-items: center;
+  line-height: 16px;
+  text-align: center;
   border: 2px solid #050508;
+  pointer-events: none;
 }
 
 .k-notif-panel {
