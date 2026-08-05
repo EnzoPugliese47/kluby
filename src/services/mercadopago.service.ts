@@ -119,9 +119,11 @@ export async function createMercadoPagoCheckout(
     throw new Error(`Mercado Pago: ${detail}`);
   }
 
-  const checkoutUrl =
-    data.init_point ||
-    data.sandbox_init_point;
+  // En sandbox priorizamos sandbox_init_point: evita mezclar cookies de tu cuenta real
+  // en mercadopago.com.ar con el flujo de prueba.
+  const checkoutUrl = isMercadoPagoSandbox()
+    ? data.sandbox_init_point || data.init_point
+    : data.init_point || data.sandbox_init_point;
 
   if (!data.id || !checkoutUrl) {
     throw new Error("Mercado Pago no devolvio URL de checkout");

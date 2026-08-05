@@ -612,19 +612,33 @@
         }
       }
 
+      function copyMpCheckoutLink() {
+        const url = window._mpCheckoutUrl;
+        if (!url) return;
+        const done = () => toast("Link copiado. Pegalo en una ventana de incógnito.", "ok");
+        if (navigator.clipboard?.writeText) {
+          navigator.clipboard.writeText(url).then(done).catch(() => toast("No pudimos copiar el link", "err"));
+        } else {
+          prompt("Copiá este link y abrilo en incógnito:", url);
+        }
+      }
+
       async function handlePayResponse(data, onConfirmed) {
         if (data?.mode === "checkout" && data.checkoutUrl) {
           if (data.sandbox) {
             window._mpCheckoutUrl = data.checkoutUrl;
             openModal(`<div class="k-onboard-box">
-              <h3 style="margin:0 0 12px">Mercado Pago · modo prueba</h3>
-              <ol class="hint" style="margin:0;padding-left:18px;line-height:1.6;text-align:left">
-                <li>Abrí el checkout en <b>incógnito</b> o cerrá sesión en Mercado Pago.</li>
-                <li>Elegí <b>Tarjeta de crédito o débito</b>.</li>
-                <li>Número: <code>5031 7557 3453 0604</code> · CVV <code>123</code> · venc. <code>11/30</code></li>
-                <li>Titular: <code>APRO</code> · DNI: <code>12345678</code></li>
+              <h3 style="margin:0 0 10px">Mercado Pago · modo prueba</h3>
+              <p class="hint" style="margin:0 0 14px;color:var(--amber)"><b>Si ves tu cuenta real de Mercado Pago, no sigas acá.</b> El checkout de prueba no funciona con tu sesión personal.</p>
+              <ol class="hint" style="margin:0;padding-left:18px;line-height:1.65;text-align:left">
+                <li><b>Ctrl+Shift+N</b> → ventana de incógnito.</li>
+                <li>Tocá <b>Copiar link</b> abajo y pegalo en incógnito.</li>
+                <li>Si pide login: comprador de prueba del panel MP (Usuario <code>TESTUSER…</code> · pass del panel).</li>
+                <li>Elegí <b>Tarjeta</b> · <code>5031 7557 3453 0604</code> · CVV <code>123</code> · <code>11/30</code></li>
+                <li>Titular <code>APRO</code> · DNI <code>12345678</code></li>
               </ol>
-              <button type="button" class="btn-full btn-accent" style="margin-top:18px" onclick="closeModal();window.location.href=_mpCheckoutUrl">Ir a pagar</button>
+              <button type="button" class="btn-full btn-accent" style="margin-top:16px" onclick="copyMpCheckoutLink()">Copiar link de pago</button>
+              <button type="button" class="ghost btn-sm" style="margin-top:10px;width:100%" onclick="closeModal()">Cerrar</button>
             </div>`);
             return null;
           }
@@ -1494,6 +1508,7 @@
                 <div id="wizard-refund-policy"></div>
                 <button type="button" class="ghost btn-sm" style="margin-top:12px" onclick="openConsumptionPlanner({ eventId: '${eventId}', minConsumption: ${minCons}, tablePrice: ${num(t.price)}, depositPercent: ${t.depositPercent} })">🍾 Planificá tu consumo antes de ir</button>
                 <button type="button" class="btn-full btn-accent" id="reserve-btn" style="margin-top:22px" onclick="confirmWizardReserve('${tableId}','${eventId}')">Confirmar y pagar</button>
+                ${_paymentConfig.mercadoPagoEnabled ? `<button type="button" class="ghost btn-sm" style="margin-top:10px;width:100%" id="reserve-demo-btn" onclick="confirmWizardReserve('${tableId}','${eventId}','demo')">Pagar demo (sin Mercado Pago)</button>` : ""}
                 <div class="error" id="reserve-err"></div>
               </div>`;
             renderWizardRefundPolicyEl(null);
@@ -1534,13 +1549,18 @@
         }
       }
 
-      async function confirmWizardReserve(tableId, eventId) {
+      async function confirmWizardReserve(tableId, eventId, provider) {
         if (!_wizardPolicyAccepted) {
           toast("Aceptá la política de cancelación para continuar", "err");
           return;
         }
-        const btn = $("reserve-btn");
-        if (btn) { btn.disabled = true; btn.textContent = "Procesando..."; }
+        const demo = provider === "demo";
+        const btn = $(demo ? "reserve-demo-btn" : "reserve-btn");
+        const mainBtn = $("reserve-btn");
+        const demoBtn = $("reserve-demo-btn");
+        if (btn) { btn.disabled = true; }
+        if (mainBtn && !demo) { mainBtn.disabled = true; mainBtn.textContent = "Procesando..."; }
+        if (demoBtn && demo) demoBtn.textContent = "Procesando...";
         try {
           let reservationId = _wizardHoldId;
           if (!reservationId || _wizardHoldTableId !== tableId) {
@@ -1548,7 +1568,8 @@
           }
           if (!reservationId) {
             toast("La mesa ya no está disponible. Elegí otra.", "err");
-            if (btn) { btn.disabled = false; btn.textContent = "Confirmar y pagar"; }
+            if (mainBtn) { mainBtn.disabled = false; mainBtn.textContent = "Confirmar y pagar"; }
+            if (demoBtn) { demoBtn.disabled = false; demoBtn.textContent = "Pagar demo (sin Mercado Pago)"; }
             return;
           }
           if (_reserveSel) {
@@ -1557,7 +1578,7 @@
               body: JSON.stringify({ paymentOption: _reserveSel }),
             });
           }
-          const payBody = payProviderBody();
+          const payBody = payProviderBody(demo ? { provider: "demo" } : {});
           if (_wizardLoyalty?.pointsToUse > 0) payBody.loyaltyPointsToRedeem = _wizardLoyalty.pointsToUse;
           const paid = await payReservationApi("/reservations/" + reservationId + "/pay", payBody);
           if (paid?.mode === "checkout") markWizardHoldCheckout(reservationId);
@@ -1573,7 +1594,8 @@
         } catch (e) {
           const err = document.getElementById("reserve-err");
           if (err) err.textContent = e.message;
-          if (btn) { btn.disabled = false; btn.textContent = "Confirmar y pagar"; }
+          if (mainBtn) { mainBtn.disabled = false; mainBtn.textContent = "Confirmar y pagar"; }
+          if (demoBtn) { demoBtn.disabled = false; demoBtn.textContent = "Pagar demo (sin Mercado Pago)"; }
         }
       }
 
