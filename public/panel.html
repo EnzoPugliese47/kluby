@@ -142,6 +142,22 @@
       .compare-delta.down { color: var(--pink); }
       .compare-delta.flat { color: var(--muted); }
       .stats-hint { font-size: 13px; color: var(--muted); margin: -4px 0 16px; line-height: 1.5; }
+      .stats-mode-bar {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+        margin-bottom: 12px; padding: 12px 14px; border-radius: 12px;
+        background: var(--surface); border: 1px solid var(--border);
+      }
+      .stats-mode-badge {
+        font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 999px;
+        background: rgba(124, 92, 255, 0.12); color: #b6a4ff; white-space: nowrap;
+      }
+      .stats-mode-badge.event {
+        background: rgba(45, 226, 198, 0.12); color: var(--accent);
+      }
+      .stats-section-title {
+        font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+        color: var(--muted); margin: 8px 0 14px; grid-column: 1 / -1;
+      }
 
       .loyalty-owner-box {
         margin: 18px 0; padding: 16px; border-radius: 12px;
@@ -534,110 +550,121 @@
         <div class="controls stats-club-pick">
           <div id="stats-club-logo-wrap"></div>
           <div class="field">
-            <label for="club-select">Boliche para estadísticas</label>
+            <label for="club-select">Boliche</label>
             <select id="club-select" onchange="onStatsClubChange()"></select>
           </div>
           <div class="field" style="min-width:280px">
-            <label for="stats-event-select">Evento</label>
+            <label for="stats-event-select">Alcance</label>
             <select id="stats-event-select" onchange="onStatsEventChange()">
-              <option value="">Todos (según período)</option>
+              <option value="">Vista general (período)</option>
             </select>
           </div>
           <button class="ghost" onclick="loadDashboard()">↻ Actualizar</button>
         </div>
-        <div class="stats-range" style="margin-bottom:10px">
-          <span class="role-pill">Período:</span>
-          <button type="button" id="range-week" onclick="setStatsRange('week')">Semana</button>
-          <button type="button" id="range-month" onclick="setStatsRange('month')">Mes</button>
-          <button type="button" id="range-last_event" class="active" onclick="setStatsRange('last_event')">Última noche</button>
+
+        <div class="stats-mode-bar">
+          <span class="stats-mode-badge" id="stats-mode-badge">Vista general</span>
+          <div class="stats-range" id="stats-period-controls">
+            <span class="role-pill">Período:</span>
+            <button type="button" id="range-week" onclick="setStatsRange('week')">Semana</button>
+            <button type="button" id="range-month" onclick="setStatsRange('month')">Mes</button>
+            <button type="button" id="range-last_event" class="active" onclick="setStatsRange('last_event')">Última noche</button>
+          </div>
         </div>
+
         <div class="export-row">
-          <span class="role-pill">Exportar reporte:</span>
-          <button type="button" class="btn-export" onclick="exportReport()">⬇ PDF (imprimir)</button>
-          <button type="button" class="btn-export" onclick="exportStatsCsv()">⬇ CSV KPIs</button>
+          <span class="role-pill">Exportar:</span>
+          <button type="button" class="btn-export" onclick="exportReport()">⬇ PDF</button>
+          <button type="button" class="btn-export" onclick="exportStatsCsv()">⬇ CSV</button>
         </div>
         <p class="stats-period-label" id="stats-period-label">Las estadísticas corresponden al boliche seleccionado.</p>
         <p class="stats-hint" id="stats-hint"></p>
 
         <div class="kpis" id="kpis"></div>
 
-        <div class="compare-row hidden" id="compare-row">
-          <label class="k-filter-check" style="margin:0">
-            <input type="checkbox" id="stats-compare-enabled" onchange="onStatsCompareToggle()" />
-            Comparar este evento con otro
-          </label>
-          <div class="field compare-select-wrap hidden" id="compare-select-wrap" style="min-width:260px;flex:1">
-            <label for="stats-compare-select">Comparar con</label>
-            <select id="stats-compare-select" onchange="onStatsCompareChange()">
-              <option value="">Evento anterior (automático)</option>
-            </select>
+        <div id="stats-event-tools" class="hidden">
+          <div class="compare-row" id="compare-row">
+            <label class="k-filter-check" style="margin:0">
+              <input type="checkbox" id="stats-compare-enabled" onchange="onStatsCompareToggle()" />
+              Comparar con otra noche
+            </label>
+            <div class="field compare-select-wrap hidden" id="compare-select-wrap" style="min-width:260px;flex:1">
+              <label for="stats-compare-select">Comparar con</label>
+              <select id="stats-compare-select" onchange="onStatsCompareChange()">
+                <option value="">Noche anterior (automático)</option>
+              </select>
+            </div>
+          </div>
+          <div class="card panel hidden" id="panel-compare" style="margin-bottom:16px">
+            <h3>Comparación entre noches</h3>
+            <p class="sub" id="compare-sub">Métricas lado a lado</p>
+            <div id="compare-content"></div>
           </div>
         </div>
 
-        <div class="card panel col-12 hidden" id="panel-compare">
-          <h3>Comparación entre eventos</h3>
-          <p class="sub" id="compare-sub">Valores reales de cada noche, lado a lado</p>
-          <div id="compare-content"></div>
-        </div>
+        <div class="grid" id="stats-grid">
+          <h4 class="stats-section-title hidden" id="stats-title-period">Tendencias del período</h4>
 
-        <div class="grid">
-          <div class="card panel col-6">
-            <h3>Mesa estándar vs Mesa abierta</h3>
-            <p class="sub">Split Bill · invitados y revenue por modalidad</p>
-            <div class="chart-wrap" style="height:220px"><canvas id="chart-modes"></canvas></div>
-            <div class="mode-cards" id="mode-cards"></div>
-          </div>
-          <div class="card panel col-6">
-            <h3>Flujo de consumo por hora</h3>
-            <p class="sub">Pedidos confirmados · identificá la hora pico de ventas</p>
-            <div class="chart-wrap"><canvas id="chart-hourly"></canvas></div>
-          </div>
-          <div class="card panel col-6">
-            <h3>Anticipación de reservas</h3>
-            <p class="sub">Con cuánta anticipación reservan tus clientes</p>
-            <div class="chart-wrap"><canvas id="chart-leadtime"></canvas></div>
-          </div>
-
-          <div class="card panel col-8">
+          <div class="card panel col-8 stats-card-period hidden">
             <h3>Recaudación por día</h3>
-            <p class="sub">Evolución de ingresos confirmados en el período</p>
+            <p class="sub">Evolución de ingresos en el período seleccionado</p>
             <div class="chart-wrap"><canvas id="chart-sales"></canvas></div>
           </div>
-          <div class="card panel col-4">
-            <h3>¿Qué días se vende más?</h3>
-            <p class="sub">Ingresos por día de la semana</p>
+          <div class="card panel col-4 stats-card-period hidden">
+            <h3>Ingresos por día de la semana</h3>
+            <p class="sub">Qué días de la semana concentran más ventas</p>
             <div class="chart-wrap"><canvas id="chart-weekday"></canvas></div>
           </div>
 
-          <div class="card panel col-6">
-            <h3>Top 5 botellas / productos</h3>
-            <p class="sub">Más vendidos por unidades en el boliche</p>
-            <div class="chart-wrap"><canvas id="chart-products"></canvas></div>
+          <h4 class="stats-section-title hidden" id="stats-title-event">Detalle de la noche</h4>
+
+          <div class="card panel col-6 stats-card-both">
+            <h3>Mesa estándar vs Mesa abierta</h3>
+            <p class="sub">Reservas e ingresos por modalidad</p>
+            <div class="chart-wrap" style="height:220px"><canvas id="chart-modes"></canvas></div>
+            <div class="mode-cards" id="mode-cards"></div>
           </div>
-          <div class="card panel col-6">
-            <h3>Composición de ingresos</h3>
-            <p class="sub">Desglose por tipo de pago</p>
-            <div class="chart-wrap"><canvas id="chart-types"></canvas></div>
+          <div class="card panel col-6 stats-card-event hidden">
+            <h3>Consumo por hora</h3>
+            <p class="sub">Pedidos de la noche · hora pico</p>
+            <div class="chart-wrap"><canvas id="chart-hourly"></canvas></div>
+          </div>
+          <div class="card panel col-6 stats-card-event hidden">
+            <h3>Anticipación de reservas</h3>
+            <p class="sub">Cuántos días antes reservan para esta noche</p>
+            <div class="chart-wrap"><canvas id="chart-leadtime"></canvas></div>
           </div>
 
-          <div class="card panel col-6">
+          <h4 class="stats-section-title" id="stats-title-shared">Ranking y composición</h4>
+
+          <div class="card panel col-6 stats-card-shared">
+            <h3>Top productos</h3>
+            <p class="sub" id="stats-products-sub">Más vendidos por unidades</p>
+            <div class="chart-wrap"><canvas id="chart-products"></canvas></div>
+          </div>
+          <div class="card panel col-6 stats-card-shared">
+            <h3>Composición de ingresos</h3>
+            <p class="sub" id="stats-types-sub">Desglose por tipo de pago</p>
+            <div class="chart-wrap"><canvas id="chart-types"></canvas></div>
+          </div>
+          <div class="card panel col-6 stats-card-shared">
             <h3>Mesas más reservadas</h3>
-            <p class="sub">Ranking por cantidad de reservas en el período</p>
+            <p class="sub" id="stats-tables-sub">Por cantidad de reservas</p>
             <div class="chart-wrap"><canvas id="chart-tables"></canvas></div>
           </div>
-          <div class="card panel col-6">
-            <h3>Resumen operativo</h3>
-            <p class="sub">Indicadores clave del boliche seleccionado</p>
+          <div class="card panel col-6 stats-card-shared">
+            <h3>Resumen</h3>
+            <p class="sub" id="stats-summary-sub">Indicadores destacados</p>
             <div id="summary" class="empty">—</div>
           </div>
         </div>
 
         <div class="card panel" id="loyalty-stats-panel" style="display:none;margin-top:28px">
           <h3>⭐ Kluby Points</h3>
-          <p class="sub">Puntos emitidos y canjeados · el descuento por punto lo configurás en Editar boliche</p>
+          <p class="sub">Acumulado del boliche · configuración en Editar boliche</p>
           <div class="kpis" id="loyalty-kpis"></div>
+        </div>
       </div>
-    </div>
 
       <!-- VISTA: BOLICHES (admin) -->
       <div class="container view" id="view-clubs">
@@ -853,7 +880,7 @@
         const sel = document.getElementById("stats-event-select");
         if (!sel) return;
         const saved = localStorage.getItem("kluby_stats_event") || "";
-        sel.innerHTML = '<option value="">Todos (según período)</option>';
+        sel.innerHTML = '<option value="">Vista general (período)</option>';
         if (!clubId) {
           syncStatsPeriodUi();
           return;
@@ -902,12 +929,83 @@
         loadDashboard();
       }
 
+      function isStatsEventView(d) {
+        const picked = !!document.getElementById("stats-event-select")?.value;
+        const scoped = !!d?.period?.eventId;
+        return picked || scoped;
+      }
+
+      function syncStatsViewLayout(d) {
+        const eventView = isStatsEventView(d);
+        const explicitPick = !!document.getElementById("stats-event-select")?.value;
+        const badge = document.getElementById("stats-mode-badge");
+        const periodControls = document.getElementById("stats-period-controls");
+        const eventTools = document.getElementById("stats-event-tools");
+
+        if (badge) {
+          badge.textContent = eventView ? "Una noche" : "Vista general";
+          badge.classList.toggle("event", eventView);
+        }
+        if (periodControls) {
+          periodControls.classList.toggle("hidden", explicitPick);
+        }
+        if (eventTools) {
+          eventTools.classList.toggle("hidden", !eventView);
+        }
+
+        document.querySelectorAll(".stats-card-period").forEach((el) => {
+          el.classList.toggle("hidden", eventView);
+        });
+        document.querySelectorAll(".stats-card-event").forEach((el) => {
+          el.classList.toggle("hidden", !eventView);
+        });
+        document.querySelectorAll(".stats-card-both").forEach((el) => {
+          el.classList.remove("hidden");
+        });
+
+        const titlePeriod = document.getElementById("stats-title-period");
+        const titleEvent = document.getElementById("stats-title-event");
+        const titleShared = document.getElementById("stats-title-shared");
+        if (titlePeriod) titlePeriod.classList.toggle("hidden", eventView);
+        if (titleEvent) titleEvent.classList.toggle("hidden", !eventView);
+        if (titleShared) {
+          titleShared.textContent = eventView ? "Ranking de la noche" : "Ranking del período";
+        }
+
+        const productsSub = document.getElementById("stats-products-sub");
+        const typesSub = document.getElementById("stats-types-sub");
+        const tablesSub = document.getElementById("stats-tables-sub");
+        const summarySub = document.getElementById("stats-summary-sub");
+        if (productsSub) {
+          productsSub.textContent = eventView
+            ? "Botellas y combos más pedidos esta noche"
+            : "Más vendidos en el período";
+        }
+        if (typesSub) {
+          typesSub.textContent = eventView
+            ? "Señas, saldo, consumo y split bill de la noche"
+            : "Desglose por tipo de pago en el período";
+        }
+        if (tablesSub) {
+          tablesSub.textContent = eventView
+            ? "Mesas con más reservas esta noche"
+            : "Mesas con más reservas en el período";
+        }
+        if (summarySub) {
+          summarySub.textContent = eventView
+            ? "Lo más destacado de la noche"
+            : "Indicadores clave del período";
+        }
+
+        if (eventView) syncCompareUi();
+      }
+
       function syncStatsPeriodUi() {
-        const eventSelected = !!document.getElementById("stats-event-select")?.value;
-        document.querySelectorAll(".stats-range button").forEach((btn) => {
-          btn.disabled = eventSelected;
-          btn.style.opacity = eventSelected ? "0.45" : "1";
-          btn.style.cursor = eventSelected ? "not-allowed" : "pointer";
+        const explicitPick = !!document.getElementById("stats-event-select")?.value;
+        document.querySelectorAll("#stats-period-controls button").forEach((btn) => {
+          btn.disabled = explicitPick;
+          btn.style.opacity = explicitPick ? "0.45" : "1";
+          btn.style.cursor = explicitPick ? "not-allowed" : "pointer";
         });
       }
 
@@ -3259,29 +3357,39 @@
         }
       }
 
-      function renderKpis(k, periodLabel, eventComparison) {
+      function renderKpis(k, periodLabel, opts = {}) {
+        const { eventView = false, compareEnabled = false, eventComparison = null } = opts;
         const compareLabel = eventComparison?.compare?.name
           ? `vs ${eventComparison.compare.name}`
-          : periodLabel;
+          : null;
         const deltaHtml = (pct, label) => {
           if (pct === 0) return `<span class="k-delta flat">— sin cambio${label ? " " + label : ""}</span>`;
           const sign = pct > 0 ? "+" : "";
           return `<span class="k-delta ${pct > 0 ? "up" : "down"}">${sign}${pct}%${label ? " " + label : ""}</span>`;
         };
+        const showTrendDeltas = !eventView || compareEnabled;
+        const trendLabel = compareLabel || (eventView ? null : "vs período anterior");
+
         const items = [
           {
             label: "Ingresos totales",
             value: fmtMoney(k.totalRevenue),
             color: "#7c5cff",
-            delta: deltaHtml(k.revenueChangePct, compareLabel ? compareLabel : "vs período anterior"),
+            delta: showTrendDeltas
+              ? deltaHtml(k.revenueChangePct, trendLabel)
+              : `<span class="k-delta flat">${fmtNum(k.reservationsCount)} reservas</span>`,
             sub: periodLabel,
           },
           {
             label: "Ticket promedio VIP",
             value: k.avgVipTicket ? fmtMoney(k.avgVipTicket) : "—",
             color: "#ffb454",
-            delta: k.avgVipTicket ? deltaHtml(k.avgVipTicketChangePct, compareLabel ? compareLabel : "vs período anterior") : `<span class="k-delta flat">Sin mesas VIP</span>`,
-            sub: "Mesas VIP / Premium / Privado",
+            delta: !k.avgVipTicket
+              ? `<span class="k-delta flat">Sin mesas VIP</span>`
+              : showTrendDeltas
+                ? deltaHtml(k.avgVipTicketChangePct, trendLabel)
+                : `<span class="k-delta flat">Mesas VIP / Premium</span>`,
+            sub: eventView ? "Solo mesas VIP de esta noche" : "Mesas VIP / Premium / Privado",
           },
           {
             label: "Tasa de asistencia",
@@ -3295,7 +3403,9 @@
             value: k.occupancyRate + "%",
             color: "#ff4d8d",
             delta: `<span class="k-delta flat">${fmtNum(k.occupiedTableSlots)}/${fmtNum(k.totalTableSlots)} mesas</span>`,
-            sub: `${fmtNum(k.eventsInPeriod)} evento(s) en el período`,
+            sub: eventView
+              ? "Capacidad de la noche seleccionada"
+              : `${fmtNum(k.eventsInPeriod)} noche(s) en el período`,
           },
           {
             label: "Cancelaciones",
@@ -3549,11 +3659,11 @@
       }
 
       function syncCompareUi() {
-        const eventId = document.getElementById("stats-event-select")?.value || "";
-        const row = document.getElementById("compare-row");
+        const picked = document.getElementById("stats-event-select")?.value || "";
+        const scoped = _lastDashboardData?.period?.eventId || "";
+        const eventId = picked || scoped;
         const wrap = document.getElementById("compare-select-wrap");
         const enabled = isStatsCompareEnabled();
-        if (row) row.classList.toggle("hidden", !eventId);
         if (wrap) wrap.classList.toggle("hidden", !eventId || !enabled);
       }
 
@@ -3567,12 +3677,12 @@
       function buildDashboardUrl() {
         const clubId = document.getElementById("club-select")?.value;
         if (!clubId) return null;
-        const eventId = document.getElementById("stats-event-select")?.value || "";
+        const pickedEventId = document.getElementById("stats-event-select")?.value || "";
         const compareId = document.getElementById("stats-compare-select")?.value || "";
         const compareEnabled = isStatsCompareEnabled();
         let url = `/clubs/${clubId}/reports/dashboard?range=${encodeURIComponent(_statsRange)}`;
-        if (eventId) url += `&eventId=${encodeURIComponent(eventId)}`;
-        if (eventId && compareEnabled) {
+        if (pickedEventId) url += `&eventId=${encodeURIComponent(pickedEventId)}`;
+        if (compareEnabled && (pickedEventId || _statsRange === "last_event")) {
           url += "&compare=1";
           if (compareId) url += `&compareEventId=${encodeURIComponent(compareId)}`;
         }
@@ -3667,20 +3777,22 @@
         const sel = document.getElementById("stats-compare-select");
         if (!sel) return;
         const saved = localStorage.getItem("kluby_stats_compare") || "";
-        sel.innerHTML = '<option value="">Evento anterior (automático)</option>';
-        if (!currentEventId) {
+        const scoped = _lastDashboardData?.period?.eventId || "";
+        const activeEventId = currentEventId || scoped;
+        sel.innerHTML = '<option value="">Noche anterior (automático)</option>';
+        if (!activeEventId) {
           syncCompareUi();
           return;
         }
         events
-          .filter((e) => e.id !== currentEventId)
+          .filter((e) => e.id !== activeEventId)
           .forEach((e) => {
             const opt = document.createElement("option");
             opt.value = e.id;
             opt.textContent = e.name + " · " + formatStatsEventDate(e.date);
             sel.appendChild(opt);
           });
-        if (saved && events.some((e) => e.id === saved && e.id !== currentEventId)) sel.value = saved;
+        if (saved && events.some((e) => e.id === saved && e.id !== activeEventId)) sel.value = saved;
         const compareCb = document.getElementById("stats-compare-enabled");
         if (compareCb) {
           compareCb.checked = localStorage.getItem("kluby_stats_compare_enabled") === "1";
@@ -3703,13 +3815,13 @@
         return `<span class="compare-delta ${pct > 0 ? "up" : "down"}">${pct > 0 ? "+" : ""}${pct}%</span>`;
       }
 
-      function renderEventComparison(comp, eventSelected) {
+      function renderEventComparison(comp, eventView) {
         const panel = document.getElementById("panel-compare");
         const content = document.getElementById("compare-content");
         const sub = document.getElementById("compare-sub");
         if (!panel || !content) return;
 
-        if (!eventSelected || !isStatsCompareEnabled()) {
+        if (!eventView || !isStatsCompareEnabled()) {
           panel.classList.add("hidden");
           return;
         }
@@ -3717,8 +3829,8 @@
         panel.classList.remove("hidden");
 
         if (!comp?.current || !comp?.compare) {
-          if (sub) sub.textContent = "Necesitás al menos dos eventos en este boliche para comparar.";
-          content.innerHTML = `<div class="empty" style="padding:24px 0">Creá otro evento o elegí uno distinto en «Comparar con».</div>`;
+          if (sub) sub.textContent = "Necesitás al menos dos noches en este boliche para comparar.";
+          content.innerHTML = `<div class="empty" style="padding:24px 0">Creá otra noche o elegí una distinta en «Comparar con».</div>`;
           return;
         }
 
@@ -3845,87 +3957,99 @@
           return;
         }
 
-        const eventId = document.getElementById("stats-event-select")?.value || "";
+        fillCompareSelect(_statsEventsCache, document.getElementById("stats-event-select")?.value || "");
+
+        const eventView = isStatsEventView(d);
+        const compareEnabled = isStatsCompareEnabled();
+        syncStatsViewLayout(d);
 
         const periodLbl = document.getElementById("stats-period-label");
         const hintEl = document.getElementById("stats-hint");
         if (periodLbl) {
-          periodLbl.textContent = eventId
-            ? `📅 ${d.period?.label || "Evento seleccionado"}`
-            : (d.period?.label || "Período seleccionado");
+          periodLbl.textContent = d.period?.label
+            ? (eventView ? `📅 ${d.period.label}` : `📊 ${d.period.label}`)
+            : "Estadísticas del boliche seleccionado";
         }
         if (hintEl) {
-          hintEl.textContent = eventId
-            ? (isStatsCompareEnabled()
-              ? "Evento seleccionado · comparación activa abajo."
-              : "Evento seleccionado · activá «Comparar con otro evento» si querés ver dos noches lado a lado.")
-            : "Elegí Semana, Mes o Última noche — o seleccioná un evento concreto.";
+          if (eventView) {
+            hintEl.textContent = compareEnabled
+              ? "Una noche · comparación activa con otra fecha."
+              : "Estás viendo una noche concreta. Para tendencias de varios días, elegí «Vista general» arriba.";
+          } else {
+            hintEl.textContent = "Vista general del período. Para analizar una noche, elegila en «Alcance» o usá «Última noche».";
+          }
         }
 
-        const showComparison = isStatsCompareEnabled() && d.eventComparison;
-        renderKpis(d.kpis, d.period?.label || "", showComparison ? d.eventComparison : null);
-        renderEventComparison(d.eventComparison, !!eventId);
+        const showComparison = compareEnabled && d.eventComparison;
+        renderKpis(d.kpis, d.period?.label || "", {
+          eventView,
+          compareEnabled,
+          eventComparison: showComparison ? d.eventComparison : null,
+        });
+        renderEventComparison(d.eventComparison, eventView);
         renderModeBreakdown(d.modeBreakdown);
         void loadLoyaltyStatsPanel(clubId);
 
         const peakHour = [...(d.consumptionByHour || [])].sort((a, b) => b.total - a.total)[0];
-        makeChart("chart-hourly", {
-          type: "bar",
-          data: {
-            labels: (d.consumptionByHour || []).map((x) => x.label),
-            datasets: [{
-              label: "Consumo",
-              data: (d.consumptionByHour || []).map((x) => x.total),
-              backgroundColor: (d.consumptionByHour || []).map((x) =>
-                peakHour && x.hour === peakHour.hour ? "#2de2c6" : "rgba(124,92,255,0.65)"
-              ),
-              borderRadius: 4,
-            }],
-          },
-          options: chartOpts({ money: true }),
-        });
 
-        const lead = d.bookingLeadTime || [];
-        makeChart("chart-leadtime", {
-          type: "doughnut",
-          data: {
-            labels: lead.length ? lead.map((x) => x.label) : ["Sin datos"],
-            datasets: [{
-              data: lead.length ? lead.map((x) => x.count) : [1],
-              backgroundColor: PALETTE,
-              borderColor: "#14141f",
-              borderWidth: 2,
-            }],
-          },
-          options: doughnutOpts(),
-        });
+        if (eventView) {
+          makeChart("chart-hourly", {
+            type: "bar",
+            data: {
+              labels: (d.consumptionByHour || []).map((x) => x.label),
+              datasets: [{
+                label: "Consumo",
+                data: (d.consumptionByHour || []).map((x) => x.total),
+                backgroundColor: (d.consumptionByHour || []).map((x) =>
+                  peakHour && x.hour === peakHour.hour ? "#2de2c6" : "rgba(124,92,255,0.65)"
+                ),
+                borderRadius: 4,
+              }],
+            },
+            options: chartOpts({ money: true }),
+          });
 
-        // Recaudación por día (línea)
-        makeChart("chart-sales", {
-          type: "line",
-          data: {
-            labels: (d.salesByDate || []).map((x) => x.date.slice(5)),
-            datasets: [{
-              data: (d.salesByDate || []).map((x) => x.total),
-              borderColor: "#7c5cff",
-              backgroundColor: "rgba(124,92,255,0.15)",
-              fill: true, tension: 0.35, pointRadius: 3, borderWidth: 2,
-            }],
-          },
-          options: chartOpts({ money: true }),
-        });
+          const lead = d.bookingLeadTime || [];
+          makeChart("chart-leadtime", {
+            type: "doughnut",
+            data: {
+              labels: lead.length ? lead.map((x) => x.label) : ["Sin datos"],
+              datasets: [{
+                data: lead.length ? lead.map((x) => x.count) : [1],
+                backgroundColor: PALETTE,
+                borderColor: "#14141f",
+                borderWidth: 2,
+              }],
+            },
+            options: doughnutOpts(),
+          });
+        }
 
-        // Día de la semana (barras)
-        makeChart("chart-weekday", {
-          type: "bar",
-          data: {
-            labels: (d.salesByWeekday || []).map((x) => x.weekday.slice(0, 3)),
-            datasets: [{ data: (d.salesByWeekday || []).map((x) => x.total), backgroundColor: "#2de2c6", borderRadius: 6 }],
-          },
-          options: chartOpts({ money: true }),
-        });
+        if (!eventView) {
+          makeChart("chart-sales", {
+            type: "line",
+            data: {
+              labels: (d.salesByDate || []).map((x) => x.date.slice(5)),
+              datasets: [{
+                data: (d.salesByDate || []).map((x) => x.total),
+                borderColor: "#7c5cff",
+                backgroundColor: "rgba(124,92,255,0.15)",
+                fill: true, tension: 0.35, pointRadius: 3, borderWidth: 2,
+              }],
+            },
+            options: chartOpts({ money: true }),
+          });
 
-        // Mesas más reservadas (barras horizontales)
+          makeChart("chart-weekday", {
+            type: "bar",
+            data: {
+              labels: (d.salesByWeekday || []).map((x) => x.weekday.slice(0, 3)),
+              datasets: [{ data: (d.salesByWeekday || []).map((x) => x.total), backgroundColor: "#2de2c6", borderRadius: 6 }],
+            },
+            options: chartOpts({ money: true }),
+          });
+        }
+
         const tt = (d.topTables || []).slice(0, 7);
         makeChart("chart-tables", {
           type: "bar",
@@ -3962,20 +4086,25 @@
           options: doughnutOpts({ money: true }),
         });
 
-        // Resumen operativo
         const topTable = (d.topTables || [])[0];
         const topProduct = (d.topProducts || [])[0];
         const bestDay = [...(d.salesByWeekday || [])].sort((a, b) => b.total - a.total)[0];
         document.getElementById("summary").className = "";
-        document.getElementById("summary").innerHTML = `
-          <div style="display:flex;flex-direction:column;gap:14px;font-size:14px">
-            <div>🏆 <b>Mesa estrella:</b> ${topTable ? esc(topTable.label) + " (" + topTable.reservationCount + " reservas)" : "—"}</div>
-            <div>🍾 <b>Botella top:</b> ${topProduct ? esc(topProduct.name) + " (" + topProduct.unitsSold + " u.)" : "—"}</div>
-            <div>📅 <b>Mejor día:</b> ${bestDay ? bestDay.weekday + " · " + fmtMoney(bestDay.total) : "—"}</div>
-            <div>⏰ <b>Hora pico:</b> ${peakHour && peakHour.total > 0 ? peakHour.label + " · " + fmtMoney(peakHour.total) : "—"}</div>
-            <div>👥 <b>Mesas abiertas:</b> ${d.modeBreakdown ? fmtNum(d.modeBreakdown.openTable.count) + " (" + d.modeBreakdown.openTable.pctOfReservations + "%)" : "—"}</div>
-            <div>🎟️ <b>Reservas activas:</b> ${fmtNum(d.kpis.activeReservations)} · Ticket prom. ${fmtMoney(d.kpis.avgTicket)}</div>
-          </div>`;
+        document.getElementById("summary").innerHTML = eventView
+          ? `<div style="display:flex;flex-direction:column;gap:14px;font-size:14px">
+              <div>🏆 <b>Mesa estrella:</b> ${topTable ? esc(topTable.label) + " (" + topTable.reservationCount + " reservas)" : "—"}</div>
+              <div>🍾 <b>Producto top:</b> ${topProduct ? esc(topProduct.name) + " (" + topProduct.unitsSold + " u.)" : "—"}</div>
+              <div>⏰ <b>Hora pico:</b> ${peakHour && peakHour.total > 0 ? peakHour.label + " · " + fmtMoney(peakHour.total) : "—"}</div>
+              <div>👥 <b>Mesas abiertas:</b> ${d.modeBreakdown ? fmtNum(d.modeBreakdown.openTable.count) + " (" + d.modeBreakdown.openTable.pctOfReservations + "%)" : "—"}</div>
+              <div>🎟️ <b>Reservas:</b> ${fmtNum(d.kpis.reservationsCount)} · Ticket prom. ${fmtMoney(d.kpis.avgTicket)}</div>
+            </div>`
+          : `<div style="display:flex;flex-direction:column;gap:14px;font-size:14px">
+              <div>🏆 <b>Mesa estrella:</b> ${topTable ? esc(topTable.label) + " (" + topTable.reservationCount + " reservas)" : "—"}</div>
+              <div>🍾 <b>Producto top:</b> ${topProduct ? esc(topProduct.name) + " (" + topProduct.unitsSold + " u.)" : "—"}</div>
+              <div>📅 <b>Mejor día:</b> ${bestDay && bestDay.total > 0 ? bestDay.weekday + " · " + fmtMoney(bestDay.total) : "—"}</div>
+              <div>🎟️ <b>Reservas:</b> ${fmtNum(d.kpis.reservationsCount)} · Ticket prom. ${fmtMoney(d.kpis.avgTicket)}</div>
+              <div>📆 <b>Noches en el período:</b> ${fmtNum(d.kpis.eventsInPeriod)}</div>
+            </div>`;
       }
 
       function chartOpts({ money }) {
