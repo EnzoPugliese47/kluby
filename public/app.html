@@ -1086,6 +1086,9 @@
             </div>
               <div class="k-app-user">
               ${staffLinks}
+                <button type="button" class="k-loyalty-pill" id="app-loyalty-pill" onclick="go('profile')" title="Kluby Points" style="display:none">
+                  ⭐ <span id="app-loyalty-total">0</span> pts
+                </button>
                 <a class="k-btn-ghost k-link-inicio" href="/">Inicio</a>
                 <div class="profile-link" onclick="go('profile')" title="Mi perfil">
               ${avatarHtml(state.user, 40)}
@@ -1112,6 +1115,27 @@
         else if (state.view === "invites") renderInvites(page);
         else if (state.view === "detail") renderDetail(page);
         void refreshAlerts();
+        void refreshLoyaltyBadge();
+      }
+
+      let _loyaltyTotalCache = null;
+      async function refreshLoyaltyBadge() {
+        const pill = document.getElementById("app-loyalty-pill");
+        const totalEl = document.getElementById("app-loyalty-total");
+        if (!pill || !totalEl || !state.user || state.user.role !== "CLIENT") return;
+        try {
+          const loyalty = await api("/loyalty/users/" + state.user.id);
+          const total = (loyalty.balanceByClub || []).reduce((s, c) => s + (c.balance || 0), 0);
+          _loyaltyTotalCache = total;
+          if (total > 0) {
+            pill.style.display = "";
+            totalEl.textContent = total.toLocaleString("es-AR");
+          } else {
+            pill.style.display = "none";
+          }
+        } catch {
+          pill.style.display = "none";
+        }
       }
 
       // ---------- HOME (clubs) ----------

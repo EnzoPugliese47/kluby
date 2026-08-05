@@ -384,6 +384,58 @@ body.kluby-public .section-title {
 .k-login-card .brand h1 { font-size: 26px; letter-spacing: 2px; }
 .k-login-card .brand span { color: var(--neon-cyan); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; }
 .k-login-sub { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+
+.k-demo-box {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(124, 92, 255, 0.08);
+  border: 1px solid rgba(124, 92, 255, 0.28);
+}
+.k-demo-box summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--neon-cyan);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.k-demo-box summary::-webkit-details-marker { display: none; }
+.k-demo-box summary::after { content: "▾"; color: var(--muted); font-size: 12px; }
+.k-demo-box[open] summary::after { content: "▴"; }
+.k-demo-pass {
+  margin: 10px 0 12px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+.k-demo-pass b { color: var(--text); font-family: ui-monospace, monospace; }
+.k-demo-grid { display: grid; gap: 8px; }
+.k-demo-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+.k-demo-btn:hover {
+  border-color: rgba(45, 226, 198, 0.45);
+  background: rgba(45, 226, 198, 0.06);
+}
+.k-demo-btn small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+.k-demo-btn span:last-child { color: var(--accent); font-size: 11px; font-weight: 700; white-space: nowrap; }
 .k-auth-tabs {
   display: flex; gap: 6px; margin-bottom: 22px;
   background: rgba(0,0,0,0.35); padding: 5px; border-radius: 12px;

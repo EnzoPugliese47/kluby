@@ -27,6 +27,11 @@
             </div>
             <div id="auth-form"></div>
             <div class="error" id="auth-err"></div>
+            <details class="k-demo-box" id="demo-box">
+              <summary>Cuentas demo · Tesis</summary>
+              <p class="k-demo-pass">Contraseña: <b>password123</b></p>
+              <div class="k-demo-grid" id="demo-grid"></div>
+            </details>
           </div>
           <p style="text-align:center;margin-top:20px;font-size:13px">
             <a href="/" style="color:var(--muted)">← Volver al inicio</a>
@@ -123,6 +128,36 @@
           } catch { /* ignore */ }
         }
         el.innerHTML = "<b>Tenés un código pendiente</b><br/>Ingresá o registrate para canjearlo.";
+      }
+
+      const DEMO_PASSWORD = "password123";
+      const DEMO_ACCOUNTS = [
+        { label: "Cliente", email: "anfitrion@kluby.com", hint: "Reservar mesa · Kluby Points" },
+        { label: "Invitado 1", email: "invitado1@kluby.com", hint: "Mesa abierta / invitaciones" },
+        { label: "Invitado 2", email: "invitado2@kluby.com", hint: "Segundo cliente demo" },
+        { label: "Dueño Kora", email: "duenokluby1@kluby.com", hint: "Panel · estadísticas" },
+        { label: "Puerta / QR", email: "puerta@kluby.com", hint: "Check-in y cierre de mesa" },
+        { label: "Super admin", email: "admin@kluby.com", hint: "Todos los boliches" },
+      ];
+
+      function renderDemoAccounts() {
+        const grid = $("demo-grid");
+        if (!grid) return;
+        grid.innerHTML = DEMO_ACCOUNTS.map((a) => `
+          <button type="button" class="k-demo-btn" onclick="demoFill('${a.email.replace(/'/g, "\\'")}')">
+            <span><b>${UI.esc(a.label)}</b><small>${UI.esc(a.email)} · ${UI.esc(a.hint)}</small></span>
+            <span>Ingresar →</span>
+          </button>`).join("");
+      }
+
+      async function demoFill(email) {
+        $("auth-err").textContent = "";
+        if ($("tab-reg")?.classList.contains("active")) switchTab("login");
+        const emailEl = $("l-email");
+        const passEl = $("l-pass");
+        if (emailEl) emailEl.value = email;
+        if (passEl) passEl.value = DEMO_PASSWORD;
+        await submitLogin();
       }
 
       function switchTab(tab) {
@@ -245,6 +280,7 @@
         if (params.get("tab") === "reg") switchTab("reg");
         else switchTab("login");
         renderInviteBanner();
+        renderDemoAccounts();
       }
     </script>
   </body>

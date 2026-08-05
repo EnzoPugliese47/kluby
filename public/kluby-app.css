@@ -101,6 +101,23 @@ body.kluby-app .section-title {
   gap: 8px;
 }
 
+.k-loyalty-pill {
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(124, 92, 255, 0.12);
+  border: 1px solid rgba(124, 92, 255, 0.35);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+.k-loyalty-pill:hover {
+  background: rgba(45, 226, 198, 0.1);
+  border-color: rgba(45, 226, 198, 0.4);
+}
+
 .k-app-user .profile-link {
   display: flex;
   align-items: center;

@@ -156,3 +156,22 @@ npm run dev
 ```
 
 Abrí **http://localhost:3000** — misma base, mismos boliches y usuarios que en casa.
+
+---
+
+## Presentación de tesis (Railway — recomendado)
+
+Si presentás online sin instalar nada en la facultad:
+
+| URL | Uso |
+|-----|-----|
+| https://kluby-production-2fa4.up.railway.app/login.html | Login con **Cuentas demo · Tesis** |
+| https://kluby-production-2fa4.up.railway.app/app.html | App cliente |
+| https://kluby-production-2fa4.up.railway.app/panel.html | Panel dueño |
+| https://kluby-production-2fa4.up.railway.app/staff.html | Puerta / QR |
+
+Guion completo: **`DEMO-TESIS.md`** (cuentas, checklist, plan B).
+
+5 minutos antes del final: abrí la URL y probá login con `anfitrion@kluby.com` / `password123`.
+
+**Plan B:** mismo procedimiento de arriba (`npm run dev` + `.env`) si Railway falla.

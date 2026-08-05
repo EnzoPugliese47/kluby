@@ -16,6 +16,7 @@
     "seed:kora-aug15": "ts-node-dev --transpile-only src/scripts/create-kora-aug15-event.ts",
     "seed:kora-past-stats": "ts-node-dev --transpile-only src/scripts/seed-kora-past-stats.ts",
     "repair:demo-past-reservations": "ts-node-dev --transpile-only src/scripts/repair-demo-past-reservations.ts",
+    "ensure:tesis-demo": "ts-node-dev --transpile-only src/scripts/ensure-tesis-demo.ts",
     "repair:images": "ts-node-dev --transpile-only src/scripts/repair-images.ts",
     "repair:puerta": "ts-node-dev --transpile-only src/scripts/ensure-puerta-user.ts",
     "sync:zones": "ts-node-dev --transpile-only src/scripts/sync-club-zones.ts",
