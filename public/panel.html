@@ -915,6 +915,7 @@
                 <button type="button" class="btn-sm ghost" onclick="editClub('${c.id}')">Editar</button>
                 <button type="button" class="btn-sm" onclick='openClubTemplateConfig(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Config. base</button>
                 <button type="button" class="btn-sm btn-accent" onclick='openTeamInvites(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Códigos equipo</button>
+                ${isSuperAdmin() ? `<button type="button" class="btn-sm ghost" onclick='viewClubTeam(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Ver personal</button>` : ""}
                 ${isSuperAdmin() ? `<button type="button" class="btn-sm btn-danger" onclick='deleteClub(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Eliminar</button>` : ""}
               </div>
             </div>`).join("");
@@ -967,6 +968,63 @@
           toast("Código creado: " + inv.code, "ok");
           const club = _clubsCache.find((c) => c.id === clubId);
           openTeamInvites(clubId, club?.name || "Boliche");
+        } catch (e) { toast(e.message, "err"); }
+      }
+
+      function clubTeamPickRow(m, clubId, clubName) {
+        const u = m.user;
+        const roleLabel = u.role === "STAFF" ? "Publi" : u.role === "PUERTA" ? "Puerta" : ROLE_LABEL[u.role] || u.role;
+        const status = u.isActive
+          ? (m.isActive ? '<span class="badge green">Activo</span>' : '<span class="badge red">Inactivo</span>')
+          : '<span class="badge red">Cuenta baneada</span>';
+        const canRemove = isSuperAdmin() && m.isActive && u.isActive;
+        return `<div class="pick-row">
+          <div>
+            <b>${esc(u.fullName)}</b>
+            <small>${roleLabel} · ${esc(u.email)}${u.phone ? " · " + esc(u.phone) : ""}</small>
+            <small>Desde ${fdt(m.createdAt)}</small>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+            ${status}
+            ${canRemove ? `<button type="button" class="btn-sm btn-danger" onclick='deactivateClubTeamMember(${JSON.stringify(clubId)}, ${JSON.stringify(m.id)}, ${JSON.stringify(clubName)})'>Quitar acceso</button>` : ""}
+          </div>
+        </div>`;
+      }
+
+      async function viewClubTeam(clubId, clubName) {
+        openModal('<div class="empty">Cargando personal...</div>');
+        try {
+          const members = await api("/clubs/" + clubId + "/members");
+          const active = members.filter((m) => m.isActive && m.user?.isActive !== false);
+          const inactive = members.filter((m) => !m.isActive || !m.user?.isActive);
+          const activeRows = active.length
+            ? active.map((m) => clubTeamPickRow(m, clubId, clubName)).join("")
+            : '<div class="empty">Todavía no hay publis ni personal de puerta activo.</div>';
+          const inactiveRows = inactive.length
+            ? inactive.map((m) => clubTeamPickRow(m, clubId, clubName)).join("")
+            : "";
+          openModal(`
+            <h3>Personal · ${esc(clubName)}</h3>
+            <p class="sub">Publis y personal de puerta con acceso a este boliche.</p>
+            <p class="role-pill" style="margin-bottom:12px">${active.length} activo(s)${inactive.length ? ` · ${inactive.length} inactivo(s)` : ""}</p>
+            <label style="margin-top:0">Activos</label>
+            <div class="pick-list">${activeRows}</div>
+            ${inactive.length ? `<label style="margin-top:14px">Inactivos</label><div class="pick-list">${inactiveRows}</div>` : ""}
+            <div class="btn-row" style="margin-top:14px">
+              <button type="button" class="btn-sm btn-accent" onclick='openTeamInvites(${JSON.stringify(clubId)}, ${JSON.stringify(clubName)})'>Códigos equipo</button>
+            </div>
+            <button type="button" class="btn-full ghost" style="margin-top:16px" onclick="closeModal()">Cerrar</button>`);
+        } catch (e) {
+          openModal(`<div class="empty">${esc(e.message)}</div><button class="btn-full ghost" onclick="closeModal()">Cerrar</button>`);
+        }
+      }
+
+      async function deactivateClubTeamMember(clubId, memberId, clubName) {
+        if (!confirm("¿Quitar el acceso de este trabajador a este boliche?")) return;
+        try {
+          await api("/clubs/" + clubId + "/members/" + memberId + "/deactivate", { method: "PATCH" });
+          toast("Acceso removido", "ok");
+          viewClubTeam(clubId, clubName);
         } catch (e) { toast(e.message, "err"); }
       }
 
