@@ -1086,12 +1086,12 @@
             </div>
               <div class="k-app-user">
               ${staffLinks}
-                <button type="button" class="k-loyalty-pill" id="app-loyalty-pill" onclick="go('profile')" title="Kluby Points" style="display:none">
-                  ⭐ <span id="app-loyalty-total">0</span> pts
-                </button>
                 <a class="k-btn-ghost k-link-inicio" href="/">Inicio</a>
                 <div class="profile-link" onclick="go('profile')" title="Mi perfil">
+              <div class="profile-av-wrap">
               ${avatarHtml(state.user, 40)}
+              <span class="k-loyalty-badge" id="app-loyalty-pill" style="display:none" title="Kluby Points">⭐<span id="app-loyalty-total">0</span></span>
+              </div>
               <div class="who"><b>${esc(state.user.fullName)}</b><small>${esc(state.user.email)}</small></div>
             </div>
                 <button type="button" class="ghost btn-sm" onclick="doLogout()">Salir</button>
@@ -1119,6 +1119,12 @@
       }
 
       let _loyaltyTotalCache = null;
+      function formatPointsShort(n) {
+        const v = Number(n) || 0;
+        if (v >= 10000) return `${Math.round(v / 1000)}k`;
+        if (v >= 1000) return `${(v / 1000).toFixed(1).replace(/\.0$/, "")}k`;
+        return v.toLocaleString("es-AR");
+      }
       async function refreshLoyaltyBadge() {
         const pill = document.getElementById("app-loyalty-pill");
         const totalEl = document.getElementById("app-loyalty-total");
@@ -1129,7 +1135,8 @@
           _loyaltyTotalCache = total;
           if (total > 0) {
             pill.style.display = "";
-            totalEl.textContent = total.toLocaleString("es-AR");
+            totalEl.textContent = formatPointsShort(total);
+            pill.title = `${total.toLocaleString("es-AR")} Kluby Points · Ver perfil`;
           } else {
             pill.style.display = "none";
           }

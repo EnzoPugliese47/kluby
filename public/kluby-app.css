@@ -99,23 +99,33 @@ body.kluby-app .section-title {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
-.k-loyalty-pill {
-  padding: 7px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--accent);
-  background: rgba(124, 92, 255, 0.12);
-  border: 1px solid rgba(124, 92, 255, 0.35);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s, border-color 0.15s;
+.profile-av-wrap {
+  position: relative;
+  flex-shrink: 0;
+  line-height: 0;
 }
-.k-loyalty-pill:hover {
-  background: rgba(45, 226, 198, 0.1);
-  border-color: rgba(45, 226, 198, 0.4);
+
+.k-loyalty-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 2px 5px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #04201c;
+  background: linear-gradient(135deg, var(--neon-cyan), #2de2c6);
+  border: 1.5px solid #050508;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 .k-app-user .profile-link {
@@ -145,6 +155,16 @@ body.kluby-app .section-title {
 .k-app-user .who small {
   color: var(--muted);
   font-size: 11px;
+}
+
+@media (max-width: 1180px) {
+  .k-app-user .who small {
+    display: none;
+  }
+
+  .k-app-user .k-link-inicio {
+    display: none;
+  }
 }
 
 body.kluby-app .k-page {
@@ -385,6 +405,11 @@ body.kluby-app .k-back {
 
   .k-app-user .who {
     display: none;
+  }
+
+  .k-loyalty-badge {
+    right: -6px;
+    bottom: -6px;
   }
 
   .k-app-user .ghost.btn-sm {
