@@ -648,6 +648,8 @@
           return true;
         }
         if (status === "ok" && kind === "reservation" && id) {
+          clearWizardHoldCheckout(id);
+          setWizardHoldSession(null);
           toast("Verificando pago…", "ok");
           for (let i = 0; i < 10; i++) {
             await new Promise((r) => setTimeout(r, 1500));
@@ -749,6 +751,8 @@
       }
       function doLogout() {
         stopNotifPoll();
+        releaseWizardHoldOnExit();
+        void releaseWizardHold();
         state.token = ""; state.user = null;
         KlubyUI.clearClientAppVisit();
         localStorage.removeItem("kluby_token"); localStorage.removeItem("kluby_user");
@@ -772,7 +776,11 @@
         clearTimeout(homeTimer);
         clearTimeout(wzClubsTimer);
         stopChatPoll();
-        if (state.view === "wizard" && view !== "wizard") void releaseWizardHold();
+        if (state.view === "wizard" && view !== "wizard") {
+          _wizardRenderGen++;
+          releaseWizardHoldOnExit();
+          void releaseWizardHold();
+        }
         if (view === "joins") {
           view = "mine";
           params = { ...params, filter: params.filter || "guest" };
@@ -797,6 +805,72 @@
       let _wizardHoldId = null;
       let _wizardHoldTableId = null;
       let _wizardHoldExpiresAt = null;
+      let _wizardRenderGen = 0;
+      let _wizardHoldBound = false;
+      const WIZARD_HOLD_KEY = "kluby_wizard_hold";
+      const WIZARD_HOLD_CHECKOUT_KEY = "kluby_wizard_hold_checkout";
+
+      function setWizardHoldSession(id) {
+        if (id) sessionStorage.setItem(WIZARD_HOLD_KEY, id);
+        else sessionStorage.removeItem(WIZARD_HOLD_KEY);
+      }
+
+      function isWizardHoldInCheckout(id) {
+        return id && sessionStorage.getItem(WIZARD_HOLD_CHECKOUT_KEY) === id;
+      }
+
+      function markWizardHoldCheckout(id) {
+        if (!id) return;
+        sessionStorage.setItem(WIZARD_HOLD_CHECKOUT_KEY, id);
+        sessionStorage.removeItem(WIZARD_HOLD_KEY);
+      }
+
+      function clearWizardHoldCheckout(id) {
+        if (!id) sessionStorage.removeItem(WIZARD_HOLD_CHECKOUT_KEY);
+        else if (sessionStorage.getItem(WIZARD_HOLD_CHECKOUT_KEY) === id) {
+          sessionStorage.removeItem(WIZARD_HOLD_CHECKOUT_KEY);
+        }
+      }
+
+      function releaseWizardHoldBeacon(id) {
+        if (!id || !state.token || isWizardHoldInCheckout(id)) return;
+        fetch(API + "/reservations/" + id + "/release-hold", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + state.token,
+          },
+          keepalive: true,
+        }).catch(() => {});
+      }
+
+      function releaseWizardHoldOnExit() {
+        const id = _wizardHoldId || sessionStorage.getItem(WIZARD_HOLD_KEY);
+        if (!id || isWizardHoldInCheckout(id)) return;
+        _wizardHoldId = null;
+        _wizardHoldTableId = null;
+        _wizardHoldExpiresAt = null;
+        setWizardHoldSession(null);
+        releaseWizardHoldBeacon(id);
+      }
+
+      async function releaseOrphanedWizardHold() {
+        const id = sessionStorage.getItem(WIZARD_HOLD_KEY);
+        if (!id || isWizardHoldInCheckout(id)) return;
+        sessionStorage.removeItem(WIZARD_HOLD_KEY);
+        _wizardHoldId = null;
+        _wizardHoldTableId = null;
+        _wizardHoldExpiresAt = null;
+        try {
+          await api("/reservations/" + id + "/release-hold", { method: "POST" });
+        } catch { /* ya liberada */ }
+      }
+
+      function bindWizardHoldLifecycle() {
+        if (_wizardHoldBound) return;
+        _wizardHoldBound = true;
+        window.addEventListener("pagehide", releaseWizardHoldOnExit);
+      }
       let _alertsCache = null;
       let _alertsAt = 0;
       let _notifPollTimer = null;
@@ -810,14 +884,20 @@
 
       function wizardGo(step, extra = {}) {
         const nextStep = Number(step) || 1;
-        if (nextStep < 4) void releaseWizardHold();
         const p = { ...state.params, ...extra, step: nextStep };
+        const leavingPayStep =
+          (Number(state.params.step) === 4 && nextStep < 4)
+          || (p.tableId && p.tableId !== state.params.tableId);
+        if (leavingPayStep) {
+          _wizardRenderGen++;
+          releaseWizardHoldOnExit();
+          void releaseWizardHold();
+        }
         if (p.eventId && p.eventId !== state.params.eventId) {
           _wizardTables = null;
           _wizardEventDate = null;
           _wizardEventId = null;
         }
-        if (p.tableId && p.tableId !== state.params.tableId) void releaseWizardHold();
         const clean = { step: p.step };
         if (p.step >= 2 && p.clubId) clean.clubId = p.clubId;
         if (p.step >= 3 && p.eventId) clean.eventId = p.eventId;
@@ -826,11 +906,12 @@
       }
 
       async function releaseWizardHold() {
-        if (!_wizardHoldId) return;
-        const id = _wizardHoldId;
+        const id = _wizardHoldId || sessionStorage.getItem(WIZARD_HOLD_KEY);
+        if (!id || isWizardHoldInCheckout(id)) return;
         _wizardHoldId = null;
         _wizardHoldTableId = null;
         _wizardHoldExpiresAt = null;
+        setWizardHoldSession(null);
         try {
           await api("/reservations/" + id + "/release-hold", { method: "POST" });
         } catch { /* ya expiró, se confirmó o no existe */ }
@@ -849,9 +930,20 @@
             mode: "STANDARD",
           }),
         });
+        if (
+          !stillOn("wizard")
+          || Number(state.params.step) !== 4
+          || state.params.tableId !== tableId
+        ) {
+          try {
+            await api("/reservations/" + r.id + "/release-hold", { method: "POST" });
+          } catch { /* abandonó el wizard mientras se creaba el bloqueo */ }
+          return null;
+        }
         _wizardHoldId = r.id;
         _wizardHoldTableId = tableId;
         _wizardHoldExpiresAt = r.expiresAt || null;
+        setWizardHoldSession(r.id);
         return r.id;
       }
 
@@ -1247,6 +1339,7 @@
       }
 
       async function renderWizard(page) {
+        const gen = ++_wizardRenderGen;
         const step = Number(state.params.step) || 1;
         page.innerHTML = wizardChrome(step) + `<div class="k-wizard-body" id="wizard-body"><div class="empty">Cargando...</div></div>`;
         const body = page.querySelector("#wizard-body");
@@ -1307,9 +1400,11 @@
           if (step === 4) {
             const { clubId, eventId, tableId } = state.params;
             if (!clubId || !eventId || !tableId) { wizardGo(3, { clubId, eventId }); return; }
+            let holdId;
             try {
-              await ensureWizardHold(tableId, eventId);
+              holdId = await ensureWizardHold(tableId, eventId);
             } catch (e) {
+              if (gen !== _wizardRenderGen || !stillOn("wizard")) return;
               body.innerHTML = emptyHtml({
                 title: "Mesa no disponible",
                 hint: e.message || "Otro usuario está reservando esta mesa. Elegí otra.",
@@ -1318,7 +1413,7 @@
               });
               return;
             }
-            if (!stillOn("wizard")) return;
+            if (!holdId || gen !== _wizardRenderGen || !stillOn("wizard")) return;
             const data = await api("/events/" + eventId + "/availability");
             if (!stillOn("wizard")) return;
             _wizardTables = data.tables;
@@ -1438,6 +1533,11 @@
           if (!reservationId || _wizardHoldTableId !== tableId) {
             reservationId = await ensureWizardHold(tableId, eventId);
           }
+          if (!reservationId) {
+            toast("La mesa ya no está disponible. Elegí otra.", "err");
+            if (btn) { btn.disabled = false; btn.textContent = "Confirmar y pagar"; }
+            return;
+          }
           if (_reserveSel) {
             await api("/reservations/" + reservationId + "/pending", {
               method: "PATCH",
@@ -1447,10 +1547,13 @@
           const payBody = payProviderBody();
           if (_wizardLoyalty?.pointsToUse > 0) payBody.loyaltyPointsToRedeem = _wizardLoyalty.pointsToUse;
           const paid = await payReservationApi("/reservations/" + reservationId + "/pay", payBody);
+          if (paid?.mode === "checkout") markWizardHoldCheckout(reservationId);
           await handlePayResponse(paid, (r) => {
             _wizardHoldId = null;
             _wizardHoldTableId = null;
             _wizardHoldExpiresAt = null;
+            setWizardHoldSession(null);
+            clearWizardHoldCheckout(r.id);
             _alertsCache = null;
             go("ticket", { id: r.id });
           });
@@ -3038,8 +3141,10 @@
         if (away) {
           location.href = away;
         } else {
+        bindWizardHoldLifecycle();
         void (async () => {
           await loadPaymentConfig();
+          await releaseOrphanedWizardHold();
           if (await handleMercadoPagoReturn()) return;
         const p = new URLSearchParams(location.search);
         const clubId = p.get("clubId");
