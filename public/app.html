@@ -2686,25 +2686,56 @@
       }
 
       // ---------- OPEN TABLES WALL ----------
+      let openTimer;
+      function debouncedOpenLoad() { clearTimeout(openTimer); openTimer = setTimeout(loadOpenWall, 300); }
+      function resetOpenFilters() {
+        KlubyUI.clearExploreFilters("op-");
+        loadOpenWall();
+      }
       async function renderOpen(page) {
-        page.innerHTML = `<div class="k-page-head"><h1>Mesas abiertas</h1><p>Sumate a una mesa y dividí el costo. El anfitrión aprueba tu ingreso.</p></div><div id="wall"><div class="empty">Cargando...</div></div>`;
+        page.innerHTML = `
+          <div class="k-page-head"><h1>Mesas abiertas</h1><p>Sumate a una mesa y dividí el costo. El anfitrión aprueba tu ingreso.</p></div>
+          <div id="open-filters"></div>
+          <div id="wall"><div class="empty">Cargando...</div></div>`;
+        const filtersEl = page.querySelector("#open-filters");
+        if (filtersEl) {
+          filtersEl.innerHTML = KlubyUI.exploreFiltersHtml("op-", { tab: "open" });
+          filtersEl.querySelectorAll("input, select").forEach((el) => {
+            el.addEventListener("input", debouncedOpenLoad);
+            el.addEventListener("change", debouncedOpenLoad);
+          });
+        }
+        loadOpenWall();
+      }
+      async function loadOpenWall() {
+        if (!stillOn("open")) return;
+        const el = document.getElementById("wall");
+        if (!el) return;
+        el.innerHTML = '<div class="empty">Cargando...</div>';
+        el.className = "";
+        const f = KlubyUI.readExploreFilters("op-");
+        const qs = KlubyUI.openTablesQueryString(f);
         try {
-          const wall = await api("/reservations/open");
+          const wall = await api("/reservations/open" + (qs ? "?" + qs : ""));
           if (!stillOn("open")) return;
-          const live = livePage("open"); if (!live) return;
-          const el = live.querySelector("#wall");
-          if (!el) return;
+          const live = livePage("open");
+          if (!live) return;
+          const wallEl = live.querySelector("#wall");
+          if (!wallEl) return;
           if (!wall.length) {
-            el.innerHTML = emptyHtml({
-              title: "Nadie abrió mesa todavía",
-              hint: "Si ya tenés reserva, podés abrirla a la comunidad desde Mis mesas.",
-              actionLabel: "Ver mis mesas",
-              actionOnclick: "go('mine')",
+            const hasFilters = !!(f.q || f.genre || f.zone || f.from || f.to);
+            wallEl.innerHTML = emptyHtml({
+              title: hasFilters ? "No hay mesas abiertas con esos filtros" : "Nadie abrió mesa todavía",
+              hint: hasFilters
+                ? "Probá otra zona, género o fecha. También podés abrir la tuya desde Mis mesas."
+                : "Si ya tenés reserva, podés abrirla a la comunidad desde Mis mesas.",
+              actionLabel: hasFilters ? "Limpiar filtros" : "Ver mis mesas",
+              actionOnclick: hasFilters ? "resetOpenFilters()" : "go('mine')",
             });
             return;
           }
-          el.className = "grid-cards";
-          el.innerHTML = wall.map((w) => {
+          wallEl.className = "grid-cards";
+          wallEl.innerHTML = wall.map((w) => {
             const isHost = w.host.id === state.user.id;
             const minCons = num(w.table?.minConsumption);
             const guestView = {
@@ -2713,6 +2744,9 @@
               minConsumption: minCons,
               status: "REQUESTED",
             };
+            const genre = w.event?.musicGenre || w.club?.musicGenre;
+            const zoneTag = w.club?.zone ? `<span class="k-tag violet">${esc(KlubyUI.zoneShort(w.club.zone))}</span>` : "";
+            const genreTag = genre ? `<span class="k-tag">${esc(genre)}</span>` : "";
             const calcBtn = isHost
               ? `<button type="button" class="btn-sm ghost" onclick="openConsumptionPlanner({ reservationId: '${w.reservationId}' })">Calculadora 🍾</button>`
               : "";
@@ -2721,13 +2755,19 @@
               : `<button type="button" class="btn-sm" onclick="joinTable('${w.reservationId}', ${w.prepaid ? "true" : "false"})">Pedir sumarme</button>`;
             return `<div class="card list-card">
               <div class="head"><div class="title">${esc(w.table.label)}</div><span class="badge green">${w.availableSlots} cupos</span></div>
-              <div class="meta">🏢 ${esc(w.club.name)}<br/>🗓️ ${fdatetime(w.event.date)}<br/>👤 Anfitrión: ${esc(w.host.fullName)}</div>
+              <div class="meta">🏢 ${esc(w.club.name)}${zoneTag}${genreTag}<br/>🗓️ ${fdatetime(w.event.date)}<br/>👤 Anfitrión: ${esc(w.host.fullName)}</div>
               ${guestFinanceHtml(guestView)}
               <div class="btn-row">${joinBtn}${calcBtn}</div>
             </div>`;
           }).join("");
         } catch (e) {
-          if (stillOn("open")) toast(e.message, "err");
+          if (stillOn("open")) {
+            const wallEl = document.getElementById("wall");
+            if (wallEl) {
+              wallEl.className = "";
+              wallEl.innerHTML = emptyHtml({ title: "No pudimos cargar", hint: e.message });
+            }
+          }
         }
       }
       async function joinTable(reservationId, prepaid) {

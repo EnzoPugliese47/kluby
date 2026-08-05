@@ -297,8 +297,9 @@ window.KlubyUI = (function () {
   /** Filtros compartidos explorar / app. prefix evita colision de ids (ej. "ex-" o "wz-"). */
   function exploreFiltersHtml(prefix, opts = {}) {
     const tab = opts.tab || "clubs";
-    const showDate = tab === "events";
+    const showDate = tab === "events" || tab === "open";
     const showUpcoming = tab === "clubs";
+    const showAvailable = tab !== "open";
     return `
       <div class="k-filters k-explore-filters">
         <input id="${prefix}q" type="search" placeholder="Buscar..." autocomplete="off" />
@@ -318,7 +319,11 @@ window.KlubyUI = (function () {
             ? `<label class="k-filter-check"><input type="checkbox" id="${prefix}upcoming" checked /> Solo con eventos próximos</label>`
             : ""
         }
-        <label class="k-filter-check"><input type="checkbox" id="${prefix}available" /> Solo con mesas disponibles</label>
+        ${
+          showAvailable
+            ? `<label class="k-filter-check"><input type="checkbox" id="${prefix}available" /> Solo con mesas disponibles</label>`
+            : ""
+        }
       </div>`;
   }
 
@@ -433,6 +438,10 @@ window.KlubyUI = (function () {
       action = `<a class="ghost btn-sm k-empty-action" href="${esc(opts.actionHref)}">${esc(opts.actionLabel)}</a>`;
     }
     return `<div class="k-empty-state"><b>${esc(title)}</b>${hint ? `<p>${hint}</p>` : ""}${action}</div>`;
+  }
+
+  function openTablesQueryString(filters) {
+    return eventsQueryString(filters);
   }
 
   function clubsQueryString(filters) {
@@ -819,6 +828,7 @@ window.KlubyUI = (function () {
     emptyStateHtml,
     clubsQueryString,
     eventsQueryString,
+    openTablesQueryString,
     exploreEventRowHtml,
     clubCoverHtml,
     clubCardHtml,

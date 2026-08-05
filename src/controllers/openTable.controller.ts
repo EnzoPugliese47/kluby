@@ -27,6 +27,7 @@ import {
   isEventOpenForOpenTables,
   openTablesEventCutoff,
 } from "../utils/eventTiming";
+import { parseClubZone } from "../utils/clubZones";
 
 /** Estados de invitado que ocupan un cupo de la mesa abierta. */
 const ACTIVE_GUEST_STATUSES: GuestStatus[] = [
@@ -141,21 +142,90 @@ export const openTable = async (
  * "Muro" de mesas abiertas: reservas OPEN_TABLE confirmadas con cupos libres.
  */
 export const listOpenTables = async (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const reservations = await prisma.reservation.findMany({
-      where: {
-        mode: ReservationMode.OPEN_TABLE,
-        status: ReservationStatus.CONFIRMED,
-        event: { date: { gte: openTablesEventCutoff() } },
+    const search = req.query["search"];
+    const genre = req.query["genre"];
+    const zoneRaw = req.query["zone"];
+    const fromRaw = req.query["from"];
+    const toRaw = req.query["to"];
+
+    const cutoff = openTablesEventCutoff();
+    const eventDateFilter: Prisma.DateTimeFilter = { gte: cutoff };
+
+    if (typeof fromRaw === "string" && fromRaw.trim() !== "") {
+      const from = new Date(fromRaw);
+      if (Number.isNaN(from.getTime())) {
+        throw new AppError("Parametro 'from' no es una fecha valida", 400);
+      }
+      eventDateFilter.gte = from > cutoff ? from : cutoff;
+    }
+    if (typeof toRaw === "string" && toRaw.trim() !== "") {
+      const to = new Date(toRaw);
+      if (Number.isNaN(to.getTime())) {
+        throw new AppError("Parametro 'to' no es una fecha valida", 400);
+      }
+      eventDateFilter.lte = to;
+    }
+
+    const clubWhere: Prisma.ClubWhereInput = { isActive: true };
+    const zone = parseClubZone(typeof zoneRaw === "string" ? zoneRaw : undefined);
+    if (zone !== null) {
+      clubWhere.zone = zone;
+    }
+
+    const where: Prisma.ReservationWhereInput = {
+      mode: ReservationMode.OPEN_TABLE,
+      status: ReservationStatus.CONFIRMED,
+      event: {
+        isActive: true,
+        date: eventDateFilter,
+        club: clubWhere,
       },
+    };
+
+    const and: Prisma.ReservationWhereInput[] = [];
+    if (typeof search === "string" && search.trim() !== "") {
+      const term = search.trim();
+      and.push({
+        OR: [
+          { club: { name: { contains: term, mode: "insensitive" } } },
+          { event: { name: { contains: term, mode: "insensitive" } } },
+          { table: { label: { contains: term, mode: "insensitive" } } },
+          { host: { fullName: { contains: term, mode: "insensitive" } } },
+        ],
+      });
+    }
+    if (typeof genre === "string" && genre.trim() !== "") {
+      const g = genre.trim();
+      and.push({
+        OR: [
+          { event: { musicGenre: { contains: g, mode: "insensitive" } } },
+          { club: { musicGenre: { contains: g, mode: "insensitive" } } },
+        ],
+      });
+    }
+    if (and.length > 0) {
+      where.AND = and;
+    }
+
+    const reservations = await prisma.reservation.findMany({
+      where,
       include: {
         table: true,
         event: true,
-        club: { select: { id: true, name: true, city: true } },
+        club: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            zone: true,
+            musicGenre: true,
+          },
+        },
         host: { select: { id: true, fullName: true } },
         guests: { where: { status: { in: ACTIVE_GUEST_STATUSES } } },
       },
