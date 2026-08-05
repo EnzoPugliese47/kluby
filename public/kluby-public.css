@@ -120,6 +120,17 @@ body.kluby-public .section-title {
 .k-page-head h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; margin-bottom: 8px; }
 .k-page-head p { color: var(--muted); font-size: 15px; line-height: 1.55; }
 
+/* Estados vacíos y mensajes amigables */
+.k-empty-state {
+  text-align: center; padding: 36px 24px; border-radius: 16px;
+  background: rgba(255,255,255,0.02); border: 1px dashed var(--border);
+  max-width: 480px; margin: 0 auto;
+}
+.k-empty-state b { display: block; font-size: 1.05rem; margin-bottom: 8px; }
+.k-empty-state p { color: var(--muted); font-size: 14px; line-height: 1.55; margin: 0 0 16px; }
+.k-empty-state .k-empty-action { margin-top: 4px; }
+.k-empty-state a.k-empty-action { display: inline-block; text-decoration: none; }
+
 /* Política de cancelación */
 .k-legal-page { max-width: 720px; margin: 0 auto; }
 .k-refund-policy-card {

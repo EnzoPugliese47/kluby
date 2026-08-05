@@ -547,10 +547,12 @@
           },
         });
         const json = await res.json().catch(() => ({ success: false, error: "Respuesta invalida" }));
-        if (res.status === 401 && state.token) { doLogout(); throw new Error("Sesion expirada"); }
-        if (!res.ok || !json.success) throw new Error(json.error || "Error " + res.status);
+        if (res.status === 401 && state.token) { doLogout(); throw new Error(KlubyUI.friendlyError("Sesion expirada", 401)); }
+        if (!res.ok || !json.success) throw new Error(KlubyUI.friendlyError(json.error || "Error " + res.status, res.status));
         return json.data;
       }
+
+      const emptyHtml = (opts) => KlubyUI.emptyStateHtml(opts);
 
       const statusBadge = (s) => {
         const map = {
@@ -824,7 +826,12 @@
               <div class="k-page-head"><h1>${esc(club.name)}</h1><p>Paso 2 de 4 · Elegí la fecha del evento.</p></div>
               <div class="k-events-list" id="wz-events">${list.length
                 ? list.map((e) => KlubyUI.eventRowAppHtml(e, club.id, "wizard")).join("")
-                : `<div class="empty">No hay fechas publicadas.</div>`}</div>`;
+                : emptyHtml({
+                    title: "Sin fechas publicadas",
+                    hint: "Este boliche no tiene eventos activos. Elegí otro boliche para continuar.",
+                    actionLabel: "← Cambiar boliche",
+                    actionOnclick: "wizardGo(1)",
+                  })}</div>`;
             return;
           }
           if (step === 3) {
@@ -859,7 +866,7 @@
               _wizardEventId = eventId;
             }
             const t = (_wizardTables || []).find((x) => x.id === tableId);
-            if (!t) { body.innerHTML = `<div class="empty">Mesa no encontrada.</div>`; return; }
+            if (!t) { body.innerHTML = emptyHtml({ title: "Mesa no disponible", hint: "Esa mesa ya no está libre. Volvé al mapa y elegí otra.", actionLabel: "← Elegir otra mesa", actionOnclick: `wizardGo(3,{clubId:'${state.params.clubId}',eventId:'${eventId}'})` }); return; }
             const deposit = Math.round(Number(t.price) * (t.depositPercent / 100));
             const minCons = num(t.minConsumption);
             _reserveSel = "DEPOSIT_ONLY";
@@ -913,8 +920,13 @@
             void refreshWizardRefundPolicy();
           }
         } catch (e) {
-          if (stillOn("wizard") && body) body.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+          if (stillOn("wizard") && body) body.innerHTML = emptyHtml({ title: "No pudimos cargar", hint: e.message });
         }
+      }
+
+      function resetWizardFilters() {
+        KlubyUI.clearExploreFilters("wz-");
+        loadWizardClubs();
       }
 
       let wzClubsTimer;
@@ -927,7 +939,15 @@
           const clubs = await api("/clubs" + (qs ? "?" + qs : ""));
           if (!stillOn("wizard")) return;
           const el = document.getElementById("wz-clubs"); if (!el) return;
-          if (!clubs.length) { el.innerHTML = `<div class="empty">No se encontraron boliches.</div>`; return; }
+          if (!clubs.length) {
+            el.innerHTML = emptyHtml({
+              title: f.availableOnly ? "Nada con mesas libres" : "No encontramos boliches",
+              hint: "Probá otra zona o quitá filtros para seguir con la reserva.",
+              actionLabel: "Limpiar filtros",
+              actionOnclick: "resetWizardFilters()",
+            });
+            return;
+          }
           el.innerHTML = clubs.map((c) => KlubyUI.clubCardAppHtml(c, "wizard")).join("");
         } catch (e) {
           if (stillOn("wizard")) toast(e.message, "err");
@@ -1083,6 +1103,10 @@
       }
       let homeTimer;
       function debouncedHomeLoad() { clearTimeout(homeTimer); homeTimer = setTimeout(loadHomeContent, 300); }
+      function resetHomeFilters() {
+        KlubyUI.clearExploreFilters("hm-");
+        loadHomeContent();
+      }
       async function loadHomeContent() {
         if (!stillOn("home")) return;
         const el = document.getElementById("home-list"); if (!el) return;
@@ -1093,19 +1117,42 @@
             const qs = KlubyUI.clubsQueryString(f);
             const clubs = await api("/clubs" + (qs ? "?" + qs : ""));
             if (!stillOn("home")) return;
-            if (!clubs.length) { el.innerHTML = `<div class="empty">No se encontraron boliches.</div>`; return; }
+            if (!clubs.length) {
+              el.className = "";
+              el.innerHTML = emptyHtml({
+                title: homeTab === "clubs" && f.availableOnly ? "Nada con mesas libres" : "No encontramos boliches",
+                hint: f.availableOnly
+                  ? "Sacá el filtro de mesas disponibles o ampliá zona y género."
+                  : "Probá otra búsqueda o limpiá los filtros.",
+                actionLabel: "Limpiar filtros",
+                actionOnclick: "resetHomeFilters()",
+              });
+              return;
+            }
             el.className = "k-clubs-grid";
             el.innerHTML = clubs.map((c) => KlubyUI.clubCardAppHtml(c, "browse")).join("");
           } else {
             const qs = KlubyUI.eventsQueryString(f);
             const events = await api("/events/explore" + (qs ? "?" + qs : ""));
             if (!stillOn("home")) return;
-            if (!events.length) { el.innerHTML = `<div class="empty">No hay eventos con esos filtros.</div>`; return; }
+            if (!events.length) {
+              el.className = "";
+              el.innerHTML = emptyHtml({
+                title: f.availableOnly ? "Sin eventos con mesas libres" : "No hay eventos con esos filtros",
+                hint: "Ampliá fechas, cambiá de zona o desactivá el filtro de mesas disponibles.",
+                actionLabel: "Limpiar filtros",
+                actionOnclick: "resetHomeFilters()",
+              });
+              return;
+            }
             el.className = "k-events-list k-explore-events-list";
             el.innerHTML = events.map((e) => KlubyUI.exploreEventRowHtml(e)).join("");
           }
         } catch (e) {
-          if (stillOn("home")) el.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+          if (stillOn("home")) {
+            el.className = "";
+            el.innerHTML = emptyHtml({ title: "No pudimos cargar", hint: e.message });
+          }
         }
       }
 
@@ -1138,7 +1185,7 @@
           if (!eventsEl) return;
           eventsEl.innerHTML = list.length
             ? list.map((e) => KlubyUI.eventRowAppHtml(e, club.id, "wizard")).join("")
-            : `<div class="empty" style="padding:24px 0">Este boliche aún no tiene fechas publicadas.</div>`;
+            : emptyHtml({ title: "Sin fechas publicadas", hint: "Este boliche todavía no tiene eventos próximos.", actionLabel: "Explorar otros", actionOnclick: "go('home')" });
         } catch (e) {
           const live = livePage("club");
           if (live) live.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
@@ -1356,7 +1403,12 @@
           if (!el) return;
           if (!upcoming.length) {
             el.className = "";
-            el.innerHTML = `<div class="empty">No tenés reservas para próximos eventos. ¡Explorá boliches!</div>`;
+            el.innerHTML = emptyHtml({
+              title: "Sin reservas próximas",
+              hint: "Explorá boliches y reservá tu mesa para el próximo evento.",
+              actionLabel: "Explorar boliches",
+              actionOnclick: "go('home')",
+            });
           } else {
             el.className = "grid-cards";
             el.innerHTML = upcoming.map(upcomingCard).join("");
@@ -1518,7 +1570,13 @@
             <div id="guests" class="grid-cards"></div>`;
           const el = live.querySelector("#guests");
           if (!el) return;
-          if (!guests.length) { el.innerHTML = `<div class="empty">Todavía nadie se postuló a tu mesa.</div>`; return; }
+          if (!guests.length) {
+            el.innerHTML = emptyHtml({
+              title: "Sin postulaciones",
+              hint: "Cuando alguien pida sumarse a tu mesa abierta, lo ves acá para aceptar o rechazar.",
+            });
+            return;
+          }
           el.innerHTML = guests.map((g) => {
             const acts = [];
             if (g.status === "REQUESTED") {
@@ -1551,7 +1609,15 @@
           const live = livePage("open"); if (!live) return;
           const el = live.querySelector("#wall");
           if (!el) return;
-          if (!wall.length) { el.innerHTML = `<div class="empty">No hay mesas abiertas por ahora.</div>`; return; }
+          if (!wall.length) {
+            el.innerHTML = emptyHtml({
+              title: "Nadie abrió mesa todavía",
+              hint: "Si ya tenés reserva, podés abrirla a la comunidad desde Mis reservas.",
+              actionLabel: "Ver mis reservas",
+              actionOnclick: "go('mine')",
+            });
+            return;
+          }
           el.className = "grid-cards";
           el.innerHTML = wall.map((w) => {
             const isHost = w.host.id === state.user.id;
@@ -1609,7 +1675,15 @@
           const live = livePage("joins"); if (!live) return;
           const el = live.querySelector("#list");
           if (!el) return;
-          if (!entries.length) { el.innerHTML = `<div class="empty">No te postulaste a ninguna mesa. Mirá el muro de <a onclick="go('open')">mesas abiertas</a>.</div>`; return; }
+          if (!entries.length) {
+            el.innerHTML = emptyHtml({
+              title: "Sin postulaciones",
+              hint: "Cuando pidas sumarte a una mesa abierta, el estado aparece acá.",
+              actionLabel: "Ver mesas abiertas",
+              actionOnclick: "go('open')",
+            });
+            return;
+          }
           el.className = "grid-cards";
           el.innerHTML = entries.map((g) => {
             const r = g.reservation;
@@ -2013,7 +2087,10 @@
           const listEl = live.querySelector("#inv-list");
           if (!listEl) return;
           if (!rows.length) {
-            listEl.innerHTML = '<div class="empty">Todavía no canjeaste invitaciones a eventos.</div>';
+            listEl.innerHTML = emptyHtml({
+              title: "Sin invitaciones canjeadas",
+              hint: "Si un publi te invita con código, canjealo al registrarte o desde el link del evento.",
+            });
             return;
           }
           listEl.innerHTML = rows.map((r) => {

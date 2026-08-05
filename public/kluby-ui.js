@@ -288,6 +288,64 @@ window.KlubyUI = (function () {
     return { q, genre, zone, upcomingOnly, availableOnly, ...range };
   }
 
+  function clearExploreFilters(prefix) {
+    const q = document.getElementById(prefix + "q");
+    const genre = document.getElementById(prefix + "genre");
+    const zone = document.getElementById(prefix + "zone");
+    const date = document.getElementById(prefix + "date");
+    const upcoming = document.getElementById(prefix + "upcoming");
+    const available = document.getElementById(prefix + "available");
+    if (q) q.value = "";
+    if (genre) genre.value = "";
+    if (zone) zone.value = "";
+    if (date) date.value = "";
+    if (upcoming) upcoming.checked = true;
+    if (available) available.checked = false;
+    const trigger = q || zone || upcoming || available;
+    if (trigger) trigger.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  function friendlyError(message, status) {
+    const msg = String(message || "").trim();
+    const lower = msg.toLowerCase();
+    if (status === 401 || lower.includes("credenciales")) {
+      return "Email o contraseña incorrectos. Revisá los datos e intentá de nuevo.";
+    }
+    if (status === 403) return "No tenés permiso para hacer esto con tu cuenta actual.";
+    if (status === 404) {
+      if (lower.includes("reserva")) return "No encontramos esa reserva. Revisá el código o el QR e intentá de nuevo.";
+      if (lower.includes("boliche")) return "Ese boliche no está disponible o fue dado de baja.";
+      return msg || "No encontramos lo que buscás. Puede que haya sido eliminado.";
+    }
+    if (status === 409) {
+      if (lower.includes("cupo")) return "Esta mesa ya no tiene cupos libres. Probá otra mesa abierta.";
+      return msg || "Algo cambió mientras procesabas. Actualizá la página e intentá de nuevo.";
+    }
+    if (status >= 500) return "Error del servidor. Esperá unos segundos e intentá de nuevo.";
+    if (lower.includes("failed to fetch") || lower.includes("network")) {
+      return "Sin conexión. Verificá tu internet e intentá otra vez.";
+    }
+    if (lower.includes("respuesta inv") || lower.includes("respuesta invalida")) {
+      return "No pudimos leer la respuesta del servidor. Reintentá en un momento.";
+    }
+    if (lower.includes("sesion expirada") || lower.includes("sesión expirada")) {
+      return "Tu sesión expiró. Volvé a ingresar.";
+    }
+    return msg || "Algo salió mal. Intentá de nuevo.";
+  }
+
+  function emptyStateHtml(opts = {}) {
+    const title = opts.title || "Sin resultados";
+    const hint = opts.hint || "";
+    let action = "";
+    if (opts.actionLabel && opts.actionOnclick) {
+      action = `<button type="button" class="ghost btn-sm k-empty-action" onclick="${opts.actionOnclick}">${esc(opts.actionLabel)}</button>`;
+    } else if (opts.actionLabel && opts.actionHref) {
+      action = `<a class="ghost btn-sm k-empty-action" href="${esc(opts.actionHref)}">${esc(opts.actionLabel)}</a>`;
+    }
+    return `<div class="k-empty-state"><b>${esc(title)}</b>${hint ? `<p>${hint}</p>` : ""}${action}</div>`;
+  }
+
   function clubsQueryString(filters) {
     const qs = new URLSearchParams();
     if (filters.q) qs.set("search", filters.q);
@@ -520,7 +578,14 @@ window.KlubyUI = (function () {
       const clubs = await loadClubs(Object.fromEntries(new URLSearchParams(qs)));
       if (options.onClubsLoaded) options.onClubsLoaded(clubs);
       if (!clubs.length) {
-        el.innerHTML = `<div class="empty">${f.availableOnly ? "No hay boliches con mesas disponibles para esos filtros." : "No encontramos boliches con esos filtros."}</div>`;
+        el.innerHTML = emptyStateHtml({
+          title: f.availableOnly ? "Nada con mesas libres" : "No encontramos boliches",
+          hint: f.availableOnly
+            ? "Probá sacar el filtro de mesas disponibles o ampliar zona y género."
+            : "Probá otra zona, género o quitá filtros para ver más opciones.",
+          actionLabel: "Limpiar filtros",
+          actionOnclick: `KlubyUI.clearExploreFilters('${prefix}')`,
+        });
         return;
       }
       const blocks = await Promise.all(
@@ -564,7 +629,14 @@ window.KlubyUI = (function () {
       const qs = eventsQueryString(f);
       const events = await loadExploreEvents(Object.fromEntries(new URLSearchParams(qs)));
       if (!events.length) {
-        el.innerHTML = `<div class="empty">${f.availableOnly ? "No hay eventos con mesas disponibles. Probá ampliar fecha o zona." : "No hay eventos con esos filtros. Probá otra fecha o zona."}</div>`;
+        el.innerHTML = emptyStateHtml({
+          title: f.availableOnly ? "Sin eventos con mesas libres" : "No hay eventos con esos filtros",
+          hint: f.availableOnly
+            ? "Ampliá el rango de fechas, cambiá de zona o desactivá el filtro de mesas disponibles."
+            : "Probá otra fecha, zona o género musical.",
+          actionLabel: "Limpiar filtros",
+          actionOnclick: `KlubyUI.clearExploreFilters('${prefix}')`,
+        });
         return;
       }
       el.innerHTML = `<div class="k-events-list k-explore-events-list">${events.map((e) => exploreEventRowHtml(e)).join("")}</div>`;
@@ -578,7 +650,10 @@ window.KlubyUI = (function () {
         if (exploreTab === "clubs") await loadClubsView();
         else await loadEventsView();
       } catch (e) {
-        el.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+        el.innerHTML = emptyStateHtml({
+          title: "No pudimos cargar",
+          hint: friendlyError(e.message),
+        });
       }
     }
 
@@ -641,6 +716,9 @@ window.KlubyUI = (function () {
     computeDateRange,
     exploreFiltersHtml,
     readExploreFilters,
+    clearExploreFilters,
+    friendlyError,
+    emptyStateHtml,
     clubsQueryString,
     eventsQueryString,
     exploreEventRowHtml,

@@ -7,7 +7,9 @@
     <title>Kluby · Puerta</title>
     <link rel="stylesheet" href="/kluby.css" />
     <link rel="stylesheet" href="/ops-mobile.css" />
+    <link rel="stylesheet" href="/kluby-public.css" />
     <script src="/ops-native.js"></script>
+    <script src="/kluby-ui.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   </head>
   <body>
@@ -35,7 +37,7 @@
       async function api(path, options = {}) {
         const res = await fetch(API + path, { ...options, headers: { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}), ...(options.headers || {}) } });
         const json = await res.json().catch(() => ({ success: false, error: "Respuesta invalida" }));
-        if (!res.ok || !json.success) throw new Error(json.error || "Error " + res.status);
+        if (!res.ok || !json.success) throw new Error(KlubyUI.friendlyError(json.error || "Error " + res.status, res.status));
         return json.data;
       }
 
@@ -282,7 +284,10 @@
             kpi.innerHTML = `<span>Ingresos${data.event ? " · " + esc(data.event.name) : ""}</span><b>${rows.length}</b>`;
           }
           if (!rows.length) {
-            list.innerHTML = `<div class="empty">Todavía no hay ingresos registrados esta noche.</div>`;
+            list.innerHTML = KlubyUI.emptyStateHtml({
+              title: "Sin ingresos esta noche",
+              hint: "Cuando escanees un QR o registres un ingreso manual, aparece acá.",
+            });
             return;
           }
           list.innerHTML = `<ul class="ops-history">${rows.map((r) => `

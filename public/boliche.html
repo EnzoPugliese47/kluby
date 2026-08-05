@@ -80,7 +80,12 @@
               ${
                 upcoming.length
                   ? `<div class="k-events-list">${upcoming.map((e) => UI.eventRowHtml(e, clubId)).join("")}</div>`
-                  : '<div class="empty" style="padding:32px">No hay eventos próximos publicados todavía.</div>'
+                  : UI.emptyStateHtml({
+                      title: "Sin fechas publicadas",
+                      hint: "Este boliche todavía no tiene eventos próximos. Volvé más adelante o explorá otros.",
+                      actionLabel: "Explorar boliches",
+                      actionHref: "/#explorar",
+                    })
               }
             </section>
 
