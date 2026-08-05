@@ -13,6 +13,7 @@
     "seed": "ts-node-dev --transpile-only src/scripts/seed.ts",
     "clear:events": "ts-node-dev --transpile-only src/scripts/clear-events.ts",
     "seed:july4": "ts-node-dev --transpile-only src/scripts/create-july4-event.ts",
+    "seed:kora-aug15": "ts-node-dev --transpile-only src/scripts/create-kora-aug15-event.ts",
     "repair:images": "ts-node-dev --transpile-only src/scripts/repair-images.ts",
     "repair:puerta": "ts-node-dev --transpile-only src/scripts/ensure-puerta-user.ts",
     "sync:zones": "ts-node-dev --transpile-only src/scripts/sync-club-zones.ts",
