@@ -205,16 +205,27 @@ export async function startReservationMercadoPagoCheckout(
       return { kind: "confirmed" as const, reservation: confirmed };
     }
 
-    const payment = await tx.payment.create({
-      data: {
+    const existingPending = await tx.payment.findFirst({
+      where: {
         reservationId,
         userId: hostId,
-        type: breakdown.paymentType,
-        amount: breakdown.amount,
         status: PaymentStatus.PENDING,
         provider: "mercadopago",
       },
+      orderBy: { createdAt: "desc" },
     });
+
+    const payment = existingPending
+      ?? await tx.payment.create({
+        data: {
+          reservationId,
+          userId: hostId,
+          type: breakdown.paymentType,
+          amount: breakdown.amount,
+          status: PaymentStatus.PENDING,
+          provider: "mercadopago",
+        },
+      });
 
     return {
       kind: "checkout" as const,
@@ -239,31 +250,38 @@ export async function startReservationMercadoPagoCheckout(
     return `${base}/app.html?${p.toString()}`;
   };
 
-  const checkout = await createMercadoPagoCheckout({
-    klubyPaymentId: prep.paymentId,
-    title: `Kluby · ${prep.reservation.paymentOption === PaymentOption.FULL_PAYMENT ? "Pago total" : "Seña"} mesa`,
-    amount: Number(prep.breakdown.amount),
-    payerEmail: hostEmail,
-    successUrl: appReturn({ status: "ok" }),
-    failureUrl: appReturn({ status: "fail" }),
-    pendingUrl: appReturn({ status: "pending" }),
-    metadata: {
-      kluby_payment_id: prep.paymentId,
-      loyalty_points: String(loyaltyPointsToRedeem),
-    },
-  });
+  try {
+    const checkout = await createMercadoPagoCheckout({
+      klubyPaymentId: prep.paymentId,
+      title: `Kluby · ${prep.reservation.paymentOption === PaymentOption.FULL_PAYMENT ? "Pago total" : "Seña"} mesa`,
+      amount: Number(prep.breakdown.amount),
+      payerEmail: hostEmail,
+      successUrl: appReturn({ status: "ok" }),
+      failureUrl: appReturn({ status: "fail" }),
+      pendingUrl: appReturn({ status: "pending" }),
+      metadata: {
+        kluby_payment_id: prep.paymentId,
+        loyalty_points: String(loyaltyPointsToRedeem),
+      },
+    });
 
-  await prisma.payment.update({
-    where: { id: prep.paymentId },
-    data: { externalRef: checkout.preferenceId },
-  });
+    await prisma.payment.update({
+      where: { id: prep.paymentId },
+      data: { externalRef: checkout.preferenceId },
+    });
 
-  return {
-    mode: "checkout" as const,
-    checkoutUrl: checkout.checkoutUrl,
-    paymentId: prep.paymentId,
-    reservationId,
-  };
+    return {
+      mode: "checkout" as const,
+      checkoutUrl: checkout.checkoutUrl,
+      paymentId: prep.paymentId,
+      reservationId,
+    };
+  } catch (error) {
+    await prisma.payment.deleteMany({
+      where: { id: prep.paymentId, status: PaymentStatus.PENDING },
+    }).catch(() => {});
+    throw error;
+  }
 }
 
 export async function startGuestMercadoPagoCheckout(

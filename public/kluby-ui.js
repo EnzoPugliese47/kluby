@@ -330,6 +330,7 @@ window.KlubyUI = (function () {
       if (lower.includes("cupo")) return "Esta mesa ya no tiene cupos libres. Probá otra mesa abierta.";
       return msg || "Algo cambió mientras procesabas. Actualizá la página e intentá de nuevo.";
     }
+    if (status >= 500 && msg && msg !== "Error interno del servidor") return msg;
     if (status >= 500) return "Error del servidor. Esperá unos segundos e intentá de nuevo.";
     if (lower.includes("failed to fetch") || lower.includes("network")) {
       return "Sin conexión. Verificá tu internet e intentá otra vez.";

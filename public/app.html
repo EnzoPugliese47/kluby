@@ -652,7 +652,7 @@
       function payProviderBody(extra = {}) {
         const body = { ...extra };
         if (body.provider === undefined) {
-          body.provider = _paymentConfig.mercadoPagoEnabled ? "mercadopago" : "demo";
+          body.provider = _paymentConfig.defaultProvider || "demo";
         }
         return body;
       }
@@ -1508,7 +1508,7 @@
                 <div id="wizard-refund-policy"></div>
                 <button type="button" class="ghost btn-sm" style="margin-top:12px" onclick="openConsumptionPlanner({ eventId: '${eventId}', minConsumption: ${minCons}, tablePrice: ${num(t.price)}, depositPercent: ${t.depositPercent} })">🍾 Planificá tu consumo antes de ir</button>
                 <button type="button" class="btn-full btn-accent" id="reserve-btn" style="margin-top:22px" onclick="confirmWizardReserve('${tableId}','${eventId}')">Confirmar y pagar</button>
-                ${_paymentConfig.mercadoPagoEnabled ? `<button type="button" class="ghost btn-sm" style="margin-top:10px;width:100%" id="reserve-demo-btn" onclick="confirmWizardReserve('${tableId}','${eventId}','demo')">Pagar demo (sin Mercado Pago)</button>` : ""}
+                ${_paymentConfig.mercadoPagoEnabled && _paymentConfig.sandbox ? `<button type="button" class="ghost btn-sm" style="margin-top:10px;width:100%" id="reserve-mp-btn" onclick="confirmWizardReserve('${tableId}','${eventId}','mercadopago')">Probar Mercado Pago (sandbox)</button>` : ""}
                 <div class="error" id="reserve-err"></div>
               </div>`;
             renderWizardRefundPolicyEl(null);
@@ -1554,13 +1554,13 @@
           toast("Aceptá la política de cancelación para continuar", "err");
           return;
         }
-        const demo = provider === "demo";
-        const btn = $(demo ? "reserve-demo-btn" : "reserve-btn");
+        const useMp = provider === "mercadopago";
+        const btn = $(useMp ? "reserve-mp-btn" : "reserve-btn");
         const mainBtn = $("reserve-btn");
-        const demoBtn = $("reserve-demo-btn");
-        if (btn) { btn.disabled = true; }
-        if (mainBtn && !demo) { mainBtn.disabled = true; mainBtn.textContent = "Procesando..."; }
-        if (demoBtn && demo) demoBtn.textContent = "Procesando...";
+        const mpBtn = $("reserve-mp-btn");
+        if (btn) btn.disabled = true;
+        if (mainBtn && !useMp) { mainBtn.disabled = true; mainBtn.textContent = "Procesando..."; }
+        if (mpBtn && useMp) mpBtn.textContent = "Procesando...";
         try {
           let reservationId = _wizardHoldId;
           if (!reservationId || _wizardHoldTableId !== tableId) {
@@ -1569,7 +1569,7 @@
           if (!reservationId) {
             toast("La mesa ya no está disponible. Elegí otra.", "err");
             if (mainBtn) { mainBtn.disabled = false; mainBtn.textContent = "Confirmar y pagar"; }
-            if (demoBtn) { demoBtn.disabled = false; demoBtn.textContent = "Pagar demo (sin Mercado Pago)"; }
+            if (mpBtn) { mpBtn.disabled = false; mpBtn.textContent = "Probar Mercado Pago (sandbox)"; }
             return;
           }
           if (_reserveSel) {
@@ -1578,7 +1578,7 @@
               body: JSON.stringify({ paymentOption: _reserveSel }),
             });
           }
-          const payBody = payProviderBody(demo ? { provider: "demo" } : {});
+          const payBody = payProviderBody(useMp ? { provider: "mercadopago" } : { provider: "demo" });
           if (_wizardLoyalty?.pointsToUse > 0) payBody.loyaltyPointsToRedeem = _wizardLoyalty.pointsToUse;
           const paid = await payReservationApi("/reservations/" + reservationId + "/pay", payBody);
           if (paid?.mode === "checkout") markWizardHoldCheckout(reservationId);
@@ -1595,7 +1595,7 @@
           const err = document.getElementById("reserve-err");
           if (err) err.textContent = e.message;
           if (mainBtn) { mainBtn.disabled = false; mainBtn.textContent = "Confirmar y pagar"; }
-          if (demoBtn) { demoBtn.disabled = false; demoBtn.textContent = "Pagar demo (sin Mercado Pago)"; }
+          if (mpBtn) { mpBtn.disabled = false; mpBtn.textContent = "Probar Mercado Pago (sandbox)"; }
         }
       }
 

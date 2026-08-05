@@ -13,6 +13,6 @@ export const getPaymentConfig = (_req: Request, res: Response): void => {
     mercadoPagoEnabled: isMercadoPagoEnabled(),
     sandbox,
     sandboxReady: mercadoPagoSandboxReady(),
-    defaultProvider: isMercadoPagoEnabled() ? "mercadopago" : "demo",
+    defaultProvider: isMercadoPagoEnabled() && !sandbox ? "mercadopago" : "demo",
   });
 };

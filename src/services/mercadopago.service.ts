@@ -59,13 +59,6 @@ export function mercadoPagoSandboxReady(): boolean {
   );
 }
 
-export type MpPreferenceItem = {
-  title: string;
-  quantity: number;
-  unit_price: number;
-  currency_id?: string;
-};
-
 export type MpCheckoutInput = {
   klubyPaymentId: string;
   title: string;
@@ -82,6 +75,22 @@ export type MpCheckoutResult = {
   checkoutUrl: string;
   payerEmail: string;
 };
+
+function mpErrorDetail(data: unknown, fallback: string): string {
+  if (!data || typeof data !== "object") return fallback;
+  const row = data as Record<string, unknown>;
+  const parts: string[] = [];
+  if (typeof row.message === "string") parts.push(row.message);
+  if (typeof row.error === "string") parts.push(row.error);
+  if (Array.isArray(row.cause)) {
+    for (const c of row.cause) {
+      if (c && typeof c === "object" && typeof (c as { description?: string }).description === "string") {
+        parts.push((c as { description: string }).description);
+      }
+    }
+  }
+  return parts.join(" · ") || fallback;
+}
 
 export async function createMercadoPagoCheckout(
   input: MpCheckoutInput
@@ -108,36 +117,46 @@ export async function createMercadoPagoCheckout(
       failure: input.failureUrl,
       pending: input.pendingUrl,
     },
-    auto_return: "approved" as const,
     external_reference: `kluby:${input.klubyPaymentId}`,
-    notification_url: `${env.publicAppUrl.replace(/\/$/, "")}/api/webhooks/mercadopago`,
     metadata: input.metadata ?? {},
   };
 
   if (isMercadoPagoSandbox()) {
     body.payment_methods = {
       excluded_payment_types: [{ id: "ticket" }, { id: "atm" }, { id: "bank_transfer" }],
-      installments: 1,
     };
+  } else {
+    body.auto_return = "approved";
+    body.notification_url = `${env.publicAppUrl.replace(/\/$/, "")}/api/webhooks/mercadopago`;
   }
 
-  const res = await fetch("https://api.mercadopago.com/checkout/preferences", {
-    method: "POST",
-    headers: mpHeaders(),
-    body: JSON.stringify(body),
-  });
+  let res: Response;
+  try {
+    res = await fetch("https://api.mercadopago.com/checkout/preferences", {
+      method: "POST",
+      headers: mpHeaders(),
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new AppError("No pudimos conectar con Mercado Pago. Usá pago demo o reintentá.", 400);
+  }
 
-  const data = (await res.json()) as {
+  let data: {
     id?: string;
     init_point?: string;
     sandbox_init_point?: string;
     message?: string;
     error?: string;
+    cause?: unknown[];
   };
+  try {
+    data = (await res.json()) as typeof data;
+  } catch {
+    throw new AppError("Mercado Pago respondió de forma inválida", 400);
+  }
 
   if (!res.ok) {
-    const detail = data.message || data.error || res.statusText;
-    throw new AppError(`Mercado Pago: ${detail}`, 400);
+    throw new AppError(`Mercado Pago: ${mpErrorDetail(data, res.statusText)}`, 400);
   }
 
   const checkoutUrl = isMercadoPagoSandbox()
@@ -169,7 +188,7 @@ export async function fetchMercadoPagoPayment(
   const data = (await res.json()) as MpPaymentInfo & { message?: string; error?: string };
   if (!res.ok) {
     const detail = data.message || data.error || res.statusText;
-    throw new Error(`Mercado Pago payment ${mpPaymentId}: ${detail}`);
+    throw new AppError(`Mercado Pago payment ${mpPaymentId}: ${detail}`, 400);
   }
 
   return data;
