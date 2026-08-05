@@ -174,8 +174,8 @@
         padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
       }
       .filter-chips button.active { background: var(--surface-2); color: var(--text); border-color: var(--accent); }
-      .data-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
-      .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      .data-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); -webkit-overflow-scrolling: touch; }
+      .data-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; }
       .data-table th {
         text-align: left; padding: 12px 14px; background: var(--surface-2);
         color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px;
@@ -232,7 +232,7 @@
       .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
       /* Tabla de datos */
-      table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+      table.data { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; }
       .events-section { margin-bottom: 16px; }
       .events-section-title { font-size: 14px; font-weight: 600; color: var(--muted); margin: 0 0 10px 4px; letter-spacing: 0.02em; text-transform: uppercase; }
       .events-past-wrap { margin-top: 8px; }
@@ -638,7 +638,7 @@
           <button class="btn-sm btn-accent" onclick="openTeamInvitesFromTab()">+ Códigos de ingreso</button>
           <button class="ghost" onclick="loadTeam()">↻ Actualizar</button>
         </div>
-        <div class="card panel" style="padding:0;overflow:hidden">
+        <div class="card panel" style="padding:0">
           <div id="team-table"><div class="empty">Cargando...</div></div>
         </div>
       </div>
@@ -660,7 +660,7 @@
           <button class="btn-sm btn-accent" id="btn-add-owner" style="display:none" onclick="openOwnerForm()">+ Nuevo dueño</button>
           <button class="ghost" onclick="loadUsers()">↻ Actualizar</button>
         </div>
-        <div class="card panel" style="padding:0;overflow:hidden">
+        <div class="card panel" style="padding:0">
           <div id="users-table"><div class="empty">Cargando...</div></div>
         </div>
       </div>
@@ -1509,10 +1509,12 @@
             return;
           }
           cont.innerHTML = `
-            <table class="data">
-              <thead><tr><th>Nombre</th><th>Contacto</th><th>Rol</th><th>Desde</th><th>Estado</th><th></th></tr></thead>
-              <tbody>${active.map(teamRow).join("")}</tbody>
-            </table>`;
+            <div class="data-table-wrap">
+              <table class="data">
+                <thead><tr><th>Nombre</th><th>Contacto</th><th>Rol</th><th>Desde</th><th>Estado</th><th></th></tr></thead>
+                <tbody>${active.map(teamRow).join("")}</tbody>
+              </table>
+            </div>`;
         } catch (e) {
           if (String(e.message).includes("401")) return logout();
           cont.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
@@ -1618,10 +1620,12 @@
             return;
           }
           cont.innerHTML = `
-            <table class="data">
-              <thead><tr><th>Usuario</th><th>Contacto</th><th>Rol</th><th>Reservas</th><th>Estado</th><th></th></tr></thead>
-              <tbody>${users.map(userRow).join("")}</tbody>
-            </table>`;
+            <div class="data-table-wrap">
+              <table class="data">
+                <thead><tr><th>Usuario</th><th>Contacto</th><th>Rol</th><th>Reservas</th><th>Estado</th><th></th></tr></thead>
+                <tbody>${users.map(userRow).join("")}</tbody>
+              </table>
+            </div>`;
         } catch (e) {
           if (String(e.message).includes("401")) return logout();
           cont.innerHTML = `<div class="empty">${esc(e.message)}</div>`;

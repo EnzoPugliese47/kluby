@@ -92,7 +92,7 @@
       .k-calc-budget { margin: 14px 0; }
       .k-calc-budget label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
       .k-calc-budget input { width: 100%; padding: 12px 14px; border-radius: 10px; background: var(--surface-3); border: 1px solid var(--border); color: var(--text); font-size: 16px; font-weight: 700; }
-      .k-calc-lines { display: flex; flex-direction: column; gap: 10px; max-height: 340px; overflow-y: auto; margin: 12px 0; padding-right: 4px; }
+      .k-calc-lines { display: flex; flex-direction: column; gap: 10px; max-height: min(38vh, 280px); overflow-y: auto; margin: 12px 0; padding-right: 4px; -webkit-overflow-scrolling: touch; }
       .k-calc-line {
         display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;
         padding: 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border);
@@ -528,7 +528,10 @@
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => (t.className = "toast " + kind), 3200);
       }
-      function openModal(html) { $("modal-content").innerHTML = html; $("modal").classList.add("open"); }
+      function openModal(html) {
+        $("modal-content").innerHTML = html;
+        $("modal").classList.add("open");
+      }
       function closeModal() {
         if (_pc?.blobUrl) URL.revokeObjectURL(_pc.blobUrl);
         _pc = null;
