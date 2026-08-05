@@ -52,6 +52,12 @@ const reservationInclude = {
     include: { user: { select: { id: true, fullName: true } } },
   },
   payments: true,
+  orders: {
+    orderBy: { createdAt: "desc" as const },
+    include: {
+      items: { include: { product: { select: { id: true, name: true, category: true } } } },
+    },
+  },
 } satisfies Prisma.ReservationInclude;
 
 /**

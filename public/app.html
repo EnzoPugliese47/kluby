@@ -89,6 +89,20 @@
       .k-fin-row.ok b { color: var(--green); }
       .k-fin-note { font-size: 12px; color: var(--muted); line-height: 1.45; margin-top: 2px; }
 
+      .k-consumption-block {
+        margin-top: 12px; background: rgba(45, 226, 198, 0.06); border: 1px solid rgba(45, 226, 198, 0.22);
+        border-radius: 14px; padding: 14px 16px;
+      }
+      .k-consumption-head {
+        display: flex; justify-content: space-between; align-items: center; font-size: 14px;
+        font-weight: 700; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+      }
+      .k-consumption-head b { color: var(--accent); font-size: 16px; }
+      .k-consumption-item { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+      .k-consumption-item:last-child { border-bottom: none; padding-bottom: 0; }
+      .k-consumption-items { font-size: 14px; font-weight: 600; line-height: 1.4; }
+      .k-consumption-meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
       .k-calc-budget { margin: 14px 0; }
       .k-calc-budget label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
       .k-calc-budget input { width: 100%; padding: 12px 14px; border-radius: 10px; background: var(--surface-3); border: 1px solid var(--border); color: var(--text); font-size: 16px; font-weight: 700; }
@@ -298,9 +312,39 @@
         }
         if (minCons > 0 && !compact) {
           rows.push(`<div class="k-fin-row"><span>Consumición mínima</span><b>${money(minCons)}</b></div>`);
-          rows.push(`<p class="k-fin-note">Monto mínimo en botellas/combos en el local (podés planificarlo con la calculadora).</p>`);
+          rows.push(`<p class="k-fin-note">Monto mínimo en botellas/combos en el local (podés pedirlo desde «Pedir consumo»).</p>`);
         }
         return `<div class="k-finance-block">${rows.join("")}</div>`;
+      }
+
+      function reservationConsumptionHtml(r) {
+        const orders = (r.orders || []).filter(
+          (o) => o.status !== "CANCELLED" && o.status !== "PENDING_PAYMENT"
+        );
+        if (!orders.length) return "";
+        const STATUS = {
+          PAID: "Pagado",
+          PREPARING: "En preparación",
+          READY: "Listo para retirar",
+          DELIVERED: "Entregado",
+        };
+        const total = orders.reduce((acc, o) => acc + num(o.total), 0);
+        const lines = orders.map((o) => {
+          const items = (o.items || [])
+            .map((i) => `${i.quantity}× ${i.product?.name || "Producto"}`)
+            .join(", ");
+          const when = o.createdAt
+            ? new Date(o.createdAt).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+            : "";
+          return `<div class="k-consumption-item">
+            <div class="k-consumption-items">${esc(items)}</div>
+            <div class="k-consumption-meta">${money(o.total)} · ${STATUS[o.status] || o.status}${when ? " · " + when : ""}</div>
+          </div>`;
+        }).join("");
+        return `<div class="k-consumption-block">
+          <div class="k-consumption-head"><span>🍾 Consumo pedido</span><b>${money(total)}</b></div>
+          ${lines}
+        </div>`;
       }
 
       let _loyaltyRules = null;
@@ -995,6 +1039,7 @@
               <div class="k-ticket-qr"><img src="${qr}" alt="QR ${attr(r.code)}" width="280" height="280" /></div>
               <p class="k-ticket-code">${esc(r.code)}</p>
               ${reservationFinanceHtml(r)}
+              ${reservationConsumptionHtml(r)}
               <p class="hint" style="margin-top:10px">Mostrá este código en puerta para ingresar.</p>
               <button type="button" class="ghost btn-sm" style="margin-top:12px" onclick="openConsumptionPlanner({ reservationId: '${r.id}' })">🍾 Pedir consumo</button>
               ${reservationTimelineHtml(r)}
@@ -1400,21 +1445,7 @@
 
       function calcOrdersHtml(orders) {
         if (!orders?.length) return "";
-        const STATUS = {
-          PENDING_PAYMENT: "Pago pendiente",
-          PAID: "Pagado",
-          PREPARING: "En preparación",
-          READY: "Listo",
-          DELIVERED: "Entregado",
-          CANCELLED: "Cancelado",
-        };
-        return `<div class="k-calc-orders" style="margin-top:16px">
-          <label style="margin-bottom:8px;display:block">Pedidos de tu mesa</label>
-          ${orders.slice(0, 6).map((o) => {
-            const items = (o.items || []).map((i) => `${i.quantity}× ${i.product?.name || "Producto"}`).join(", ");
-            return `<div class="k-fin-row"><span>${esc(items)}</span><b>${money(o.total)} · ${STATUS[o.status] || o.status}</b></div>`;
-          }).join("")}
-        </div>`;
+        return reservationConsumptionHtml({ orders: orders.filter((o) => o.status !== "CANCELLED" && o.status !== "PENDING_PAYMENT") });
       }
 
       async function checkoutConsumptionOrder() {
@@ -1438,9 +1469,11 @@
           });
           ctx.qty = {};
           ctx.r = await api("/reservations/" + ctx.r.id);
-          await loadCalcOrders();
+          ctx.orders = ctx.r.orders || [];
           toast("¡Consumo pagado!", "ok");
           paintConsumptionPlanner();
+          if (state.view === "mine") renderMine($("page"));
+          else if (state.view === "ticket") renderTicket($("page"));
         } catch (e) {
           toast(e.message, "err");
           if (btn) {
@@ -1542,6 +1575,7 @@
           <div class="head"><div class="title">${esc(r.table.label)}</div>${statusBadge(r.status)}</div>
           <div class="meta">🏢 ${esc(r.club.name)}<br/>🗓️ ${fdatetime(r.event.date)}${r.mode === "OPEN_TABLE" ? `<br/>👥 Mesa abierta (vos + ${Math.max(0, (r.maxGuests || 1) - 1)} invitados)` : ""}</div>
           ${reservationFinanceHtml(r, true)}
+          ${reservationConsumptionHtml(r)}
           ${reservationTimelineHtml(r)}
           <div class="btn-row">${actions.join("")}</div>
         </div>`;
@@ -1677,6 +1711,7 @@
             <div class="section-title" style="margin-top:14px">${esc(r.table.label)} · Mesa abierta</div>
             <div class="section-sub">🗓️ ${fdatetime(r.event.date)} · ${Math.max(0, (r.maxGuests || 1) - 1)} invitados + vos · ${r.paymentOption === "FULL_PAYMENT" ? "<b>Mesa pagada</b> · invitados sin costo" : `Parte por persona: <b>${share}</b>`}</div>
             ${reservationFinanceHtml(r, true)}
+            ${reservationConsumptionHtml(r)}
             ${reservationTimelineHtml(r)}
             <h3 style="margin:8px 0 14px">Postulaciones</h3>
             <div id="guests" class="grid-cards"></div>`;
