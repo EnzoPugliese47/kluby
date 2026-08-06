@@ -796,7 +796,6 @@
       }
       function doLogout() {
         stopNotifPoll();
-        releaseWizardHoldOnExit();
         void releaseWizardHold();
         state.token = ""; state.user = null;
         KlubyUI.logoutToLogin();
@@ -815,7 +814,7 @@
         return true;
       }
 
-      function go(view, params = {}) {
+      async function go(view, params = {}) {
         clearTimeout(homeTimer);
         clearTimeout(wzClubsTimer);
         stopChatPoll();
@@ -825,8 +824,7 @@
         }
         if (state.view === "wizard" && view !== "wizard") {
           _wizardRenderGen++;
-          releaseWizardHoldOnExit();
-          void releaseWizardHold();
+          await releaseWizardHold();
         }
         if (view === "joins") {
           view = "mine";
@@ -929,7 +927,7 @@
       const CHAT_ACTIVE_MS = 24 * 60 * 60 * 1000;
       let _reserveSel = "DEPOSIT_ONLY";
 
-      function wizardGo(step, extra = {}) {
+      async function wizardGo(step, extra = {}) {
         if (guardClientAction()) return;
         const nextStep = Number(step) || 1;
         const p = { ...state.params, ...extra, step: nextStep };
@@ -938,8 +936,7 @@
           || (p.tableId && p.tableId !== state.params.tableId);
         if (leavingPayStep) {
           _wizardRenderGen++;
-          releaseWizardHoldOnExit();
-          void releaseWizardHold();
+          await releaseWizardHold();
         }
         if (p.eventId && p.eventId !== state.params.eventId) {
           _wizardTables = null;
@@ -1223,7 +1220,7 @@
         const hostIds = new Set(rs.map((r) => r.id));
 
         for (const r of rs) {
-          if (r.status === "PENDING_PAYMENT" && isUpcomingEventDate(r.event?.date)) {
+          if (r.status === "PENDING_PAYMENT" && shouldShowHostReservationInMine(r) && isUpcomingEventDate(r.event?.date)) {
             alerts.push({
               id: `pay-host-${r.id}`,
               kind: "amber",
@@ -2246,6 +2243,27 @@
         return r && !["CANCELLED", "EXPIRED"].includes(r.status);
       }
 
+      function isEphemeralWizardHold(r) {
+        return r?.status === "PENDING_PAYMENT" && num(r.amountPaid) <= 0;
+      }
+
+      function shouldShowHostReservationInMine(r) {
+        if (!isActiveReservation(r)) return false;
+        if (isEphemeralWizardHold(r) && !isWizardHoldInCheckout(r.id)) return false;
+        return true;
+      }
+
+      async function releaseEphemeralHolds(reservations) {
+        const orphans = reservations.filter(
+          (r) => isEphemeralWizardHold(r) && !isWizardHoldInCheckout(r.id)
+        );
+        await Promise.all(
+          orphans.map((r) =>
+            api("/reservations/" + r.id + "/release-hold", { method: "POST" }).catch(() => {})
+          )
+        );
+      }
+
       function isUpcomingEvent(date) {
         return new Date(date).getTime() >= Date.now();
       }
@@ -2332,12 +2350,14 @@
             api("/users/" + state.user.id + "/guest-entries"),
           ]);
           if (!stillOn("mine")) return;
+          await releaseEphemeralHolds(rs);
+          if (!stillOn("mine")) return;
           const live = livePage("mine"); if (!live) return;
           const now = Date.now();
           const hostIds = new Set(rs.map((r) => r.id));
           const filter = state.mineFilter || "all";
 
-          const visibleHost = (r) => isActiveReservation(r);
+          const visibleHost = (r) => shouldShowHostReservationInMine(r);
           const visibleGuest = (g) => (
             g.reservation
             && isActiveReservation(g.reservation)
