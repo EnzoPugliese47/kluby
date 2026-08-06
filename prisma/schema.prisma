@@ -124,6 +124,7 @@ model User {
   dni              String?   @unique // RN02: unicidad de identidad
   birthDate    DateTime? // RN01: validacion de mayoria de edad
   role         UserRole  @default(CLIENT)
+  signupClubPlan ClubPlan? // Plan elegido al registrarse como dueño; se aplica al primer boliche
   isVerified   Boolean   @default(false) // Validacion de DNI (+18)
   isActive     Boolean   @default(true) // Baja logica
   createdAt    DateTime  @default(now())

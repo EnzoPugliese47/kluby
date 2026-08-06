@@ -28,6 +28,7 @@ import {
 } from "../controllers/products.controller";
 import {
   getDashboard,
+  getBillingSummary,
   getSalesByDay,
   getSalesReport,
   getTableRanking,
@@ -86,6 +87,7 @@ router.get("/:clubId/events/:eventId/reservations", ...adminOnly, listEventReser
 router.get("/:clubId/check-ins", ...doorOrAdmin, listClubCheckIns);
 
 // Reportes BI (RN20): solo administradores.
+router.get("/:clubId/reports/billing", ...adminOnly, getBillingSummary);
 router.get("/:clubId/reports/dashboard", ...adminOnly, getDashboard);
 router.get("/:clubId/reports/sales", ...adminOnly, getSalesReport);
 router.get("/:clubId/reports/sales-by-day", ...adminOnly, getSalesByDay);

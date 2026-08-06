@@ -17,6 +17,8 @@ import {
   requireString,
 } from "../utils/validation";
 import { assertPassword, assertPhone, assertOptionalPhone } from "../utils/userInputRules";
+import { parseClubPlan } from "../utils/clubPlan";
+import { ClubPlan } from "../generated/prisma/client";
 
 /** Campos publicos del usuario (nunca exponemos el passwordHash). */
 const publicUserSelect = {
@@ -28,6 +30,7 @@ const publicUserSelect = {
   dni: true,
   birthDate: true,
   role: true,
+  signupClubPlan: true,
   isVerified: true,
   isActive: true,
   createdAt: true,
@@ -97,6 +100,44 @@ export const registerUser = async (
         dni: dni ?? null,
         birthDate: birthDate ?? null,
         role,
+      },
+      select: publicUserSelect,
+    });
+
+    const token = signToken({ sub: user.id, role: user.role, email: user.email });
+    sendSuccess(res, { user, token }, 201);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/** POST /api/users/register-owner - Alta pública de dueño de boliche con plan elegido. */
+export const registerClubOwner = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const body = asRecord(req.body);
+    const email = requireString(body, "email").toLowerCase();
+    const password = requireString(body, "password");
+    const fullName = requireString(body, "fullName");
+    const phone = requirePhone(body);
+    const clubPlan = parseClubPlan(body["clubPlan"] ?? body["plan"] ?? ClubPlan.BASIC);
+
+    assertPassword(password);
+
+    const passwordHash = await hashPassword(password);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        fullName,
+        phone,
+        role: UserRole.CLUB_ADMIN,
+        signupClubPlan: clubPlan,
+        isVerified: true,
       },
       select: publicUserSelect,
     });

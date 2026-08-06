@@ -10,6 +10,7 @@ import {
   listMyClubMemberships,
   listUsers,
   loginUser,
+  registerClubOwner,
   registerUser,
   resetPassword,
   unbanUser,
@@ -25,6 +26,7 @@ const router = Router();
 const adminOnly = [authenticate, authorize("CLUB_ADMIN", "SUPER_ADMIN")];
 
 router.post("/register", registerUser);
+router.post("/register-owner", registerClubOwner);
 router.post("/login", loginUser);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);

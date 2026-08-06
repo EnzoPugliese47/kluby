@@ -62,6 +62,13 @@ export type EnumUserRoleFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumUserRoleFilter<$PrismaModel> | $Enums.UserRole
 }
 
+export type EnumClubPlanNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClubPlan | Prisma.EnumClubPlanFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumClubPlanNullableFilter<$PrismaModel> | $Enums.ClubPlan | null
+}
+
 export type BoolFilter<$PrismaModel = never> = {
   equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
   not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
@@ -141,6 +148,16 @@ export type EnumUserRoleWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumUserRoleFilter<$PrismaModel>
   _max?: Prisma.NestedEnumUserRoleFilter<$PrismaModel>
+}
+
+export type EnumClubPlanNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClubPlan | Prisma.EnumClubPlanFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumClubPlanNullableWithAggregatesFilter<$PrismaModel> | $Enums.ClubPlan | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClubPlanNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClubPlanNullableFilter<$PrismaModel>
 }
 
 export type BoolWithAggregatesFilter<$PrismaModel = never> = {
@@ -618,6 +635,13 @@ export type NestedEnumUserRoleFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumUserRoleFilter<$PrismaModel> | $Enums.UserRole
 }
 
+export type NestedEnumClubPlanNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClubPlan | Prisma.EnumClubPlanFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumClubPlanNullableFilter<$PrismaModel> | $Enums.ClubPlan | null
+}
+
 export type NestedBoolFilter<$PrismaModel = never> = {
   equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
   not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
@@ -712,6 +736,16 @@ export type NestedEnumUserRoleWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumUserRoleFilter<$PrismaModel>
   _max?: Prisma.NestedEnumUserRoleFilter<$PrismaModel>
+}
+
+export type NestedEnumClubPlanNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClubPlan | Prisma.EnumClubPlanFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumClubPlanNullableWithAggregatesFilter<$PrismaModel> | $Enums.ClubPlan | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClubPlanNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClubPlanNullableFilter<$PrismaModel>
 }
 
 export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {

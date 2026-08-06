@@ -1877,6 +1877,7 @@ export const UserScalarFieldEnum = {
   dni: 'dni',
   birthDate: 'birthDate',
   role: 'role',
+  signupClubPlan: 'signupClubPlan',
   isVerified: 'isVerified',
   isActive: 'isActive',
   createdAt: 'createdAt',
@@ -2269,6 +2270,20 @@ export type ListEnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
 
 
 /**
+ * Reference to a field of type 'ClubPlan'
+ */
+export type EnumClubPlanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClubPlan'>
+    
+
+
+/**
+ * Reference to a field of type 'ClubPlan[]'
+ */
+export type ListEnumClubPlanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClubPlan[]'>
+    
+
+
+/**
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
@@ -2342,20 +2357,6 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-    
-
-
-/**
- * Reference to a field of type 'ClubPlan'
- */
-export type EnumClubPlanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClubPlan'>
-    
-
-
-/**
- * Reference to a field of type 'ClubPlan[]'
- */
-export type ListEnumClubPlanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClubPlan[]'>
     
 
 

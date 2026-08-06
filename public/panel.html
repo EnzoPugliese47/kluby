@@ -131,6 +131,32 @@
       .kpi .k-delta.up { background: rgba(45,226,198,0.14); color: var(--accent); }
       .kpi .k-delta.down { background: rgba(255,77,141,0.14); color: var(--pink); }
       .kpi .k-delta.flat { background: var(--surface-2); color: var(--muted); }
+      .billing-summary-wrap { margin-bottom: 24px; }
+      .billing-summary {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;
+        padding: 22px; border-radius: 16px;
+        background: linear-gradient(145deg, rgba(20, 20, 32, 0.95), rgba(12, 12, 20, 0.98));
+        border: 1px solid rgba(34, 211, 238, 0.22);
+      }
+      .billing-summary .billing-head {
+        grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: flex-start;
+      }
+      .billing-summary .billing-head h3 { margin: 0 0 4px; font-size: 18px; }
+      .billing-summary .billing-head p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+      .billing-summary .billing-due {
+        font-size: 12px; font-weight: 700; color: #86efac; padding: 6px 10px; border-radius: 999px;
+        background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.25); white-space: nowrap;
+      }
+      .billing-card {
+        padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      }
+      .billing-card.highlight { border-color: rgba(45, 226, 198, 0.35); background: rgba(45, 226, 198, 0.06); }
+      .billing-card.kluby { border-color: rgba(255, 77, 141, 0.35); background: rgba(255, 77, 141, 0.06); }
+      .billing-card small { display: block; color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+      .billing-card b { font-size: 26px; font-weight: 800; line-height: 1.1; }
+      .billing-card span { display: block; margin-top: 6px; font-size: 12px; color: var(--muted); line-height: 1.4; }
+      .stats-basic-only { color: var(--muted); font-size: 13px; margin: -8px 0 18px; line-height: 1.5; }
+      .stats-premium-only.is-hidden { display: none !important; }
       .stats-range { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
       .stats-range button {
         background: transparent; border: 1px solid var(--border); color: var(--muted);
@@ -574,9 +600,9 @@
       </div>
 
       <div id="owner-onboard" class="onboard-banner" style="display:none;margin-top:16px">
-        <p><b>Primeros pasos</b> — Todavía no tenés eventos publicados. Creá tu primera noche, diseñá las mesas en el mapa y cargá la carta de botellas.</p>
+        <p id="owner-onboard-text"><b>Primeros pasos</b> — Todavía no tenés eventos publicados. Creá tu primera noche, diseñá las mesas en el mapa y cargá la carta de botellas.</p>
         <div class="actions">
-          <button type="button" class="btn-sm btn-accent" onclick="dismissOnboard(false);showView('events');openEventForm()">Crear primera noche</button>
+          <button type="button" class="btn-sm btn-accent" id="owner-onboard-action" onclick="ownerOnboardAction()">Continuar</button>
           <button type="button" class="ghost btn-sm" onclick="dismissOnboard(true)">Después</button>
         </div>
       </div>
@@ -613,21 +639,15 @@
         </div>
       </div>
 
-      <!-- VISTA: ESTADÍSTICAS -->
+      <!-- VISTA: ESTADÍSTICAS / RESUMEN -->
       <div class="container view" id="view-stats">
-        <div id="stats-upgrade-banner" class="onboard-banner" style="display:none;margin-bottom:16px">
-          <p><b>Estadísticas Premium</b> — Tu plan Básico incluye mapa y operación en vivo. Pasá a Premium para desbloquear reportes, gráficos y exportación.</p>
-          <div class="actions">
-            <button type="button" class="btn-sm btn-accent" onclick="openPlanModal()">Ver planes</button>
-          </div>
-        </div>
         <div class="controls stats-club-pick">
           <div id="stats-club-logo-wrap"></div>
           <div class="field">
             <label for="club-select">Boliche</label>
             <select id="club-select" onchange="onStatsClubChange()"></select>
           </div>
-          <div class="field" style="min-width:280px">
+          <div class="field stats-premium-only" style="min-width:280px">
             <label for="stats-event-select">Alcance</label>
             <select id="stats-event-select" onchange="onStatsEventChange()">
               <option value="">Vista general (período)</option>
@@ -636,7 +656,14 @@
           <button class="ghost" onclick="loadDashboard()">↻ Actualizar</button>
         </div>
 
-        <div class="stats-mode-bar">
+        <div id="stats-billing-wrap" class="billing-summary-wrap"></div>
+        <p id="stats-basic-hint" class="stats-basic-only" style="display:none">
+          Plan Básico: acá ves tu total vendido del mes (lo que te queda después de la comisión).
+          Pasá a Premium para desbloquear gráficos, rankings y exportación.
+          <button type="button" class="btn-sm btn-accent" style="margin-left:8px" onclick="openPlanModal()">Ver Premium</button>
+        </p>
+
+        <div class="stats-mode-bar stats-premium-only">
           <span class="stats-mode-badge" id="stats-mode-badge">Vista general</span>
           <div class="stats-range" id="stats-period-controls">
             <span class="role-pill">Período:</span>
@@ -646,17 +673,17 @@
           </div>
         </div>
 
-        <div class="export-row">
+        <div class="export-row stats-premium-only">
           <span class="role-pill">Exportar:</span>
           <button type="button" class="btn-export" onclick="exportReport()">⬇ PDF</button>
           <button type="button" class="btn-export" onclick="exportStatsCsv()">⬇ CSV</button>
         </div>
-        <p class="stats-period-label" id="stats-period-label">Las estadísticas corresponden al boliche seleccionado.</p>
-        <p class="stats-hint" id="stats-hint"></p>
+        <p class="stats-period-label stats-premium-only" id="stats-period-label">Las estadísticas corresponden al boliche seleccionado.</p>
+        <p class="stats-hint stats-premium-only" id="stats-hint"></p>
 
-        <div class="kpis" id="kpis"></div>
+        <div class="kpis stats-premium-only" id="kpis"></div>
 
-        <div id="stats-event-tools" class="hidden">
+        <div id="stats-event-tools" class="hidden stats-premium-only">
           <div class="compare-row" id="compare-row">
             <label class="k-filter-check" style="margin:0">
               <input type="checkbox" id="stats-compare-enabled" onchange="onStatsCompareToggle()" />
@@ -676,7 +703,7 @@
           </div>
         </div>
 
-        <div class="grid" id="stats-grid">
+        <div class="grid stats-premium-only" id="stats-grid">
           <h4 class="stats-section-title hidden" id="stats-title-period">Tendencias del período</h4>
 
           <div class="card panel col-8 stats-card-period hidden">
@@ -874,7 +901,8 @@
       }
 
       function clubHasStatsAccess(club) {
-        return isSuperAdmin() || club?.plan === "PREMIUM";
+        const plan = typeof club?.plan === "string" ? club.plan : effectiveClubPlan(club);
+        return isSuperAdmin() || plan === "PREMIUM";
       }
 
       function userAvatarHtml(user, size = 40) {
@@ -883,6 +911,97 @@
           return `<img class="user-avatar" style="width:${size}px;height:${size}px" src="${esc(user.profileImageUrl)}" alt="${attr(user.fullName)}" onerror="this.outerHTML='<span class=\\'user-avatar placeholder\\' style=\\'width:${size}px;height:${size}px\\'>${initial}</span>'" />`;
         }
         return `<span class="user-avatar placeholder" style="width:${size}px;height:${size}px">${initial}</span>`;
+      }
+
+      function effectiveClubPlan(club) {
+        if (club?.plan) return club.plan;
+        if (isClubOwner() && currentUser?.signupClubPlan) return currentUser.signupClubPlan;
+        return "BASIC";
+      }
+
+      function applyStatsPlanLayout() {
+        const plan = effectiveClubPlan(activeClub());
+        const premium = clubHasStatsAccess({ plan });
+        document.querySelectorAll(".stats-premium-only").forEach((el) => {
+          el.classList.toggle("is-hidden", !premium);
+        });
+        const basicHint = document.getElementById("stats-basic-hint");
+        if (basicHint) basicHint.style.display = isClubOwner() && !premium ? "block" : "none";
+        const statsTab = document.getElementById("tab-stats");
+        if (statsTab && isClubOwner()) {
+          statsTab.textContent = premium ? "Estadísticas" : "Resumen";
+        }
+      }
+
+      function fmtBillingDate(iso) {
+        if (!iso) return "—";
+        return new Date(iso).toLocaleDateString("es-AR", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+      }
+
+      async function loadBillingSummary() {
+        const wrap = document.getElementById("stats-billing-wrap");
+        const clubId = document.getElementById("club-select")?.value;
+        if (!wrap || !clubId) {
+          if (wrap) wrap.innerHTML = "";
+          return null;
+        }
+        wrap.innerHTML = '<div class="empty" style="padding:24px">Cargando resumen del mes…</div>';
+        try {
+          const b = await api(`/clubs/${clubId}/reports/billing`);
+          const premium = b.plan === "PREMIUM";
+          const keepsPct = b.clubKeepsPercent ?? (premium ? 98 : 96);
+          const commPct = b.commissionPercent ?? (premium ? 2 : 4);
+          wrap.innerHTML = `
+            <div class="billing-summary">
+              <div class="billing-head">
+                <div>
+                  <h3>Facturación del mes · ${esc(b.period?.label || "Mes actual")}</h3>
+                  <p>Ventas de mesas confirmadas en el período. Kluby debita comisión + suscripción (si aplica) el <b>1° de cada mes</b>.</p>
+                </div>
+                <span class="billing-due">Próximo cobro: ${esc(fmtBillingDate(b.nextBillingDate))}</span>
+              </div>
+              <div class="billing-card highlight">
+                <small>${premium ? "Tu neto del mes" : "Total vendido (tu parte)"}</small>
+                <b>${fmtMoney(b.netToClub)}</b>
+                <span>${keepsPct}% de las ventas de mesas · ${fmtNum(b.salesCount)} pagos</span>
+              </div>
+              <div class="billing-card">
+                <small>Ventas brutas (mesas)</small>
+                <b>${fmtMoney(b.grossTotal)}</b>
+                <span>Total cobrado a clientes por reservas</span>
+              </div>
+              <div class="billing-card kluby">
+                <small>Comisión Kluby (${commPct}%)</small>
+                <b>${fmtMoney(b.klubyCommission)}</b>
+                <span>Se cobra el 1° del mes siguiente</span>
+              </div>
+              ${premium ? `
+              <div class="billing-card kluby">
+                <small>Suscripción Premium</small>
+                <b>${fmtMoney(b.premiumSubscription)}</b>
+                <span>Cuota fija mensual · también el día 1</span>
+              </div>
+              <div class="billing-card kluby">
+                <small>Total a pagar a Kluby</small>
+                <b>${fmtMoney(b.totalKlubyCharge)}</b>
+                <span>Comisión + suscripción Premium</span>
+              </div>` : `
+              <div class="billing-card kluby">
+                <small>Total a pagar a Kluby</small>
+                <b>${fmtMoney(b.klubyCommission)}</b>
+                <span>Solo comisión · plan Básico sin cuota mensual</span>
+              </div>`}
+            </div>`;
+          return b;
+        } catch (e) {
+          if (String(e.message).includes("401")) { logout(); return null; }
+          wrap.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+          return null;
+        }
       }
 
       function updatePlanUi() {
@@ -898,26 +1017,38 @@
         }
         badge.style.display = "";
         const club = activeClub();
-        const isPremium = club?.plan === "PREMIUM";
+        const plan = effectiveClubPlan(club);
+        const isPremium = plan === "PREMIUM";
         badge.textContent = isPremium ? "Premium" : "Básico";
         badge.className = "plan-badge " + (isPremium ? "premium" : "basic");
-        badge.title = club
-          ? `Plan ${PLAN_LABEL[club.plan] || "Básico"} · ${esc(club.name)} — clic para cambiar`
-          : "Ver planes";
-        const statsTab = document.getElementById("tab-stats");
-        if (statsTab && isPanelManager()) {
-          statsTab.style.display = clubHasStatsAccess(club) ? "" : "none";
+        const pending = !club && currentUser?.signupClubPlan;
+        badge.title = pending
+          ? `Plan ${PLAN_LABEL[plan]} pendiente — se aplica al crear tu boliche`
+          : club
+            ? `Plan ${PLAN_LABEL[plan] || "Básico"} · ${esc(club.name)} — clic para cambiar`
+            : "Ver planes";
+        if (isClubOwner()) {
+          const statsTab = document.getElementById("tab-stats");
+          if (statsTab) {
+            statsTab.style.display = "";
+            statsTab.textContent = plan === "PREMIUM" ? "Estadísticas" : "Resumen";
+          }
         }
-        const upgrade = document.getElementById("stats-upgrade-banner");
-        if (upgrade) {
-          upgrade.style.display =
-            isClubOwner() && !isSuperAdmin() && club && club.plan !== "PREMIUM" ? "block" : "none";
-        }
+        applyStatsPlanLayout();
       }
 
       function openPlanModal() {
         const club = activeClub();
         if (!club && isClubOwner()) {
+          const pending = currentUser?.signupClubPlan;
+          if (pending) {
+            openModal(`
+              <h3>Plan elegido al registrarte</h3>
+              <p class="sub">Tenés plan <b>${esc(PLAN_LABEL[pending] || "Básico")}</b> pendiente. Se aplicará automáticamente cuando crees tu primer boliche.</p>
+              <button type="button" class="btn-full btn-accent" onclick="closeModal();openClubForm()">Crear boliche</button>
+              <button type="button" class="btn-full ghost" style="margin-top:10px" onclick="closeModal()">Cerrar</button>`);
+            return;
+          }
           toast("Creá un boliche primero", "err");
           return;
         }
@@ -1000,10 +1131,6 @@
       function showView(name) {
         if (name === "live" && !isPanelManager()) name = "users";
         if (name === "stats" && !isPanelManager()) name = "users";
-        if (name === "stats" && isClubOwner() && !clubHasStatsAccess(activeClub())) {
-          openPlanModal();
-          name = "live";
-        }
         if (name === "clubs" && !isPanelManager()) name = "users";
         if (name === "events" && !isPanelManager()) name = "users";
         if (name === "team" && !isClubOwner()) name = isPanelManager() ? "stats" : "users";
@@ -1019,6 +1146,7 @@
           startLivePolling();
         }
         if (name === "stats") {
+          applyStatsPlanLayout();
           const cid = document.getElementById("club-select")?.value;
           if (cid) loadStatsEvents(cid).then(() => loadDashboard());
           else loadDashboard();
@@ -2031,6 +2159,10 @@
               body.ownerId = currentUser.id;
             }
             await api("/clubs", { method: "POST", body: JSON.stringify(body) });
+            if (currentUser?.signupClubPlan) {
+              currentUser.signupClubPlan = null;
+              localStorage.setItem("kluby_user", JSON.stringify(currentUser));
+            }
             toast("Boliche creado", "ok");
           }
           _editingClubId = null;
@@ -4248,12 +4380,42 @@
         if (persist) localStorage.setItem("kluby_owner_onboard_dismiss", "1");
       }
 
+      function ownerOnboardAction() {
+        dismissOnboard(false);
+        if (!_clubsCache.length) {
+          openClubForm();
+          return;
+        }
+        showView("events");
+        openEventForm();
+      }
+
       async function checkOwnerOnboard() {
         const banner = document.getElementById("owner-onboard");
-        if (!banner || !isPanelManager()) return;
+        const text = document.getElementById("owner-onboard-text");
+        const actionBtn = document.getElementById("owner-onboard-action");
+        if (!banner || !isClubOwner()) return;
         if (localStorage.getItem("kluby_owner_onboard_dismiss")) return;
+
+        if (!_clubsCache.length) {
+          const plan = currentUser?.signupClubPlan;
+          const planLabel = PLAN_LABEL[plan] || "Básico";
+          if (text) {
+            text.innerHTML = plan
+              ? `<b>Bienvenido a Kluby</b> — Te registraste con plan <b>${esc(planLabel)}</b>. Creá tu boliche y el plan se aplica automáticamente al primer local.`
+              : `<b>Bienvenido a Kluby</b> — Creá tu boliche para empezar a diseñar mesas y publicar eventos.`;
+          }
+          if (actionBtn) actionBtn.textContent = "Crear boliche";
+          banner.style.display = "flex";
+          return;
+        }
+
         const clubId = document.getElementById("live-club-select")?.value || document.getElementById("club-select")?.value;
         if (!clubId) return;
+        if (text) {
+          text.innerHTML = `<b>Primeros pasos</b> — Todavía no tenés eventos publicados. Creá tu primera noche, diseñá las mesas en el mapa y cargá la carta de botellas.`;
+        }
+        if (actionBtn) actionBtn.textContent = "Crear primera noche";
         try {
           const events = await api("/clubs/" + clubId + "/events");
           banner.style.display = events.length ? "none" : "flex";
@@ -4756,6 +4918,11 @@
       async function loadDashboard() {
         const clubId = document.getElementById("club-select").value;
         if (!clubId) return;
+        applyStatsPlanLayout();
+        await loadBillingSummary();
+        const premium = clubHasStatsAccess(activeClub());
+        if (!premium) return;
+
         syncStatsRangeUi();
         syncStatsPeriodUi();
         const url = buildDashboardUrl();

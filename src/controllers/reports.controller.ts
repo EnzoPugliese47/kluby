@@ -6,13 +6,15 @@ import {
   Prisma,
   ReservationMode,
   ReservationStatus,
+  ClubPlan,
+  UserRole,
 } from "../generated/prisma/client";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
 import { requireParam } from "../utils/validation";
 import { assertUserCanAccessClub } from "../utils/clubAccess";
-import { assertClubHasStatsAccess } from "../utils/clubPlan";
+import { assertClubHasStatsAccess, computeTableSaleCommission, commissionPercentForPlan, getBillingPeriod, parseBillingMonthKey, PLAN_LABELS, PREMIUM_MONTHLY_PRICE_ARS } from "../utils/clubPlan";
 import { EVENT_OPEN_TABLE_ACTIVE_HOURS } from "../utils/eventTiming";
 
 const parseDate = (value: unknown): Date | undefined => {
@@ -401,7 +403,105 @@ const computeModeBreakdown = async (
   };
 };
 
-const assertClubStatsAccess = async (clubId: string): Promise<void> => {
+const TABLE_SALE_PAYMENT_TYPES: PaymentType[] = [
+  PaymentType.DEPOSIT,
+  PaymentType.FULL,
+  PaymentType.GUEST_SHARE,
+];
+
+const assertClubExists = async (clubId: string) => {
+  const club = await prisma.club.findUnique({
+    where: { id: clubId },
+    select: { id: true, plan: true, name: true },
+  });
+  if (club === null) throw new AppError("Boliche no encontrado", 404);
+  return club;
+};
+
+/**
+ * GET /api/clubs/:clubId/reports/billing?month=YYYY-MM
+ * Resumen mensual: ventas brutas, comisión Kluby y neto del boliche.
+ * Disponible en plan Básico y Premium (cobro el día 1 de cada mes).
+ */
+export const getBillingSummary = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const clubId = requireParam(req.params, "clubId");
+    await assertUserCanAccessClub(req, clubId);
+    const club = await assertClubExists(clubId);
+
+    const monthParam = req.query["month"];
+    const period =
+      typeof monthParam === "string"
+        ? parseBillingMonthKey(monthParam) ?? getBillingPeriod()
+        : getBillingPeriod();
+
+    const payments = await prisma.payment.findMany({
+      where: {
+        status: PaymentStatus.APPROVED,
+        type: { in: TABLE_SALE_PAYMENT_TYPES },
+        reservation: { clubId },
+        createdAt: { gte: period.periodFrom, lte: period.periodTo },
+      },
+      select: {
+        amount: true,
+        commissionAmount: true,
+        netToClub: true,
+      },
+    });
+
+    let grossTotal = new Prisma.Decimal(0);
+    let klubyCommission = new Prisma.Decimal(0);
+    let netToClub = new Prisma.Decimal(0);
+
+    for (const payment of payments) {
+      grossTotal = grossTotal.add(payment.amount);
+      if (payment.commissionAmount != null && payment.netToClub != null) {
+        klubyCommission = klubyCommission.add(payment.commissionAmount);
+        netToClub = netToClub.add(payment.netToClub);
+      } else {
+        const computed = computeTableSaleCommission(payment.amount, club.plan);
+        klubyCommission = klubyCommission.add(computed.commissionAmount);
+        netToClub = netToClub.add(computed.netToClub);
+      }
+    }
+
+    const commissionRate = commissionPercentForPlan(club.plan);
+    const premiumSubscription =
+      club.plan === ClubPlan.PREMIUM ? PREMIUM_MONTHLY_PRICE_ARS : 0;
+    const totalKlubyCharge = klubyCommission.add(premiumSubscription);
+
+    sendSuccess(res, {
+      clubId,
+      clubName: club.name,
+      plan: club.plan,
+      planLabel: PLAN_LABELS[club.plan],
+      commissionPercent: commissionRate,
+      clubKeepsPercent: 100 - commissionRate,
+      period: {
+        from: period.periodFrom.toISOString(),
+        to: period.periodTo.toISOString(),
+        monthKey: period.monthKey,
+        label: period.label,
+      },
+      nextBillingDate: period.nextBillingDate.toISOString(),
+      salesCount: payments.length,
+      grossTotal: Number(grossTotal.toFixed(2)),
+      klubyCommission: Number(klubyCommission.toFixed(2)),
+      netToClub: Number(netToClub.toFixed(2)),
+      premiumSubscription,
+      totalKlubyCharge: Number(totalKlubyCharge.toFixed(2)),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const assertClubStatsAccess = async (clubId: string, req?: Request): Promise<void> => {
+  if (req?.user?.role === UserRole.SUPER_ADMIN) return;
   const club = await prisma.club.findUnique({
     where: { id: clubId },
     select: { plan: true },
@@ -465,7 +565,7 @@ export const getSalesReport = async (
 ): Promise<void> => {
   try {
     const clubId = requireParam(req.params, "clubId");
-    await assertClubStatsAccess(clubId);
+    await assertClubStatsAccess(clubId, req);
     await assertUserCanAccessClub(req, clubId);
     const from = parseDate(req.query["from"]);
     const to = parseDate(req.query["to"]);
@@ -522,7 +622,7 @@ export const getTableRanking = async (
 ): Promise<void> => {
   try {
     const clubId = requireParam(req.params, "clubId");
-    await assertClubStatsAccess(clubId);
+    await assertClubStatsAccess(clubId, req);
     await assertUserCanAccessClub(req, clubId);
 
     const grouped = await prisma.reservation.groupBy({
@@ -571,7 +671,7 @@ export const getTopProducts = async (
 ): Promise<void> => {
   try {
     const clubId = requireParam(req.params, "clubId");
-    await assertClubStatsAccess(clubId);
+    await assertClubStatsAccess(clubId, req);
     await assertUserCanAccessClub(req, clubId);
     const products = await computeTopProducts(clubId);
     sendSuccess(res, { clubId, products });
@@ -591,7 +691,7 @@ export const getSalesByDay = async (
 ): Promise<void> => {
   try {
     const clubId = requireParam(req.params, "clubId");
-    await assertClubStatsAccess(clubId);
+    await assertClubStatsAccess(clubId, req);
     await assertUserCanAccessClub(req, clubId);
 
     const payments = await prisma.payment.findMany({
@@ -647,7 +747,7 @@ export const getDashboard = async (
 ): Promise<void> => {
   try {
     const clubId = requireParam(req.params, "clubId");
-    await assertClubStatsAccess(clubId);
+    await assertClubStatsAccess(clubId, req);
     await assertUserCanAccessClub(req, clubId);
 
     const eventIdParam =

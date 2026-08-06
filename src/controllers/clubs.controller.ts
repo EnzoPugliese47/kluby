@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { Prisma, UserRole } from "../generated/prisma/client";
+import { ClubPlan, Prisma, UserRole } from "../generated/prisma/client";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
@@ -82,23 +82,46 @@ export const createClub = async (
       throw new AppError("Solo podes crear boliches a tu nombre", 403);
     }
 
-    const club = await prisma.club.create({
-      data: {
-        name,
-        address,
-        city,
-        zone,
-        ownerId,
-        description: description ?? null,
-        musicGenre: musicGenre ?? null,
-        imageUrl: imageUrl ?? null,
-        floorMapUrl: floorMapUrl ?? null,
-        ...(defaultConsumptionPercent !== undefined
-          ? { defaultConsumptionPercent: Math.round(defaultConsumptionPercent) }
-          : {}),
-        contactEmail,
-        contactPhone,
-      },
+    const signupPlan = owner.signupClubPlan;
+    const now = new Date();
+    const planExpiresAt =
+      signupPlan === ClubPlan.PREMIUM
+        ? new Date(now.getFullYear(), now.getMonth() + 1, now.getDate())
+        : null;
+
+    const club = await prisma.$transaction(async (tx) => {
+      const created = await tx.club.create({
+        data: {
+          name,
+          address,
+          city,
+          zone,
+          ownerId,
+          description: description ?? null,
+          musicGenre: musicGenre ?? null,
+          imageUrl: imageUrl ?? null,
+          floorMapUrl: floorMapUrl ?? null,
+          ...(defaultConsumptionPercent !== undefined
+            ? { defaultConsumptionPercent: Math.round(defaultConsumptionPercent) }
+            : {}),
+          contactEmail,
+          contactPhone,
+          ...(signupPlan
+            ? {
+                plan: signupPlan,
+                planStartedAt: now,
+                planExpiresAt,
+              }
+            : {}),
+        },
+      });
+      if (signupPlan) {
+        await tx.user.update({
+          where: { id: ownerId },
+          data: { signupClubPlan: null },
+        });
+      }
+      return created;
     });
     sendSuccess(res, club, 201);
   } catch (error) {

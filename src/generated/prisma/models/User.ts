@@ -34,6 +34,7 @@ export type UserMinAggregateOutputType = {
   dni: string | null
   birthDate: Date | null
   role: $Enums.UserRole | null
+  signupClubPlan: $Enums.ClubPlan | null
   isVerified: boolean | null
   isActive: boolean | null
   createdAt: Date | null
@@ -50,6 +51,7 @@ export type UserMaxAggregateOutputType = {
   dni: string | null
   birthDate: Date | null
   role: $Enums.UserRole | null
+  signupClubPlan: $Enums.ClubPlan | null
   isVerified: boolean | null
   isActive: boolean | null
   createdAt: Date | null
@@ -66,6 +68,7 @@ export type UserCountAggregateOutputType = {
   dni: number
   birthDate: number
   role: number
+  signupClubPlan: number
   isVerified: number
   isActive: number
   createdAt: number
@@ -84,6 +87,7 @@ export type UserMinAggregateInputType = {
   dni?: true
   birthDate?: true
   role?: true
+  signupClubPlan?: true
   isVerified?: true
   isActive?: true
   createdAt?: true
@@ -100,6 +104,7 @@ export type UserMaxAggregateInputType = {
   dni?: true
   birthDate?: true
   role?: true
+  signupClubPlan?: true
   isVerified?: true
   isActive?: true
   createdAt?: true
@@ -116,6 +121,7 @@ export type UserCountAggregateInputType = {
   dni?: true
   birthDate?: true
   role?: true
+  signupClubPlan?: true
   isVerified?: true
   isActive?: true
   createdAt?: true
@@ -205,6 +211,7 @@ export type UserGroupByOutputType = {
   dni: string | null
   birthDate: Date | null
   role: $Enums.UserRole
+  signupClubPlan: $Enums.ClubPlan | null
   isVerified: boolean
   isActive: boolean
   createdAt: Date
@@ -242,6 +249,7 @@ export type UserWhereInput = {
   dni?: Prisma.StringNullableFilter<"User"> | string | null
   birthDate?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
+  signupClubPlan?: Prisma.EnumClubPlanNullableFilter<"User"> | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFilter<"User"> | boolean
   isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -271,6 +279,7 @@ export type UserOrderByWithRelationInput = {
   dni?: Prisma.SortOrderInput | Prisma.SortOrder
   birthDate?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
+  signupClubPlan?: Prisma.SortOrderInput | Prisma.SortOrder
   isVerified?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -303,6 +312,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   profileImageUrl?: Prisma.StringNullableFilter<"User"> | string | null
   birthDate?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
+  signupClubPlan?: Prisma.EnumClubPlanNullableFilter<"User"> | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFilter<"User"> | boolean
   isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -332,6 +342,7 @@ export type UserOrderByWithAggregationInput = {
   dni?: Prisma.SortOrderInput | Prisma.SortOrder
   birthDate?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
+  signupClubPlan?: Prisma.SortOrderInput | Prisma.SortOrder
   isVerified?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -354,6 +365,7 @@ export type UserScalarWhereWithAggregatesInput = {
   dni?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   birthDate?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   role?: Prisma.EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
+  signupClubPlan?: Prisma.EnumClubPlanNullableWithAggregatesFilter<"User"> | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   isActive?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -370,6 +382,7 @@ export type UserCreateInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -399,6 +412,7 @@ export type UserUncheckedCreateInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -428,6 +442,7 @@ export type UserUpdateInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -457,6 +472,7 @@ export type UserUncheckedUpdateInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -486,6 +502,7 @@ export type UserCreateManyInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -502,6 +519,7 @@ export type UserUpdateManyMutationInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -518,6 +536,7 @@ export type UserUncheckedUpdateManyInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -534,6 +553,7 @@ export type UserCountOrderByAggregateInput = {
   dni?: Prisma.SortOrder
   birthDate?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  signupClubPlan?: Prisma.SortOrder
   isVerified?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -550,6 +570,7 @@ export type UserMaxOrderByAggregateInput = {
   dni?: Prisma.SortOrder
   birthDate?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  signupClubPlan?: Prisma.SortOrder
   isVerified?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -566,6 +587,7 @@ export type UserMinOrderByAggregateInput = {
   dni?: Prisma.SortOrder
   birthDate?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  signupClubPlan?: Prisma.SortOrder
   isVerified?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -596,6 +618,10 @@ export type NullableDateTimeFieldUpdateOperationsInput = {
 
 export type EnumUserRoleFieldUpdateOperationsInput = {
   set?: $Enums.UserRole
+}
+
+export type NullableEnumClubPlanFieldUpdateOperationsInput = {
+  set?: $Enums.ClubPlan | null
 }
 
 export type BoolFieldUpdateOperationsInput = {
@@ -800,6 +826,7 @@ export type UserCreateWithoutClubMembershipsInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -828,6 +855,7 @@ export type UserUncheckedCreateWithoutClubMembershipsInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -861,6 +889,7 @@ export type UserCreateWithoutInvitedMembersInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -889,6 +918,7 @@ export type UserUncheckedCreateWithoutInvitedMembersInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -933,6 +963,7 @@ export type UserUpdateWithoutClubMembershipsInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -961,6 +992,7 @@ export type UserUncheckedUpdateWithoutClubMembershipsInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1000,6 +1032,7 @@ export type UserUpdateWithoutInvitedMembersInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1028,6 +1061,7 @@ export type UserUncheckedUpdateWithoutInvitedMembersInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1056,6 +1090,7 @@ export type UserCreateWithoutClubJoinInvitesInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1084,6 +1119,7 @@ export type UserUncheckedCreateWithoutClubJoinInvitesInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1128,6 +1164,7 @@ export type UserUpdateWithoutClubJoinInvitesInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1156,6 +1193,7 @@ export type UserUncheckedUpdateWithoutClubJoinInvitesInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1184,6 +1222,7 @@ export type UserCreateWithoutEventInvitesInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1212,6 +1251,7 @@ export type UserUncheckedCreateWithoutEventInvitesInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1256,6 +1296,7 @@ export type UserUpdateWithoutEventInvitesInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1284,6 +1325,7 @@ export type UserUncheckedUpdateWithoutEventInvitesInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1312,6 +1354,7 @@ export type UserCreateWithoutEventGuestInvitesInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1340,6 +1383,7 @@ export type UserUncheckedCreateWithoutEventGuestInvitesInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1384,6 +1428,7 @@ export type UserUpdateWithoutEventGuestInvitesInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1412,6 +1457,7 @@ export type UserUncheckedUpdateWithoutEventGuestInvitesInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1440,6 +1486,7 @@ export type UserCreateWithoutResetTokensInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1468,6 +1515,7 @@ export type UserUncheckedCreateWithoutResetTokensInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1512,6 +1560,7 @@ export type UserUpdateWithoutResetTokensInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1540,6 +1589,7 @@ export type UserUncheckedUpdateWithoutResetTokensInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1568,6 +1618,7 @@ export type UserCreateWithoutOwnedClubsInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1596,6 +1647,7 @@ export type UserUncheckedCreateWithoutOwnedClubsInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1640,6 +1692,7 @@ export type UserUpdateWithoutOwnedClubsInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1668,6 +1721,7 @@ export type UserUncheckedUpdateWithoutOwnedClubsInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1696,6 +1750,7 @@ export type UserCreateWithoutReservationsInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1724,6 +1779,7 @@ export type UserUncheckedCreateWithoutReservationsInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1768,6 +1824,7 @@ export type UserUpdateWithoutReservationsInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1796,6 +1853,7 @@ export type UserUncheckedUpdateWithoutReservationsInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1824,6 +1882,7 @@ export type UserCreateWithoutGuestEntriesInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1852,6 +1911,7 @@ export type UserUncheckedCreateWithoutGuestEntriesInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1896,6 +1956,7 @@ export type UserUpdateWithoutGuestEntriesInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1924,6 +1985,7 @@ export type UserUncheckedUpdateWithoutGuestEntriesInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1952,6 +2014,7 @@ export type UserCreateWithoutPaymentsInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -1980,6 +2043,7 @@ export type UserUncheckedCreateWithoutPaymentsInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -2024,6 +2088,7 @@ export type UserUpdateWithoutPaymentsInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2052,6 +2117,7 @@ export type UserUncheckedUpdateWithoutPaymentsInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2080,6 +2146,7 @@ export type UserCreateWithoutOrdersInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -2108,6 +2175,7 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -2152,6 +2220,7 @@ export type UserUpdateWithoutOrdersInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2180,6 +2249,7 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2208,6 +2278,7 @@ export type UserCreateWithoutLoyaltyTxnsInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -2236,6 +2307,7 @@ export type UserUncheckedCreateWithoutLoyaltyTxnsInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -2280,6 +2352,7 @@ export type UserUpdateWithoutLoyaltyTxnsInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2308,6 +2381,7 @@ export type UserUncheckedUpdateWithoutLoyaltyTxnsInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2336,6 +2410,7 @@ export type UserCreateWithoutChatMessagesInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -2364,6 +2439,7 @@ export type UserUncheckedCreateWithoutChatMessagesInput = {
   dni?: string | null
   birthDate?: Date | string | null
   role?: $Enums.UserRole
+  signupClubPlan?: $Enums.ClubPlan | null
   isVerified?: boolean
   isActive?: boolean
   createdAt?: Date | string
@@ -2408,6 +2484,7 @@ export type UserUpdateWithoutChatMessagesInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2436,6 +2513,7 @@ export type UserUncheckedUpdateWithoutChatMessagesInput = {
   dni?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   birthDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  signupClubPlan?: Prisma.NullableEnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan | null
   isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2603,6 +2681,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   dni?: boolean
   birthDate?: boolean
   role?: boolean
+  signupClubPlan?: boolean
   isVerified?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -2633,6 +2712,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   dni?: boolean
   birthDate?: boolean
   role?: boolean
+  signupClubPlan?: boolean
   isVerified?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -2649,6 +2729,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   dni?: boolean
   birthDate?: boolean
   role?: boolean
+  signupClubPlan?: boolean
   isVerified?: boolean
   isActive?: boolean
   createdAt?: boolean
@@ -2665,13 +2746,14 @@ export type UserSelectScalar = {
   dni?: boolean
   birthDate?: boolean
   role?: boolean
+  signupClubPlan?: boolean
   isVerified?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "fullName" | "phone" | "profileImageUrl" | "dni" | "birthDate" | "role" | "isVerified" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "fullName" | "phone" | "profileImageUrl" | "dni" | "birthDate" | "role" | "signupClubPlan" | "isVerified" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   ownedClubs?: boolean | Prisma.User$ownedClubsArgs<ExtArgs>
   clubMemberships?: boolean | Prisma.User$clubMembershipsArgs<ExtArgs>
@@ -2718,6 +2800,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     dni: string | null
     birthDate: Date | null
     role: $Enums.UserRole
+    signupClubPlan: $Enums.ClubPlan | null
     isVerified: boolean
     isActive: boolean
     createdAt: Date
@@ -3167,6 +3250,7 @@ export interface UserFieldRefs {
   readonly dni: Prisma.FieldRef<"User", 'String'>
   readonly birthDate: Prisma.FieldRef<"User", 'DateTime'>
   readonly role: Prisma.FieldRef<"User", 'UserRole'>
+  readonly signupClubPlan: Prisma.FieldRef<"User", 'ClubPlan'>
   readonly isVerified: Prisma.FieldRef<"User", 'Boolean'>
   readonly isActive: Prisma.FieldRef<"User", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>

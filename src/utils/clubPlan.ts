@@ -88,3 +88,45 @@ export const parseClubPlan = (raw: unknown): ClubPlan => {
   if (raw === ClubPlan.PREMIUM || raw === "PREMIUM") return ClubPlan.PREMIUM;
   throw new AppError('Plan invalido. Use "BASIC" o "PREMIUM".', 400);
 };
+
+export interface BillingPeriod {
+  periodFrom: Date;
+  periodTo: Date;
+  nextBillingDate: Date;
+  monthKey: string;
+  label: string;
+}
+
+/** Período de facturación calendario (cobro el día 1 del mes siguiente). */
+export const getBillingPeriod = (referenceDate = new Date()): BillingPeriod => {
+  const year = referenceDate.getFullYear();
+  const month = referenceDate.getMonth();
+  const periodFrom = new Date(year, month, 1, 0, 0, 0, 0);
+  const periodTo = new Date(year, month + 1, 0, 23, 59, 59, 999);
+  const nextBillingDate = new Date(year, month + 1, 1, 0, 0, 0, 0);
+  const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
+  const label = periodFrom.toLocaleDateString("es-AR", {
+    month: "long",
+    year: "numeric",
+  });
+  return { periodFrom, periodTo, nextBillingDate, monthKey, label };
+};
+
+export const parseBillingMonthKey = (raw: unknown): BillingPeriod | null => {
+  if (typeof raw !== "string" || !/^\d{4}-\d{2}$/.test(raw.trim())) {
+    return null;
+  }
+  const [yearStr, monthStr] = raw.trim().split("-");
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  if (month < 1 || month > 12) return null;
+  const periodFrom = new Date(year, month - 1, 1, 0, 0, 0, 0);
+  const periodTo = new Date(year, month, 0, 23, 59, 59, 999);
+  const nextBillingDate = new Date(year, month, 1, 0, 0, 0, 0);
+  const monthKey = `${year}-${String(month).padStart(2, "0")}`;
+  const label = periodFrom.toLocaleDateString("es-AR", {
+    month: "long",
+    year: "numeric",
+  });
+  return { periodFrom, periodTo, nextBillingDate, monthKey, label };
+};

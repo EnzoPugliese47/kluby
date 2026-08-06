@@ -19,8 +19,9 @@
               <img class="logo logo-lg" src="/brand/kluby-logo.png" width="72" height="72" alt="Kluby" />
               <div><h1 class="logo-text">KLUBY</h1><span>Acceso</span></div>
             </div>
-            <p class="k-login-sub">Un solo ingreso para clientes, dueños y equipo.</p>
+            <p class="k-login-sub" id="login-sub">Un solo ingreso para clientes, dueños y equipo.</p>
             <div id="invite-banner" style="display:none" class="k-invite-banner"></div>
+            <div id="plan-banner" style="display:none" class="k-invite-banner"></div>
             <div class="k-auth-tabs">
               <button type="button" id="tab-login" class="active" onclick="switchTab('login')">Ingresar</button>
               <button type="button" id="tab-reg" onclick="switchTab('reg')">Crear cuenta</button>
@@ -49,6 +50,34 @@
       const $ = (id) => document.getElementById(id);
       const params = new URLSearchParams(location.search);
       const nextUrl = params.get("next") || "";
+      const PLAN_LABELS = { BASIC: "Básico", PREMIUM: "Premium" };
+      const PREMIUM_PRICE = 29900;
+
+      function normalizeOwnerPlan(raw) {
+        const v = (raw || "").trim().toUpperCase();
+        return v === "PREMIUM" ? "PREMIUM" : "BASIC";
+      }
+
+      function getPendingOwnerPlan() {
+        return normalizeOwnerPlan(localStorage.getItem("kluby_pending_owner_plan") || "BASIC");
+      }
+
+      function isOwnerSignup() {
+        return localStorage.getItem("kluby_pending_owner_plan") !== null
+          || params.get("owner") === "1";
+      }
+
+      function captureOwnerSignupFromUrl() {
+        const owner = params.get("owner");
+        const plan = params.get("plan");
+        if (owner === "1" || plan) {
+          localStorage.setItem("kluby_pending_owner_plan", normalizeOwnerPlan(plan));
+          const q = new URLSearchParams();
+          if (nextUrl) q.set("next", nextUrl);
+          q.set("tab", "reg");
+          history.replaceState({}, "", location.pathname + (q.toString() ? "?" + q : ""));
+        }
+      }
 
       function captureInviteFromUrl() {
         const inv = params.get("invitacion");
@@ -60,6 +89,22 @@
           if (nextUrl) q.set("next", nextUrl);
           history.replaceState({}, "", location.pathname + (q.toString() ? "?" + q : ""));
         }
+      }
+
+      function renderPlanBanner() {
+        const el = $("plan-banner");
+        if (!isOwnerSignup()) { el.style.display = "none"; return; }
+        const plan = getPendingOwnerPlan();
+        const isPremium = plan === "PREMIUM";
+        el.style.display = "block";
+        el.innerHTML = `<b>Registro dueño de boliche</b><br/>Plan elegido: <b>${PLAN_LABELS[plan]}</b>${isPremium ? ` · $${PREMIUM_PRICE.toLocaleString("es-AR")}/mes + 2% comisión` : " · sin cuota · 4% comisión por mesa"}<br/><span class="hint">Completá el formulario para crear tu cuenta de dueño.</span>`;
+        const sub = $("login-sub");
+        if (sub) sub.textContent = "Creá tu cuenta de dueño y configurá tu boliche en el panel.";
+      }
+
+      function clearOwnerSignupIntent() {
+        localStorage.removeItem("kluby_pending_owner_plan");
+        renderPlanBanner();
       }
 
       function saveSession(data) {
@@ -193,18 +238,21 @@
               <a onclick="switchTab('login')" style="cursor:pointer;font-size:13px">← Volver</a>
             </div>`;
         } else {
+          const ownerReg = isOwnerSignup();
           $("auth-form").innerHTML = `
+            ${ownerReg ? `<p class="hint" style="margin-bottom:12px">Te registrás como <b>dueño de boliche</b> con plan <b>${PLAN_LABELS[getPendingOwnerPlan()]}</b>.</p>` : ""}
             <label>Nombre completo</label>
             <input id="r-name" placeholder="Tu nombre" />
             <label>Email</label>
             <input id="r-email" type="email" placeholder="tu@email.com" />
             <label>Teléfono / celular</label>
             <input id="r-phone" type="tel" inputmode="tel" placeholder="11 1234 5678" />
-            <p class="hint" style="margin-top:-4px">10 dígitos (ej. 11…) o +54 9 11… · Para Mesa Abierta y contacto.</p>
+            <p class="hint" style="margin-top:-4px">10 dígitos (ej. 11…) o +54 9 11… · Para contacto del boliche.</p>
             <label>Contraseña</label>
             <input id="r-pass" type="password" placeholder="Mín. 8 · letra y número" autocomplete="new-password" />
             <p class="hint" style="margin-top:-4px">Al menos 8 caracteres, una letra y un número.</p>
-            <button class="btn-full btn-accent" onclick="submitRegister()">Crear cuenta</button>`;
+            <button class="btn-full btn-accent" onclick="submitRegister()">${ownerReg ? "Crear cuenta de dueño" : "Crear cuenta"}</button>
+            ${ownerReg ? `<div style="text-align:center;margin-top:12px"><a onclick="clearOwnerSignupIntent();switchTab('reg')" style="cursor:pointer;font-size:13px;color:var(--muted)">Quiero registrarme como cliente</a></div>` : ""}`;
         }
       }
 
@@ -230,15 +278,20 @@
         const passErr = UI.validatePassword(pass);
         if (passErr) { $("auth-err").textContent = passErr; return; }
         try {
-          const data = await api("/users/register", {
+          const ownerReg = isOwnerSignup();
+          const endpoint = ownerReg ? "/users/register-owner" : "/users/register";
+          const payload = {
+            fullName: $("r-name").value.trim(),
+            email: $("r-email").value.trim(),
+            phone,
+            password: pass,
+          };
+          if (ownerReg) payload.clubPlan = getPendingOwnerPlan();
+          const data = await api(endpoint, {
             method: "POST",
-            body: JSON.stringify({
-              fullName: $("r-name").value.trim(),
-              email: $("r-email").value.trim(),
-              phone,
-              password: pass,
-            }),
+            body: JSON.stringify(payload),
           });
+          if (ownerReg) localStorage.removeItem("kluby_pending_owner_plan");
           saveSession(data);
           const redirected = await redeemPendingInvites(data.user);
           if (!redirected) redirectAfterLogin(data.user);
@@ -275,13 +328,23 @@
       }
 
       captureInviteFromUrl();
+      captureOwnerSignupFromUrl();
       const session = UI.getSession();
       if (session) {
-        redirectAfterLogin(session.user);
+        if (isOwnerSignup() && session.user.role === "CLIENT") {
+          UI.clearSession();
+          switchTab("reg");
+          renderInviteBanner();
+          renderPlanBanner();
+          renderDemoAccounts();
+        } else {
+          redirectAfterLogin(session.user);
+        }
       } else {
-        if (params.get("tab") === "reg") switchTab("reg");
+        if (params.get("tab") === "reg" || isOwnerSignup()) switchTab("reg");
         else switchTab("login");
         renderInviteBanner();
+        renderPlanBanner();
         renderDemoAccounts();
       }
     </script>

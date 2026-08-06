@@ -135,6 +135,7 @@ window.KlubyUI = (function () {
     clearRoleSessionData();
     localStorage.removeItem("kluby_pending_event");
     localStorage.removeItem("kluby_pending_equipo");
+    localStorage.removeItem("kluby_pending_owner_plan");
   }
 
   function logoutToLogin() {

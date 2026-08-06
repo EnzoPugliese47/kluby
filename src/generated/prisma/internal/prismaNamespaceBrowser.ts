@@ -98,6 +98,7 @@ export const UserScalarFieldEnum = {
   dni: 'dni',
   birthDate: 'birthDate',
   role: 'role',
+  signupClubPlan: 'signupClubPlan',
   isVerified: 'isVerified',
   isActive: 'isActive',
   createdAt: 'createdAt',
