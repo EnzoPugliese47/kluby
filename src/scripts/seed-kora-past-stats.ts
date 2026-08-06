@@ -481,7 +481,7 @@ const seedReservation = async (opts: {
           reservationId: reservation.id,
           type: LoyaltyTxType.REDEEMED,
           points: redeem,
-          description: "Canje demo en reserva",
+          description: "Canje en reserva",
           createdAt: eventNightAt(opts.eventDate, 0.2),
         },
       });

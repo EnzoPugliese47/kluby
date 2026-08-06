@@ -306,7 +306,7 @@ const RESET_TOKEN_TTL_MIN = 60;
  * POST /api/users/forgot-password
  * Inicia el flujo de recuperacion. Por seguridad responde siempre exito
  * (no revela si el email existe). En produccion se enviaria el link por email;
- * en este entorno de demo se devuelve el token/link en la respuesta.
+ * en desarrollo se devuelve el token/link en la respuesta.
  */
 export const forgotPassword = async (
   req: Request,

@@ -74,7 +74,7 @@ const main = async (): Promise<void> => {
       clubId: kora.id,
       type: LoyaltyTxType.EARNED,
       points: toAdd,
-      description: "Crédito demo para presentación de tesis",
+      description: "Crédito promocional Kluby Points",
     },
   });
 

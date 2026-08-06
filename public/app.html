@@ -628,8 +628,8 @@
           if (data.sandbox) {
             window._mpCheckoutUrl = data.checkoutUrl;
             openModal(`<div class="k-onboard-box">
-              <h3 style="margin:0 0 10px">Mercado Pago · modo prueba</h3>
-              <p class="hint" style="margin:0 0 14px;color:var(--amber)"><b>Si ves tu cuenta real de Mercado Pago, no sigas acá.</b> El checkout de prueba no funciona con tu sesión personal.</p>
+              <h3 style="margin:0 0 10px">Mercado Pago</h3>
+              <p class="hint" style="margin:0 0 14px;color:var(--amber)"><b>Si ves tu cuenta personal de Mercado Pago, no sigas acá.</b> Abrí el link en una ventana privada para completar el pago.</p>
               <ol class="hint" style="margin:0;padding-left:18px;line-height:1.65;text-align:left">
                 <li><b>Ctrl+Shift+N</b> → incógnito · pegá el link copiado.</li>
                 <li><b>No uses "Dinero en cuenta"</b> — elegí <b>Tarjeta de crédito o débito</b>.</li>
@@ -1555,7 +1555,7 @@
                 <div id="wizard-refund-policy"></div>
                 <button type="button" class="ghost btn-sm" style="margin-top:12px" onclick="openConsumptionPlanner({ eventId: '${eventId}', minConsumption: ${minCons}, tablePrice: ${num(t.price)}, depositPercent: ${t.depositPercent} })">🍾 Planificá tu consumo antes de ir</button>
                 <button type="button" class="btn-full btn-accent" id="reserve-btn" style="margin-top:22px" onclick="confirmWizardReserve('${tableId}','${eventId}')">Confirmar y pagar</button>
-                ${_paymentConfig.mercadoPagoEnabled && _paymentConfig.sandbox ? `<button type="button" class="ghost btn-sm" style="margin-top:10px;width:100%" id="reserve-mp-btn" onclick="confirmWizardReserve('${tableId}','${eventId}','mercadopago')">Probar Mercado Pago (sandbox)</button>` : ""}
+                ${_paymentConfig.mercadoPagoEnabled && _paymentConfig.sandbox ? `<button type="button" class="ghost btn-sm" style="margin-top:10px;width:100%" id="reserve-mp-btn" onclick="confirmWizardReserve('${tableId}','${eventId}','mercadopago')">Pagar con Mercado Pago</button>` : ""}
                 <div class="error" id="reserve-err"></div>
               </div>`;
             renderWizardRefundPolicyEl(null);
@@ -1616,7 +1616,7 @@
           if (!reservationId) {
             toast("La mesa ya no está disponible. Elegí otra.", "err");
             if (mainBtn) { mainBtn.disabled = false; mainBtn.textContent = "Confirmar y pagar"; }
-            if (mpBtn) { mpBtn.disabled = false; mpBtn.textContent = "Probar Mercado Pago (sandbox)"; }
+            if (mpBtn) { mpBtn.disabled = false; mpBtn.textContent = "Pagar con Mercado Pago"; }
             return;
           }
           if (_reserveSel) {
@@ -1642,7 +1642,7 @@
           const err = document.getElementById("reserve-err");
           if (err) err.textContent = e.message;
           if (mainBtn) { mainBtn.disabled = false; mainBtn.textContent = "Confirmar y pagar"; }
-          if (mpBtn) { mpBtn.disabled = false; mpBtn.textContent = "Probar Mercado Pago (sandbox)"; }
+          if (mpBtn) { mpBtn.disabled = false; mpBtn.textContent = "Pagar con Mercado Pago"; }
         }
       }
 

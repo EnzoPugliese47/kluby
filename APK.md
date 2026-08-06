@@ -1,6 +1,6 @@
-# Kluby — APK Android (Capacitor)
+# Kluby — APK Android
 
-La app Android es un **WebView** que carga la web desplegada en Railway. Usa la misma API y base de datos que la versión web.
+La app Android se conecta al mismo backend que la versión web (Railway). Login, reservas, mapas y pagos funcionan igual que en el navegador.
 
 **URL de producción:** `https://kluby-production-2fa4.up.railway.app/app.html`
 
@@ -123,7 +123,7 @@ Luego:
 npm run cap:sync
 ```
 
-## Usuarios de prueba (demo)
+## Acceso rápido
 
 Contraseña: **`password123`**
 
@@ -133,11 +133,10 @@ Contraseña: **`password123`**
 | `anfitrion@kluby.com` | Cliente (anfitrión) |
 | `duenokluby1@kluby.com` | Admin boliche |
 
-## Notas para la defensa
+## Notas
 
-- La app **no empaqueta** el backend: necesita internet para hablar con Railway.
-- Login, reservas y mapas funcionan igual que en el navegador.
-- Para APK de release (Play Store): **Build → Generate Signed Bundle / APK** en Android Studio.
+- La app necesita **internet** para conectarse al servidor.
+- Para publicar en Play Store: **Build → Generate Signed Bundle / APK** en Android Studio.
 
 ## Troubleshooting
 

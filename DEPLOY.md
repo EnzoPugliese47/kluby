@@ -131,7 +131,7 @@ Anotá la URL real en tu README o documentación de entrega.
 
 - El servicio **se duerme** tras ~15 min sin visitas
 - La **primera carga** puede tardar 30–60 s (cold start)
-- Para la demo del final: abrí la URL **1 minuto antes** de presentar
+- Para una presentación en vivo: abrí la URL **1 minuto antes**
 
 ---
 
@@ -173,7 +173,7 @@ Eso implica cambiar el frontend para apuntar a otra URL de API. **Para el jueves
 
 ## Próximo paso (APK)
 
-Cuando la URL de Render funcione, el APK (Capacitor) apunta a:
+Cuando la URL de Render funcione, el APK apunta a:
 
 `https://TU-SERVICIO.onrender.com`
 

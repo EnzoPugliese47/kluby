@@ -1,6 +1,6 @@
-# Mercado Pago (sandbox) — Kluby
+# Mercado Pago — Kluby
 
-Integración **Checkout Pro** para reservas e invitados. Si no configurás MP, la app sigue con pagos **demo** (un clic).
+Integración **Checkout Pro** para reservas e invitados. Si no configurás MP, la app confirma pagos con un clic (sin pasarela externa).
 
 ---
 
@@ -23,7 +23,7 @@ PUBLIC_APP_URL=https://kluby-production-2fa4.up.railway.app
 
 | Variable | Obligatoria | Descripción |
 |----------|-------------|-------------|
-| `MP_ACCESS_TOKEN` | No* | Sin esto → solo pago demo |
+| `MP_ACCESS_TOKEN` | No* | Sin esto → confirmación sin pasarela |
 | `MP_SANDBOX` | Sí con APP_USR- | `true` si usás credenciales de **prueba** |
 | `MP_TEST_PAYER_USER_ID` | Sí en sandbox† | User ID del comprador (`3594961386`). Kluby obtiene el email desde MP. |
 | `MP_TEST_PAYER_EMAIL` | Alternativa † | Email exacto del comprador si preferís no usar User ID |
@@ -31,7 +31,7 @@ PUBLIC_APP_URL=https://kluby-production-2fa4.up.railway.app
 
 † Uno de los dos: `MP_TEST_PAYER_USER_ID` o `MP_TEST_PAYER_EMAIL`.
 
-\* Si falta `MP_ACCESS_TOKEN`, no pasa nada: la demo sigue igual.
+\* Si falta `MP_ACCESS_TOKEN`, la app sigue funcionando con confirmación directa.
 
 ---
 
@@ -76,11 +76,11 @@ Flujo:
 4. Elegí **Tarjeta de crédito o débito** (no Pago Fácil / Rapipago: en sandbox el botón queda deshabilitado)
 5. Pagá con tarjeta de prueba → volvés a la app con QR
 
-Para forzar **pago demo** (sin MP): agregá en el body `provider: "demo"` (útil si MP falla en la demo).
+Para forzar confirmación sin pasarela: agregá en el body `provider: "demo"` (útil si MP falla temporalmente).
 
 ---
 
-## 5. Producción (después de la tesis)
+## 5. Producción
 
 1. Credenciales **productivas** (sin `TEST-`)
 2. Cambiar `MP_ACCESS_TOKEN` en Railway
@@ -94,6 +94,6 @@ Para forzar **pago demo** (sin MP): agregá en el body `provider: "demo"` (útil
 | Endpoint | Descripción |
 |----------|-------------|
 | `GET /api/payments/config` | `{ mercadoPagoEnabled, sandbox, defaultProvider }` |
-| `POST /api/reservations/:id/pay` | Demo o `{ mode: "checkout", checkoutUrl }` |
+| `POST /api/reservations/:id/pay` | Confirmación directa o `{ mode: "checkout", checkoutUrl }` |
 | `POST /api/guests/:guestId/pay` | Igual para invitado |
 | `POST /api/webhooks/mercadopago` | IPN (MP) |

@@ -29,7 +29,7 @@
             <div id="auth-form"></div>
             <div class="error" id="auth-err"></div>
             <details class="k-demo-box" id="demo-box">
-              <summary>Cuentas demo · Tesis</summary>
+              <summary>Acceso rápido</summary>
               <p class="k-demo-pass">Contraseña: <b>password123</b></p>
               <div class="k-demo-grid" id="demo-grid"></div>
             </details>
@@ -177,7 +177,7 @@
       const DEMO_ACCOUNTS = [
         { label: "Cliente", email: "anfitrion@kluby.com", hint: "Reservar mesa · Kluby Points" },
         { label: "Invitado 1", email: "invitado1@kluby.com", hint: "Mesa abierta / invitaciones" },
-        { label: "Invitado 2", email: "invitado2@kluby.com", hint: "Segundo cliente demo" },
+        { label: "Invitado 2", email: "invitado2@kluby.com", hint: "Mesa abierta / invitaciones" },
         { label: "Dueño Kora", email: "duenokluby1@kluby.com", hint: "Panel · estadísticas" },
         { label: "Puerta / QR", email: "puerta@kluby.com", hint: "Check-in y cierre de mesa" },
         { label: "Super admin", email: "admin@kluby.com", hint: "Todos los boliches" },
@@ -305,7 +305,7 @@
           $("reset-step").style.display = "block";
           if (r.token) {
             $("r-token").value = r.token;
-            $("reset-note").innerHTML = "Modo demo: token autocompletado (vence en " + (r.expiresInMinutes || 60) + " min).";
+            $("reset-note").innerHTML = "Token de recuperación (vence en " + (r.expiresInMinutes || 60) + " min).";
           } else {
             $("reset-note").textContent = r.message;
           }

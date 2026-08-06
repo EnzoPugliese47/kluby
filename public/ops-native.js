@@ -1,4 +1,4 @@
-/** Safe area + Capacitor en pantallas operativas (panel, puerta, publi). */
+/** Safe area en pantallas operativas (panel, puerta, publi). */
 (function initOpsNativeShell() {
   const cap = window.Capacitor;
   const isNative = cap?.isNativePlatform?.() === true;

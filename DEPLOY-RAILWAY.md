@@ -72,7 +72,7 @@ Mismos usuarios y boliches (Supabase compartida).
 
 ---
 
-## Demo del final (sin demoras)
+## Antes de mostrar la app en vivo
 
 1. Con plan de pago / crédito, el servicio **no se duerme** como Render free
 2. **5 min antes:** abrí la URL en el navegador
@@ -82,7 +82,7 @@ Mismos usuarios y boliches (Supabase compartida).
 
 ## App móvil (después)
 
-Capacitor usará:
+La app Android usará:
 
 ```text
 https://TU-DOMINIO.up.railway.app
@@ -101,11 +101,11 @@ Railway **no bloquea** nada de esto. Solo agregás variables y código:
 - Guía completa: **`MERCADOPAGO.md`**
 - Variables: `MP_ACCESS_TOKEN`, `MP_SANDBOX=true`, `MP_TEST_PAYER_USER_ID=3594961386` (o `MP_TEST_PAYER_EMAIL`), `PUBLIC_APP_URL`
 - Webhook: `https://TU-DOMINIO.up.railway.app/api/webhooks/mercadopago`
-- Sin `MP_ACCESS_TOKEN` → pagos demo siguen funcionando
+- Sin `MP_ACCESS_TOKEN` → confirmación de pago sin pasarela externa
 
 ### Emails (registro / olvidé contraseña)
 - Variables: `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` (o Resend/SendGrid API key)
-- El modelo `PasswordResetToken` y rutas `/forgot-password` ya existen (hoy en modo demo)
+- El modelo `PasswordResetToken` y rutas `/forgot-password` ya existen (en desarrollo el token se devuelve en la respuesta)
 - Cambio futuro: enviar mail en lugar de devolver el token en la respuesta
 
 Nada de esto obliga a cambiar de Railway.

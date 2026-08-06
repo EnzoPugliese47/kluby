@@ -138,7 +138,7 @@ export async function createMercadoPagoCheckout(
       body: JSON.stringify(body),
     });
   } catch {
-    throw new AppError("No pudimos conectar con Mercado Pago. Usá pago demo o reintentá.", 400);
+    throw new AppError("No pudimos conectar con Mercado Pago. Reintentá en unos minutos.", 400);
   }
 
   let data: {
