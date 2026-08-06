@@ -822,6 +822,11 @@ window.KlubyUI = (function () {
     const btn = document.getElementById(btnId || "k-install-btn");
     const note = document.getElementById(noteId || "k-install-note");
     if (!btn || !note) return;
+    const disableBtn = () => {
+      btn.classList.add("is-disabled");
+      btn.removeAttribute("href");
+      btn.removeAttribute("download");
+    };
     fetch("/downloads/kluby.apk", { method: "HEAD" })
       .then((r) => {
         if (r.ok) {
@@ -829,15 +834,13 @@ window.KlubyUI = (function () {
           note.classList.add("ok");
           return;
         }
-        btn.classList.add("is-disabled");
-        btn.removeAttribute("href");
-        btn.removeAttribute("download");
+        disableBtn();
         note.textContent =
           "El APK todavía no está publicado en el servidor. Compilalo en tu PC (ver APK.md) y subilo a public/downloads/kluby.apk.";
       })
       .catch(() => {
-        btn.classList.add("is-disabled");
-        note.textContent = "No pudimos verificar la descarga. Intentá más tarde.";
+        note.textContent = "Tocá el botón para descargar el APK.";
+        note.classList.add("ok");
       });
   }
 
