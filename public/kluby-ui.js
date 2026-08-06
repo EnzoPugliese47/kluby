@@ -514,42 +514,98 @@ window.KlubyUI = (function () {
       </div>`;
   }
 
+  function flyerOpenAttrs(url, title) {
+    if (!url) return "";
+    return ` data-flyer-open data-flyer-url="${esc(url)}" data-flyer-title="${esc(title || "Evento")}"`;
+  }
+
   function eventFlyerViewBtnHtml(url, title) {
     if (!url) return "";
-    return `<button type="button" class="ghost btn-sm k-flyer-view-btn" onclick="KlubyUI.openFlyerLightbox(${JSON.stringify(url)}, ${JSON.stringify(title || "Evento")})">Ver flyer</button>`;
+    return `<button type="button" class="ghost btn-sm k-flyer-view-btn"${flyerOpenAttrs(url, title)}>Ver flyer</button>`;
   }
 
   function eventFlyerThumbHtml(url, title) {
     if (!url) return "";
-    return `<button type="button" class="k-flyer-thumb" title="Ver flyer ampliado" onclick="KlubyUI.openFlyerLightbox(${JSON.stringify(url)}, ${JSON.stringify(title || "Evento")})"><img src="${esc(url)}" alt="Flyer" loading="lazy" /></button>`;
+    return `<button type="button" class="k-flyer-thumb" title="Ver flyer ampliado"${flyerOpenAttrs(url, title)}><img src="${esc(url)}" alt="Flyer" loading="lazy" /></button>`;
   }
 
   function eventFlyerInlineHtml(event) {
     if (!event?.flyerImageUrl) return "";
     const title = event.name || "Evento";
-    return `<button type="button" class="k-event-flyer-inline" title="Tocá para agrandar" onclick="KlubyUI.openFlyerLightbox(${JSON.stringify(event.flyerImageUrl)}, ${JSON.stringify(title)})"><img src="${esc(event.flyerImageUrl)}" alt="Flyer · ${esc(title)}" loading="lazy" /></button>`;
+    return `<button type="button" class="k-event-flyer-inline" title="Tocá para agrandar"${flyerOpenAttrs(event.flyerImageUrl, title)}><img src="${esc(event.flyerImageUrl)}" alt="Flyer · ${esc(title)}" loading="lazy" /></button>`;
+  }
+
+  function ensureFlyerLightboxStyles() {
+    if (document.getElementById("k-flyer-lightbox-styles")) return;
+    const style = document.createElement("style");
+    style.id = "k-flyer-lightbox-styles";
+    style.textContent = `
+.k-flyer-lightbox {
+  position: fixed; inset: 0; z-index: 99999; background: rgba(0,0,0,0.92);
+  display: grid; place-items: center; padding: 48px 16px 24px;
+  animation: k-flyer-in 0.2s ease;
+}
+@keyframes k-flyer-in { from { opacity: 0; } to { opacity: 1; } }
+.k-flyer-lightbox img {
+  max-width: min(100%, 520px); max-height: calc(100vh - 100px); width: auto; height: auto;
+  object-fit: contain; border-radius: 12px; box-shadow: 0 24px 80px rgba(0,0,0,0.55);
+}
+.k-flyer-lightbox-cap {
+  position: absolute; bottom: 16px; left: 0; right: 0; text-align: center;
+  font-size: 13px; color: rgba(255,255,255,0.65); margin: 0; padding: 0 16px;
+}
+.k-flyer-lightbox-close {
+  position: absolute; top: 12px; right: 12px; width: 44px; height: 44px;
+  border: none; border-radius: 50%; background: rgba(255,255,255,0.12);
+  color: #fff; font-size: 26px; line-height: 1; cursor: pointer;
+}
+.k-flyer-lightbox-close:hover { background: rgba(255,255,255,0.22); }`;
+    document.head.appendChild(style);
   }
 
   function openFlyerLightbox(url, title) {
     if (!url) return;
+    ensureFlyerLightboxStyles();
     document.getElementById("k-flyer-lightbox")?.remove();
     const overlay = document.createElement("div");
     overlay.id = "k-flyer-lightbox";
     overlay.className = "k-flyer-lightbox";
     overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
     overlay.setAttribute("aria-label", "Flyer del evento");
     const close = () => {
+      document.removeEventListener("keydown", onKey);
       overlay.remove();
       document.body.style.overflow = "";
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") close();
     };
     overlay.innerHTML = `
       <button type="button" class="k-flyer-lightbox-close" aria-label="Cerrar">×</button>
       <img src="${esc(url)}" alt="${esc(title || "Flyer")}" />
       <p class="k-flyer-lightbox-cap">${esc(title || "")}</p>`;
-    overlay.querySelector(".k-flyer-lightbox-close")?.addEventListener("click", close);
-    overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+    overlay.querySelector(".k-flyer-lightbox-close")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      close();
+    });
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) close();
+    });
+    document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     document.body.appendChild(overlay);
+    overlay.querySelector(".k-flyer-lightbox-close")?.focus();
+  }
+
+  if (!window._klubyFlyerLightboxBound) {
+    window._klubyFlyerLightboxBound = true;
+    document.addEventListener("click", (e) => {
+      const el = e.target.closest("[data-flyer-open]");
+      if (!el) return;
+      e.preventDefault();
+      openFlyerLightbox(el.getAttribute("data-flyer-url"), el.getAttribute("data-flyer-title"));
+    });
   }
 
   function eventRowAppHtml(event, clubId, mode) {

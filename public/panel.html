@@ -1899,7 +1899,8 @@
       function eventFlyerPreviewHtml() {
         if (_eventFlyerCleared) return '<span class="role-pill">Sin flyer</span>';
         if (_eventFlyer) {
-          return `<img src="${esc(_eventFlyer)}" style="max-width:140px;max-height:186px;border-radius:10px;border:1px solid var(--border);object-fit:cover" alt="Flyer" />`;
+          const title = document.getElementById("ev-name")?.value?.trim() || "Flyer del evento";
+          return `<button type="button" class="k-flyer-preview-open" data-flyer-open data-flyer-url="${esc(_eventFlyer)}" data-flyer-title="${esc(title)}" title="Ver flyer ampliado" style="display:inline-block;padding:0;border:none;background:none;cursor:zoom-in;border-radius:10px"><img src="${esc(_eventFlyer)}" style="max-width:140px;max-height:186px;border-radius:10px;border:1px solid var(--border);object-fit:cover;display:block;pointer-events:none" alt="Flyer" /></button>`;
         }
         return '<span class="role-pill">Opcional · formato vertical 3:4</span>';
       }
