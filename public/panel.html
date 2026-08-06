@@ -131,7 +131,8 @@
       .kpi .k-delta.up { background: rgba(45,226,198,0.14); color: var(--accent); }
       .kpi .k-delta.down { background: rgba(255,77,141,0.14); color: var(--pink); }
       .kpi .k-delta.flat { background: var(--surface-2); color: var(--muted); }
-      .billing-summary-wrap { margin-bottom: 24px; }
+      .billing-summary-wrap { margin-bottom: 20px; }
+      .stats-club-pick { margin-top: 4px; margin-bottom: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
       .billing-summary {
         display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;
         padding: 22px; border-radius: 16px;
@@ -641,6 +642,13 @@
 
       <!-- VISTA: ESTADÍSTICAS / RESUMEN -->
       <div class="container view" id="view-stats">
+        <div id="stats-billing-wrap" class="billing-summary-wrap"></div>
+        <p id="stats-basic-hint" class="stats-basic-only" style="display:none">
+          Plan Básico: acá ves tu total vendido del mes (lo que te queda después de la comisión).
+          Pasá a Premium para desbloquear gráficos, rankings y exportación.
+          <button type="button" class="btn-sm btn-accent" style="margin-left:8px" onclick="openPlanModal()">Ver Premium</button>
+        </p>
+
         <div class="controls stats-club-pick">
           <div id="stats-club-logo-wrap"></div>
           <div class="field">
@@ -655,13 +663,6 @@
           </div>
           <button class="ghost" onclick="loadDashboard()">↻ Actualizar</button>
         </div>
-
-        <div id="stats-billing-wrap" class="billing-summary-wrap"></div>
-        <p id="stats-basic-hint" class="stats-basic-only" style="display:none">
-          Plan Básico: acá ves tu total vendido del mes (lo que te queda después de la comisión).
-          Pasá a Premium para desbloquear gráficos, rankings y exportación.
-          <button type="button" class="btn-sm btn-accent" style="margin-left:8px" onclick="openPlanModal()">Ver Premium</button>
-        </p>
 
         <div class="stats-mode-bar stats-premium-only">
           <span class="stats-mode-badge" id="stats-mode-badge">Vista general</span>
