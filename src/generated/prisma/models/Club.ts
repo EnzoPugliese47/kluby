@@ -54,6 +54,9 @@ export type ClubMinAggregateOutputType = {
   pointValue: runtime.Decimal | null
   useDefaultRefundPolicy: boolean | null
   noShowGraceHours: number | null
+  plan: $Enums.ClubPlan | null
+  planStartedAt: Date | null
+  planExpiresAt: Date | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -76,6 +79,9 @@ export type ClubMaxAggregateOutputType = {
   pointValue: runtime.Decimal | null
   useDefaultRefundPolicy: boolean | null
   noShowGraceHours: number | null
+  plan: $Enums.ClubPlan | null
+  planStartedAt: Date | null
+  planExpiresAt: Date | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -99,6 +105,9 @@ export type ClubCountAggregateOutputType = {
   useDefaultRefundPolicy: number
   refundPolicy: number
   noShowGraceHours: number
+  plan: number
+  planStartedAt: number
+  planExpiresAt: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -135,6 +144,9 @@ export type ClubMinAggregateInputType = {
   pointValue?: true
   useDefaultRefundPolicy?: true
   noShowGraceHours?: true
+  plan?: true
+  planStartedAt?: true
+  planExpiresAt?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -157,6 +169,9 @@ export type ClubMaxAggregateInputType = {
   pointValue?: true
   useDefaultRefundPolicy?: true
   noShowGraceHours?: true
+  plan?: true
+  planStartedAt?: true
+  planExpiresAt?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -180,6 +195,9 @@ export type ClubCountAggregateInputType = {
   useDefaultRefundPolicy?: true
   refundPolicy?: true
   noShowGraceHours?: true
+  plan?: true
+  planStartedAt?: true
+  planExpiresAt?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -290,6 +308,9 @@ export type ClubGroupByOutputType = {
   useDefaultRefundPolicy: boolean
   refundPolicy: runtime.JsonValue | null
   noShowGraceHours: number
+  plan: $Enums.ClubPlan
+  planStartedAt: Date | null
+  planExpiresAt: Date | null
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -336,6 +357,9 @@ export type ClubWhereInput = {
   useDefaultRefundPolicy?: Prisma.BoolFilter<"Club"> | boolean
   refundPolicy?: Prisma.JsonNullableFilter<"Club">
   noShowGraceHours?: Prisma.IntFilter<"Club"> | number
+  plan?: Prisma.EnumClubPlanFilter<"Club"> | $Enums.ClubPlan
+  planStartedAt?: Prisma.DateTimeNullableFilter<"Club"> | Date | string | null
+  planExpiresAt?: Prisma.DateTimeNullableFilter<"Club"> | Date | string | null
   isActive?: Prisma.BoolFilter<"Club"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Club"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Club"> | Date | string
@@ -368,6 +392,9 @@ export type ClubOrderByWithRelationInput = {
   useDefaultRefundPolicy?: Prisma.SortOrder
   refundPolicy?: Prisma.SortOrderInput | Prisma.SortOrder
   noShowGraceHours?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
+  planStartedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  planExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -403,6 +430,9 @@ export type ClubWhereUniqueInput = Prisma.AtLeast<{
   useDefaultRefundPolicy?: Prisma.BoolFilter<"Club"> | boolean
   refundPolicy?: Prisma.JsonNullableFilter<"Club">
   noShowGraceHours?: Prisma.IntFilter<"Club"> | number
+  plan?: Prisma.EnumClubPlanFilter<"Club"> | $Enums.ClubPlan
+  planStartedAt?: Prisma.DateTimeNullableFilter<"Club"> | Date | string | null
+  planExpiresAt?: Prisma.DateTimeNullableFilter<"Club"> | Date | string | null
   isActive?: Prisma.BoolFilter<"Club"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Club"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Club"> | Date | string
@@ -435,6 +465,9 @@ export type ClubOrderByWithAggregationInput = {
   useDefaultRefundPolicy?: Prisma.SortOrder
   refundPolicy?: Prisma.SortOrderInput | Prisma.SortOrder
   noShowGraceHours?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
+  planStartedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  planExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -466,6 +499,9 @@ export type ClubScalarWhereWithAggregatesInput = {
   useDefaultRefundPolicy?: Prisma.BoolWithAggregatesFilter<"Club"> | boolean
   refundPolicy?: Prisma.JsonNullableWithAggregatesFilter<"Club">
   noShowGraceHours?: Prisma.IntWithAggregatesFilter<"Club"> | number
+  plan?: Prisma.EnumClubPlanWithAggregatesFilter<"Club"> | $Enums.ClubPlan
+  planStartedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Club"> | Date | string | null
+  planExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Club"> | Date | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"Club"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Club"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Club"> | Date | string
@@ -489,6 +525,9 @@ export type ClubCreateInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -520,6 +559,9 @@ export type ClubUncheckedCreateInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -551,6 +593,9 @@ export type ClubUpdateInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -582,6 +627,9 @@ export type ClubUncheckedUpdateInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -613,6 +661,9 @@ export type ClubCreateManyInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -636,6 +687,9 @@ export type ClubUpdateManyMutationInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -658,6 +712,9 @@ export type ClubUncheckedUpdateManyInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -696,6 +753,9 @@ export type ClubCountOrderByAggregateInput = {
   useDefaultRefundPolicy?: Prisma.SortOrder
   refundPolicy?: Prisma.SortOrder
   noShowGraceHours?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
+  planStartedAt?: Prisma.SortOrder
+  planExpiresAt?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -724,6 +784,9 @@ export type ClubMaxOrderByAggregateInput = {
   pointValue?: Prisma.SortOrder
   useDefaultRefundPolicy?: Prisma.SortOrder
   noShowGraceHours?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
+  planStartedAt?: Prisma.SortOrder
+  planExpiresAt?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -746,6 +809,9 @@ export type ClubMinOrderByAggregateInput = {
   pointValue?: Prisma.SortOrder
   useDefaultRefundPolicy?: Prisma.SortOrder
   noShowGraceHours?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
+  planStartedAt?: Prisma.SortOrder
+  planExpiresAt?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -854,6 +920,10 @@ export type DecimalFieldUpdateOperationsInput = {
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
+export type EnumClubPlanFieldUpdateOperationsInput = {
+  set?: $Enums.ClubPlan
+}
+
 export type ClubCreateNestedOneWithoutTablesInput = {
   create?: Prisma.XOR<Prisma.ClubCreateWithoutTablesInput, Prisma.ClubUncheckedCreateWithoutTablesInput>
   connectOrCreate?: Prisma.ClubCreateOrConnectWithoutTablesInput
@@ -941,6 +1011,9 @@ export type ClubCreateWithoutOwnerInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -971,6 +1044,9 @@ export type ClubUncheckedCreateWithoutOwnerInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1030,6 +1106,9 @@ export type ClubScalarWhereInput = {
   useDefaultRefundPolicy?: Prisma.BoolFilter<"Club"> | boolean
   refundPolicy?: Prisma.JsonNullableFilter<"Club">
   noShowGraceHours?: Prisma.IntFilter<"Club"> | number
+  plan?: Prisma.EnumClubPlanFilter<"Club"> | $Enums.ClubPlan
+  planStartedAt?: Prisma.DateTimeNullableFilter<"Club"> | Date | string | null
+  planExpiresAt?: Prisma.DateTimeNullableFilter<"Club"> | Date | string | null
   isActive?: Prisma.BoolFilter<"Club"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Club"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Club"> | Date | string
@@ -1053,6 +1132,9 @@ export type ClubCreateWithoutMembersInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1083,6 +1165,9 @@ export type ClubUncheckedCreateWithoutMembersInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1129,6 +1214,9 @@ export type ClubUpdateWithoutMembersInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1159,6 +1247,9 @@ export type ClubUncheckedUpdateWithoutMembersInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1189,6 +1280,9 @@ export type ClubCreateWithoutJoinInvitesInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1219,6 +1313,9 @@ export type ClubUncheckedCreateWithoutJoinInvitesInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1265,6 +1362,9 @@ export type ClubUpdateWithoutJoinInvitesInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1295,6 +1395,9 @@ export type ClubUncheckedUpdateWithoutJoinInvitesInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1325,6 +1428,9 @@ export type ClubCreateWithoutEventInvitesInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1355,6 +1461,9 @@ export type ClubUncheckedCreateWithoutEventInvitesInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1401,6 +1510,9 @@ export type ClubUpdateWithoutEventInvitesInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1431,6 +1543,9 @@ export type ClubUncheckedUpdateWithoutEventInvitesInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1461,6 +1576,9 @@ export type ClubCreateWithoutTablesInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1491,6 +1609,9 @@ export type ClubUncheckedCreateWithoutTablesInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1537,6 +1658,9 @@ export type ClubUpdateWithoutTablesInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1567,6 +1691,9 @@ export type ClubUncheckedUpdateWithoutTablesInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1597,6 +1724,9 @@ export type ClubCreateWithoutEventsInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1627,6 +1757,9 @@ export type ClubUncheckedCreateWithoutEventsInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1673,6 +1806,9 @@ export type ClubUpdateWithoutEventsInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1703,6 +1839,9 @@ export type ClubUncheckedUpdateWithoutEventsInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1733,6 +1872,9 @@ export type ClubCreateWithoutReservationsInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1763,6 +1905,9 @@ export type ClubUncheckedCreateWithoutReservationsInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1809,6 +1954,9 @@ export type ClubUpdateWithoutReservationsInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1839,6 +1987,9 @@ export type ClubUncheckedUpdateWithoutReservationsInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1869,6 +2020,9 @@ export type ClubCreateWithoutProductsInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1899,6 +2053,9 @@ export type ClubUncheckedCreateWithoutProductsInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1945,6 +2102,9 @@ export type ClubUpdateWithoutProductsInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1975,6 +2135,9 @@ export type ClubUncheckedUpdateWithoutProductsInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2005,6 +2168,9 @@ export type ClubCreateWithoutLoyaltyTxnsInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2035,6 +2201,9 @@ export type ClubUncheckedCreateWithoutLoyaltyTxnsInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2081,6 +2250,9 @@ export type ClubUpdateWithoutLoyaltyTxnsInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2111,6 +2283,9 @@ export type ClubUncheckedUpdateWithoutLoyaltyTxnsInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2141,6 +2316,9 @@ export type ClubCreateManyOwnerInput = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: number
+  plan?: $Enums.ClubPlan
+  planStartedAt?: Date | string | null
+  planExpiresAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2163,6 +2341,9 @@ export type ClubUpdateWithoutOwnerInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2193,6 +2374,9 @@ export type ClubUncheckedUpdateWithoutOwnerInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2223,6 +2407,9 @@ export type ClubUncheckedUpdateManyWithoutOwnerInput = {
   useDefaultRefundPolicy?: Prisma.BoolFieldUpdateOperationsInput | boolean
   refundPolicy?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   noShowGraceHours?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.EnumClubPlanFieldUpdateOperationsInput | $Enums.ClubPlan
+  planStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  planExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2339,6 +2526,9 @@ export type ClubSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   useDefaultRefundPolicy?: boolean
   refundPolicy?: boolean
   noShowGraceHours?: boolean
+  plan?: boolean
+  planStartedAt?: boolean
+  planExpiresAt?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2372,6 +2562,9 @@ export type ClubSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   useDefaultRefundPolicy?: boolean
   refundPolicy?: boolean
   noShowGraceHours?: boolean
+  plan?: boolean
+  planStartedAt?: boolean
+  planExpiresAt?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2396,6 +2589,9 @@ export type ClubSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   useDefaultRefundPolicy?: boolean
   refundPolicy?: boolean
   noShowGraceHours?: boolean
+  plan?: boolean
+  planStartedAt?: boolean
+  planExpiresAt?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2420,13 +2616,16 @@ export type ClubSelectScalar = {
   useDefaultRefundPolicy?: boolean
   refundPolicy?: boolean
   noShowGraceHours?: boolean
+  plan?: boolean
+  planStartedAt?: boolean
+  planExpiresAt?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   ownerId?: boolean
 }
 
-export type ClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "address" | "city" | "zone" | "musicGenre" | "imageUrl" | "floorMapUrl" | "defaultConsumptionPercent" | "contactEmail" | "contactPhone" | "pointValue" | "useDefaultRefundPolicy" | "refundPolicy" | "noShowGraceHours" | "isActive" | "createdAt" | "updatedAt" | "ownerId", ExtArgs["result"]["club"]>
+export type ClubOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "address" | "city" | "zone" | "musicGenre" | "imageUrl" | "floorMapUrl" | "defaultConsumptionPercent" | "contactEmail" | "contactPhone" | "pointValue" | "useDefaultRefundPolicy" | "refundPolicy" | "noShowGraceHours" | "plan" | "planStartedAt" | "planExpiresAt" | "isActive" | "createdAt" | "updatedAt" | "ownerId", ExtArgs["result"]["club"]>
 export type ClubInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   tables?: boolean | Prisma.Club$tablesArgs<ExtArgs>
@@ -2476,6 +2675,9 @@ export type $ClubPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     useDefaultRefundPolicy: boolean
     refundPolicy: runtime.JsonValue | null
     noShowGraceHours: number
+    plan: $Enums.ClubPlan
+    planStartedAt: Date | null
+    planExpiresAt: Date | null
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -2928,6 +3130,9 @@ export interface ClubFieldRefs {
   readonly useDefaultRefundPolicy: Prisma.FieldRef<"Club", 'Boolean'>
   readonly refundPolicy: Prisma.FieldRef<"Club", 'Json'>
   readonly noShowGraceHours: Prisma.FieldRef<"Club", 'Int'>
+  readonly plan: Prisma.FieldRef<"Club", 'ClubPlan'>
+  readonly planStartedAt: Prisma.FieldRef<"Club", 'DateTime'>
+  readonly planExpiresAt: Prisma.FieldRef<"Club", 'DateTime'>
   readonly isActive: Prisma.FieldRef<"Club", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Club", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Club", 'DateTime'>

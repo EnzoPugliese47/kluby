@@ -168,6 +168,7 @@ window.KlubyUI = (function () {
     const isNativeApp = document.documentElement.classList.contains("cap-native");
     const links = [
       ["home", "/", "Inicio"],
+      ["planes", "/#planes", "Planes"],
       ["explorar", "/#explorar", "Explorar"],
       ...(isNativeApp ? [] : [["app", "/#app-android", "App Android"]]),
     ];
@@ -200,6 +201,7 @@ window.KlubyUI = (function () {
         <p>© ${new Date().getFullYear()} Kluby · Plataforma de reservas VIP</p>
         <div class="links">
           <a href="/">Inicio</a>
+          <a href="/#planes">Planes</a>
           <a href="/#explorar">Explorar</a>
           <a href="/login.html">Ingresar</a>
           <a href="/app.html">App cliente</a>

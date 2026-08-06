@@ -1763,7 +1763,7 @@
               </div>
               <div class="who"><b>${esc(state.user.fullName)}</b><small>${esc(state.user.email)}</small></div>
             </div>
-                </div>
+          </div>
                 <button type="button" class="ghost btn-sm" onclick="doLogout()">Salir</button>
           </div>
               </div>
@@ -1833,7 +1833,7 @@
           <div class="k-page-head">
             <h1>Explorá boliches</h1>
             <p>Elegí un local o buscá por fecha. Reservá tu mesa desde el mapa.</p>
-              </div>
+            </div>
           <div class="k-hero-cta-inline">
             <button type="button" class="k-btn-cyan" style="border:none;cursor:pointer;font-size:15px;padding:14px 28px" onclick="wizardGo(1)">Reservar mesa →</button>
             <span class="hint" style="align-self:center">Paso a paso: boliche · fecha · mesa · pago</span>
@@ -2826,7 +2826,7 @@
             await api("/reservations/" + reservationId + "/guests", { method: "POST", body: JSON.stringify({ userId: state.user.id }) });
             toast("¡Postulación enviada! Esperá la aprobación.", "ok");
             go("mine", { filter: "guest" });
-          } catch (e) { toast(e.message, "err"); }
+        } catch (e) { toast(e.message, "err"); }
         };
         const payNote = prepaid
           ? "<li>Si te aceptan, entrás <b>sin pagar</b> — la mesa ya está paga.</li>"

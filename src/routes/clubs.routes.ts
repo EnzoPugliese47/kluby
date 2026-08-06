@@ -6,6 +6,7 @@ import {
   listClubs,
   updateClub,
 } from "../controllers/clubs.controller";
+import { updateClubPlan } from "../controllers/clubPlan.controller";
 import {
   createTable,
   listTablesByClub,
@@ -67,6 +68,7 @@ router.get("/:clubId/events", listEventsByClub);
 router.get("/:clubId/products", listProductsByClub);
 
 router.post("/", ...adminOnly, createClub);
+router.patch("/:clubId/plan", ...adminOnly, updateClubPlan);
 router.patch("/:id", ...adminOnly, updateClub);
 router.delete("/:id", ...adminOnly, deleteClub);
 router.post("/:clubId/tables", ...staffOrAdmin, createTable);

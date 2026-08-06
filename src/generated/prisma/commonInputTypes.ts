@@ -251,6 +251,13 @@ export type JsonNullableFilterBase<$PrismaModel = never> = {
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
 }
 
+export type EnumClubPlanFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClubPlan | Prisma.EnumClubPlanFieldRefInput<$PrismaModel>
+  in?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClubPlanFilter<$PrismaModel> | $Enums.ClubPlan
+}
+
 export type EnumClubZoneWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.ClubZone | Prisma.EnumClubZoneFieldRefInput<$PrismaModel>
   in?: $Enums.ClubZone[] | Prisma.ListEnumClubZoneFieldRefInput<$PrismaModel>
@@ -302,6 +309,16 @@ export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedJsonNullableFilter<$PrismaModel>
   _max?: Prisma.NestedJsonNullableFilter<$PrismaModel>
+}
+
+export type EnumClubPlanWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClubPlan | Prisma.EnumClubPlanFieldRefInput<$PrismaModel>
+  in?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClubPlanWithAggregatesFilter<$PrismaModel> | $Enums.ClubPlan
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClubPlanFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClubPlanFilter<$PrismaModel>
 }
 
 export type DecimalNullableFilter<$PrismaModel = never> = {
@@ -781,6 +798,13 @@ export type NestedDecimalFilter<$PrismaModel = never> = {
   not?: Prisma.NestedDecimalFilter<$PrismaModel> | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
+export type NestedEnumClubPlanFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClubPlan | Prisma.EnumClubPlanFieldRefInput<$PrismaModel>
+  in?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClubPlanFilter<$PrismaModel> | $Enums.ClubPlan
+}
+
 export type NestedEnumClubZoneWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.ClubZone | Prisma.EnumClubZoneFieldRefInput<$PrismaModel>
   in?: $Enums.ClubZone[] | Prisma.ListEnumClubZoneFieldRefInput<$PrismaModel>
@@ -829,6 +853,16 @@ export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
   gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+}
+
+export type NestedEnumClubPlanWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClubPlan | Prisma.EnumClubPlanFieldRefInput<$PrismaModel>
+  in?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ClubPlan[] | Prisma.ListEnumClubPlanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumClubPlanWithAggregatesFilter<$PrismaModel> | $Enums.ClubPlan
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClubPlanFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClubPlanFilter<$PrismaModel>
 }
 
 export type NestedDecimalNullableFilter<$PrismaModel = never> = {

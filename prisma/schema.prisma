@@ -104,6 +104,12 @@ enum ClubPersonnelInviteRole {
   PUERTA // Personal de puerta
 }
 
+/// Plan comercial del boliche en Kluby (B2B).
+enum ClubPlan {
+  BASIC // Mapa 2D + operación · comisión 4% por mesa vendida
+  PREMIUM // Básico + panel de estadísticas · comisión 2% + suscripción mensual
+}
+
 // ---------------------------------------------------------------------------
 // MODELOS
 // ---------------------------------------------------------------------------
@@ -258,6 +264,9 @@ model Club {
   useDefaultRefundPolicy Boolean @default(true) // true = escala Kluby; false = refundPolicy custom
   refundPolicy   Json? // { tiers: [{ minHours, percent, label }] } cuando useDefaultRefundPolicy es false
   noShowGraceHours Int @default(6) // Horas tras inicio del evento antes de marcar no-show
+  plan              ClubPlan  @default(BASIC)
+  planStartedAt     DateTime? // Alta o último cambio de plan
+  planExpiresAt     DateTime? // Fin de suscripción Premium (null = sin vencimiento)
   isActive    Boolean  @default(true) // Baja logica
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -425,7 +434,10 @@ model Payment {
   orderId       String? // Presente si es el pago de un pedido (CONSUMPTION)
   userId        String // Quien realiza el pago
   type          PaymentType
-  amount        Decimal       @db.Decimal(12, 2)
+  amount        Decimal       @db.Decimal(12, 2) // Monto bruto pagado por el cliente
+  commissionPercent Decimal?  @db.Decimal(5, 2) // % Kluby al momento del pago
+  commissionAmount  Decimal?  @db.Decimal(12, 2) // Comisión retenida por Kluby
+  netToClub         Decimal?  @db.Decimal(12, 2) // Neto estimado para el boliche
   status        PaymentStatus @default(PENDING)
   provider      String? // Ej. "mercadopago"
   externalRef   String? // Referencia de la pasarela

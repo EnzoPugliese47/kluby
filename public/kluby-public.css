@@ -360,7 +360,83 @@ button.k-flyer-thumb img { width: 100%; height: 100%; object-fit: cover; display
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 #explorar { scroll-margin-top: 88px; }
+#planes { scroll-margin-top: 88px; }
 .k-explore-club-block { margin-bottom: 48px; }
+
+/* Planes B2B — dueños de boliche */
+.k-pricing-head {
+  text-align: center; max-width: 640px; margin: 0 auto 36px;
+}
+.k-pricing-head .k-pricing-badge {
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: 14px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--neon-cyan); padding: 6px 12px; border-radius: 999px;
+  background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.25);
+}
+.k-pricing-head h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); margin-bottom: 8px; }
+.k-pricing-head p { color: var(--muted); font-size: 14px; }
+.k-pricing-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px;
+  max-width: 920px; margin: 0 auto 48px;
+}
+@media (max-width: 768px) { .k-pricing-grid { grid-template-columns: 1fr; } }
+.k-plan-card {
+  position: relative; padding: 32px 28px 28px; border-radius: 24px;
+  background: linear-gradient(160deg, rgba(18, 18, 28, 0.98), rgba(10, 10, 16, 0.99));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex; flex-direction: column; gap: 0;
+}
+.k-plan-card.featured {
+  border-color: rgba(34, 211, 238, 0.45);
+  box-shadow: 0 0 60px rgba(34, 211, 238, 0.08);
+}
+.k-plan-card .plan-tag {
+  position: absolute; top: 16px; right: 16px;
+  font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 999px;
+}
+.k-plan-card .plan-tag.muted {
+  color: #fbbf24; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.3);
+}
+.k-plan-card .plan-tag.hot {
+  color: #86efac; background: rgba(34, 211, 238, 0.12); border: 1px solid rgba(34, 211, 238, 0.35);
+}
+.k-plan-card h3 { font-size: 1.75rem; margin: 8px 0 4px; }
+.k-plan-card .price {
+  font-family: "Syne", sans-serif; font-size: clamp(2rem, 4vw, 2.6rem); font-weight: 800;
+  margin-bottom: 6px; line-height: 1.1;
+}
+.k-plan-card .price small { font-size: 14px; font-weight: 500; color: var(--muted); }
+.k-plan-card .commission {
+  font-size: 13px; color: var(--neon-cyan); margin-bottom: 22px; font-weight: 600;
+}
+.k-plan-card ul {
+  list-style: none; padding: 0; margin: 0 0 28px; flex: 1;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.k-plan-card li {
+  display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: var(--muted); line-height: 1.45;
+}
+.k-plan-card li::before {
+  content: "✓"; flex-shrink: 0; width: 20px; height: 20px; border-radius: 6px;
+  display: grid; place-items: center; font-size: 11px; font-weight: 800;
+  color: var(--neon-cyan); background: rgba(34, 211, 238, 0.12); border: 1px solid rgba(34, 211, 238, 0.25);
+}
+.k-plan-card .plan-cta {
+  display: block; width: 100%; text-align: center; padding: 14px 20px; border-radius: 14px;
+  font-weight: 800; font-size: 13px; letter-spacing: 0.5px; text-transform: uppercase;
+  text-decoration: none; border: none; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+}
+.k-plan-card .plan-cta.ghost {
+  color: var(--muted); background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: default;
+}
+.k-plan-card .plan-cta.primary {
+  color: #050508; background: linear-gradient(135deg, #22d3ee, #67e8f9);
+  box-shadow: 0 0 32px rgba(34, 211, 238, 0.35);
+}
+.k-plan-card .plan-cta.primary:hover { transform: translateY(-2px); box-shadow: 0 0 44px rgba(34, 211, 238, 0.5); }
+
 
 .k-explore-events-list { display: flex; flex-direction: column; gap: 10px; }
 .k-explore-event-row .k-event-club-line { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }

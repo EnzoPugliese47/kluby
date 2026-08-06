@@ -89,6 +89,28 @@
         position: sticky; top: 0; backdrop-filter: blur(8px); background: rgba(10,10,15,0.92); z-index: 50;
       }
       .topbar .right { display: flex; align-items: center; gap: 14px; }
+      .user-topbar { display: flex; align-items: center; gap: 10px; }
+      .user-avatar {
+        width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+        border: 2px solid rgba(255,255,255,0.12); flex-shrink: 0;
+      }
+      .user-avatar.placeholder {
+        display: grid; place-items: center; font-weight: 800; font-size: 14px;
+        background: linear-gradient(135deg, rgba(124,92,255,0.35), rgba(34,211,238,0.2));
+        color: #fff;
+      }
+      .plan-badge {
+        border: none; cursor: pointer; font-size: 10px; font-weight: 800; letter-spacing: 0.6px;
+        text-transform: uppercase; padding: 5px 10px; border-radius: 999px; transition: transform 0.15s, box-shadow 0.15s;
+      }
+      .plan-badge:hover { transform: translateY(-1px); }
+      .plan-badge.basic {
+        color: #fbbf24; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.35);
+      }
+      .plan-badge.premium {
+        color: #86efac; background: rgba(34, 211, 238, 0.12); border: 1px solid rgba(34, 211, 238, 0.35);
+        box-shadow: 0 0 16px rgba(34, 211, 238, 0.15);
+      }
       .who { text-align: right; font-size: 13px; }
       .who b { display: block; }
       .who small { color: var(--muted); }
@@ -533,9 +555,13 @@
           <button class="tab" id="tab-events" onclick="showView('events')">Eventos</button>
         </div>
         <div class="right">
-          <div class="who">
-            <b id="who-name">—</b>
-            <small id="who-role">—</small>
+          <div class="user-topbar" id="user-topbar" style="display:none">
+            <div id="who-avatar"></div>
+            <div class="who">
+              <b id="who-name">—</b>
+              <small id="who-role">—</small>
+            </div>
+            <button type="button" class="plan-badge basic" id="plan-badge" onclick="openPlanModal()" title="Ver o cambiar plan">Básico</button>
           </div>
           <a class="ghost topbar-extra" href="/app.html" onclick="sessionStorage.setItem('kluby_admin_as_client','1')">App cliente</a>
           <a class="ghost topbar-extra" href="/staff.html">Puerta</a>
@@ -589,6 +615,12 @@
 
       <!-- VISTA: ESTADÍSTICAS -->
       <div class="container view" id="view-stats">
+        <div id="stats-upgrade-banner" class="onboard-banner" style="display:none;margin-bottom:16px">
+          <p><b>Estadísticas Premium</b> — Tu plan Básico incluye mapa y operación en vivo. Pasá a Premium para desbloquear reportes, gráficos y exportación.</p>
+          <div class="actions">
+            <button type="button" class="btn-sm btn-accent" onclick="openPlanModal()">Ver planes</button>
+          </div>
+        </div>
         <div class="controls stats-club-pick">
           <div id="stats-club-logo-wrap"></div>
           <div class="field">
@@ -825,13 +857,129 @@
       const isPanelManager = () => isSuperAdmin() || isClubOwner();
       const canManageUsers = () => isSuperAdmin();
       const ROLE_LABEL = { CLIENT: "Cliente", STAFF: "Publi", PUERTA: "Puerta", CLUB_ADMIN: "Dueño", SUPER_ADMIN: "Super Admin" };
+      const PLAN_LABEL = { BASIC: "Básico", PREMIUM: "Premium" };
+      const PREMIUM_PRICE = 29900;
       let _clubsCache = [];
+
+      function activeClubId() {
+        return document.getElementById("live-club-select")?.value
+          || document.getElementById("club-select")?.value
+          || _clubsCache[0]?.id
+          || "";
+      }
+
+      function activeClub() {
+        const id = activeClubId();
+        return _clubsCache.find((c) => c.id === id) || _clubsCache[0] || null;
+      }
+
+      function clubHasStatsAccess(club) {
+        return isSuperAdmin() || club?.plan === "PREMIUM";
+      }
+
+      function userAvatarHtml(user, size = 40) {
+        const initial = (user?.fullName || "?").trim().charAt(0).toUpperCase();
+        if (user?.profileImageUrl) {
+          return `<img class="user-avatar" style="width:${size}px;height:${size}px" src="${esc(user.profileImageUrl)}" alt="${attr(user.fullName)}" onerror="this.outerHTML='<span class=\\'user-avatar placeholder\\' style=\\'width:${size}px;height:${size}px\\'>${initial}</span>'" />`;
+        }
+        return `<span class="user-avatar placeholder" style="width:${size}px;height:${size}px">${initial}</span>`;
+      }
+
+      function updatePlanUi() {
+        const topbar = document.getElementById("user-topbar");
+        const badge = document.getElementById("plan-badge");
+        const avatar = document.getElementById("who-avatar");
+        if (avatar) avatar.innerHTML = userAvatarHtml(currentUser, 40);
+        if (topbar) topbar.style.display = isPanelManager() ? "flex" : "none";
+        if (!badge) return;
+        if (!isClubOwner()) {
+          badge.style.display = "none";
+          return;
+        }
+        badge.style.display = "";
+        const club = activeClub();
+        const isPremium = club?.plan === "PREMIUM";
+        badge.textContent = isPremium ? "Premium" : "Básico";
+        badge.className = "plan-badge " + (isPremium ? "premium" : "basic");
+        badge.title = club
+          ? `Plan ${PLAN_LABEL[club.plan] || "Básico"} · ${esc(club.name)} — clic para cambiar`
+          : "Ver planes";
+        const statsTab = document.getElementById("tab-stats");
+        if (statsTab && isPanelManager()) {
+          statsTab.style.display = clubHasStatsAccess(club) ? "" : "none";
+        }
+        const upgrade = document.getElementById("stats-upgrade-banner");
+        if (upgrade) {
+          upgrade.style.display =
+            isClubOwner() && !isSuperAdmin() && club && club.plan !== "PREMIUM" ? "block" : "none";
+        }
+      }
+
+      function openPlanModal() {
+        const club = activeClub();
+        if (!club && isClubOwner()) {
+          toast("Creá un boliche primero", "err");
+          return;
+        }
+        if (!club && isSuperAdmin()) {
+          toast("Elegí un boliche en Noche en vivo o Estadísticas", "err");
+          return;
+        }
+        const isPremium = club.plan === "PREMIUM";
+        const fmt = (n) => n.toLocaleString("es-AR");
+        openModal(`
+          <h3>Plan del boliche</h3>
+          <p class="sub"><b>${esc(club.name)}</b> · plan actual: <b>${esc(PLAN_LABEL[club.plan] || "Básico")}</b></p>
+          <div class="pick-list" style="margin:16px 0">
+            <div class="pick-row" style="align-items:flex-start">
+              <div>
+                <b>Básico · $0 / siempre</b>
+                <small>Mapa 2D, noche en vivo, personal · comisión 4% por mesa vendida</small>
+              </div>
+              ${!isPremium ? '<span class="tag">Actual</span>' : `<button type="button" class="btn-sm ghost" onclick="changeClubPlan('${club.id}','BASIC')">Elegir</button>`}
+            </div>
+            <div class="pick-row" style="align-items:flex-start;margin-top:12px">
+              <div>
+                <b>Premium · $${fmt(PREMIUM_PRICE)} / mes</b>
+                <small>Todo lo Básico + estadísticas y reportes · comisión 2% por mesa vendida</small>
+              </div>
+              ${isPremium ? '<span class="tag violet">Actual</span>' : `<button type="button" class="btn-sm btn-accent" onclick="changeClubPlan('${club.id}','PREMIUM')">Activar Premium</button>`}
+            </div>
+          </div>
+          <p class="sub" style="font-size:12px">En la demo el cambio es instantáneo. En producción la suscripción Premium se cobrará por Mercado Pago.</p>
+          <button type="button" class="btn-full ghost" style="margin-top:12px" onclick="closeModal()">Cerrar</button>`);
+      }
+
+      function openPlanModalForClub(clubId) {
+        const sel = document.getElementById("live-club-select");
+        if (sel) sel.value = clubId;
+        const statsSel = document.getElementById("club-select");
+        if (statsSel) statsSel.value = clubId;
+        updatePlanUi();
+        openPlanModal();
+      }
+
+      async function changeClubPlan(clubId, plan) {
+        try {
+          const updated = await api("/clubs/" + clubId + "/plan", {
+            method: "PATCH",
+            body: JSON.stringify({ plan }),
+          });
+          const idx = _clubsCache.findIndex((c) => c.id === clubId);
+          if (idx >= 0) _clubsCache[idx] = { ..._clubsCache[idx], ...updated };
+          toast("Plan actualizado a " + (PLAN_LABEL[updated.plan] || plan), "ok");
+          closeModal();
+          updatePlanUi();
+          if (plan === "PREMIUM" && isClubOwner()) showView("stats");
+        } catch (e) {
+          toast(e.message, "err");
+        }
+      }
 
       async function enterApp() {
         document.getElementById("app-view").style.display = "block";
         document.getElementById("who-name").textContent = currentUser?.fullName || "—";
         document.getElementById("who-role").textContent = ROLE_LABEL[currentUser?.role] || currentUser?.role || "—";
-        document.getElementById("tab-stats").style.display = isPanelManager() ? "" : "none";
         document.getElementById("tab-live").style.display = isPanelManager() ? "" : "none";
         document.getElementById("tab-clubs").style.display = isPanelManager() ? "" : "none";
         document.getElementById("tab-users").style.display = canManageUsers() ? "" : "none";
@@ -844,6 +992,7 @@
         const roleFilterWrap = document.getElementById("user-role-filter-wrap");
         if (roleFilterWrap) roleFilterWrap.style.display = isSuperAdmin() ? "" : "none";
         await loadClubs();
+        updatePlanUi();
         showView(isPanelManager() ? "live" : "users");
         void checkOwnerOnboard();
       }
@@ -851,6 +1000,10 @@
       function showView(name) {
         if (name === "live" && !isPanelManager()) name = "users";
         if (name === "stats" && !isPanelManager()) name = "users";
+        if (name === "stats" && isClubOwner() && !clubHasStatsAccess(activeClub())) {
+          openPlanModal();
+          name = "live";
+        }
         if (name === "clubs" && !isPanelManager()) name = "users";
         if (name === "events" && !isPanelManager()) name = "users";
         if (name === "team" && !isClubOwner()) name = isPanelManager() ? "stats" : "users";
@@ -909,6 +1062,7 @@
         fillSelect("event-club-select", savedEvents);
         fillSelect("team-club-select", savedTeam);
         updateStatsClubLogo();
+        updatePlanUi();
         loadStatsEvents(document.getElementById("club-select")?.value || "");
       }
 
@@ -957,6 +1111,7 @@
         localStorage.removeItem("kluby_stats_event");
         localStorage.removeItem("kluby_stats_compare");
         updateStatsClubLogo();
+        updatePlanUi();
         loadStatsEvents(id);
         loadDashboard();
       }
@@ -1074,9 +1229,11 @@
                 ${c.musicGenre ? `<small>🎵 ${esc(c.musicGenre)}</small>` : ""}
                 <small>⭐ Kluby Points: $${Number(c.pointValue ?? 1)} de descuento por punto canjeado</small>
                 <small>↩️ Cancelaciones: ${c.useDefaultRefundPolicy !== false ? "Política Kluby" : "Personalizada"} · No-show ${Number(c.noShowGraceHours ?? 6)}h</small>
+                <small>💳 Plan: ${esc(PLAN_LABEL[c.plan] || "Básico")} · Comisión ${c.plan === "PREMIUM" ? "2%" : "4%"} por mesa</small>
               </div>
               <div class="btn-row">
                 <button type="button" class="btn-sm ghost" onclick="editClub('${c.id}')">Editar</button>
+                ${isClubOwner() || isSuperAdmin() ? `<button type="button" class="btn-sm" onclick="openPlanModalForClub('${c.id}')">Plan</button>` : ""}
                 <button type="button" class="btn-sm" onclick='openClubTemplateConfig(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Config. base</button>
                 <button type="button" class="btn-sm btn-accent" onclick='openTeamInvites(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Códigos equipo</button>
                 ${isSuperAdmin() ? `<button type="button" class="btn-sm ghost" onclick='viewClubTeam(${JSON.stringify(c.id)}, ${JSON.stringify(c.name)})'>Ver personal</button>` : ""}
@@ -4114,6 +4271,7 @@
         if (id) localStorage.setItem("kluby_live_club", id);
         const statsSel = document.getElementById("club-select");
         if (statsSel && id) statsSel.value = id;
+        updatePlanUi();
         resetLiveNotifBaseline();
         loadLiveEvents().then(() => loadLiveNight());
       }

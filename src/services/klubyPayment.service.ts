@@ -22,11 +22,12 @@ import {
   isMercadoPagoEnabled,
   parseKlubyPaymentRef,
 } from "./mercadopago.service";
+import { computeTableSaleCommission } from "../utils/clubPlan";
 
 const reservationInclude = {
   table: true,
   event: true,
-  club: { select: { id: true, name: true } },
+  club: { select: { id: true, name: true, plan: true } },
   host: { select: { id: true, fullName: true, email: true } },
   guests: {
     include: { user: { select: { id: true, fullName: true } } },
@@ -110,6 +111,29 @@ export async function computeReservationPayAmount(
   };
 }
 
+const TABLE_SALE_TYPES = new Set<PaymentType>([
+  PaymentType.DEPOSIT,
+  PaymentType.FULL,
+  PaymentType.GUEST_SHARE,
+]);
+
+async function commissionFieldsForReservation(
+  tx: Prisma.TransactionClient,
+  reservationId: string,
+  grossAmount: Prisma.Decimal,
+  paymentType: PaymentType
+) {
+  if (!TABLE_SALE_TYPES.has(paymentType) || grossAmount.lte(0)) {
+    return {};
+  }
+  const reservation = await tx.reservation.findUnique({
+    where: { id: reservationId },
+    select: { club: { select: { plan: true } } },
+  });
+  if (!reservation?.club) return {};
+  return computeTableSaleCommission(grossAmount, reservation.club.plan);
+}
+
 export async function confirmReservationPaymentInTx(
   tx: Prisma.TransactionClient,
   reservationId: string,
@@ -137,6 +161,12 @@ export async function confirmReservationPaymentInTx(
   }
 
   if (amount.greaterThan(0)) {
+    const commission = await commissionFieldsForReservation(
+      tx,
+      reservationId,
+      amount,
+      paymentType
+    );
     if (existingPaymentId) {
       await tx.payment.update({
         where: { id: existingPaymentId },
@@ -144,6 +174,7 @@ export async function confirmReservationPaymentInTx(
           status: PaymentStatus.APPROVED,
           provider: provider ?? "mercadopago",
           externalRef,
+          ...commission,
         },
       });
     } else {
@@ -156,6 +187,7 @@ export async function confirmReservationPaymentInTx(
           status: PaymentStatus.APPROVED,
           provider,
           externalRef,
+          ...commission,
         },
       });
     }
@@ -396,12 +428,20 @@ async function confirmGuestPaymentInTx(
   if (payment.status === PaymentStatus.APPROVED) return payment;
   if (!payment.guestId) throw new AppError("Pago no es de invitado", 400);
 
+  const commission = await commissionFieldsForReservation(
+    tx,
+    payment.reservationId,
+    payment.amount,
+    PaymentType.GUEST_SHARE
+  );
+
   await tx.payment.update({
     where: { id: paymentId },
     data: {
       status: PaymentStatus.APPROVED,
       provider: "mercadopago",
       externalRef: mpPaymentId,
+      ...commission,
     },
   });
 

@@ -13,12 +13,15 @@ import invitesRoutes from "./invites.routes";
 import assetsRoutes from "./assets.routes";
 import paymentsRoutes from "./payments.routes";
 import webhooksRoutes from "./webhooks.routes";
+import { listPlans } from "../controllers/clubPlan.controller";
 
 const router = Router();
 
 router.get("/health", (_req, res) => {
   res.json({ success: true, data: { status: "ok", service: "kluby-api" } });
 });
+
+router.get("/plans", listPlans);
 
 router.use("/users", usersRoutes);
 router.use("/clubs", clubsRoutes);

@@ -23,6 +23,7 @@ import {
   requireParam,
   requireString,
 } from "../utils/validation";
+import { computeTableSaleCommission } from "../utils/clubPlan";
 import {
   isEventOpenForOpenTables,
   openTablesEventCutoff,
@@ -540,6 +541,7 @@ export const payGuestShare = async (
 
       const reservation = await tx.reservation.findUnique({
         where: { id: guest.reservationId },
+        include: { club: { select: { plan: true } } },
       });
       if (reservation === null) {
         throw new AppError("Reserva no encontrada", 404);
@@ -552,6 +554,11 @@ export const payGuestShare = async (
         return { guest: confirmedGuest, reservation };
       }
 
+      const commission = computeTableSaleCommission(
+        guest.shareAmount,
+        reservation.club.plan
+      );
+
       await tx.payment.create({
         data: {
           reservationId: guest.reservationId,
@@ -562,6 +569,7 @@ export const payGuestShare = async (
           status: PaymentStatus.APPROVED,
           provider: provider ?? "demo",
           externalRef,
+          ...commission,
         },
       });
 

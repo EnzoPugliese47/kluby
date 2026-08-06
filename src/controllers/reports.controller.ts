@@ -12,6 +12,7 @@ import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
 import { requireParam } from "../utils/validation";
 import { assertUserCanAccessClub } from "../utils/clubAccess";
+import { assertClubHasStatsAccess } from "../utils/clubPlan";
 import { EVENT_OPEN_TABLE_ACTIVE_HOURS } from "../utils/eventTiming";
 
 const parseDate = (value: unknown): Date | undefined => {
@@ -400,9 +401,13 @@ const computeModeBreakdown = async (
   };
 };
 
-const assertClubExists = async (clubId: string): Promise<void> => {
-  const club = await prisma.club.findUnique({ where: { id: clubId } });
+const assertClubStatsAccess = async (clubId: string): Promise<void> => {
+  const club = await prisma.club.findUnique({
+    where: { id: clubId },
+    select: { plan: true },
+  });
   if (club === null) throw new AppError("Boliche no encontrado", 404);
+  assertClubHasStatsAccess(club.plan);
 };
 
 interface ProductSales {
@@ -460,7 +465,7 @@ export const getSalesReport = async (
 ): Promise<void> => {
   try {
     const clubId = requireParam(req.params, "clubId");
-    await assertClubExists(clubId);
+    await assertClubStatsAccess(clubId);
     await assertUserCanAccessClub(req, clubId);
     const from = parseDate(req.query["from"]);
     const to = parseDate(req.query["to"]);
@@ -517,7 +522,7 @@ export const getTableRanking = async (
 ): Promise<void> => {
   try {
     const clubId = requireParam(req.params, "clubId");
-    await assertClubExists(clubId);
+    await assertClubStatsAccess(clubId);
     await assertUserCanAccessClub(req, clubId);
 
     const grouped = await prisma.reservation.groupBy({
@@ -566,7 +571,7 @@ export const getTopProducts = async (
 ): Promise<void> => {
   try {
     const clubId = requireParam(req.params, "clubId");
-    await assertClubExists(clubId);
+    await assertClubStatsAccess(clubId);
     await assertUserCanAccessClub(req, clubId);
     const products = await computeTopProducts(clubId);
     sendSuccess(res, { clubId, products });
@@ -586,7 +591,7 @@ export const getSalesByDay = async (
 ): Promise<void> => {
   try {
     const clubId = requireParam(req.params, "clubId");
-    await assertClubExists(clubId);
+    await assertClubStatsAccess(clubId);
     await assertUserCanAccessClub(req, clubId);
 
     const payments = await prisma.payment.findMany({
@@ -642,7 +647,7 @@ export const getDashboard = async (
 ): Promise<void> => {
   try {
     const clubId = requireParam(req.params, "clubId");
-    await assertClubExists(clubId);
+    await assertClubStatsAccess(clubId);
     await assertUserCanAccessClub(req, clubId);
 
     const eventIdParam =

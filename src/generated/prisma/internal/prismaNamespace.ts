@@ -1971,6 +1971,9 @@ export const ClubScalarFieldEnum = {
   useDefaultRefundPolicy: 'useDefaultRefundPolicy',
   refundPolicy: 'refundPolicy',
   noShowGraceHours: 'noShowGraceHours',
+  plan: 'plan',
+  planStartedAt: 'planStartedAt',
+  planExpiresAt: 'planExpiresAt',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -2082,6 +2085,9 @@ export const PaymentScalarFieldEnum = {
   userId: 'userId',
   type: 'type',
   amount: 'amount',
+  commissionPercent: 'commissionPercent',
+  commissionAmount: 'commissionAmount',
+  netToClub: 'netToClub',
   status: 'status',
   provider: 'provider',
   externalRef: 'externalRef',
@@ -2336,6 +2342,20 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'ClubPlan'
+ */
+export type EnumClubPlanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClubPlan'>
+    
+
+
+/**
+ * Reference to a field of type 'ClubPlan[]'
+ */
+export type ListEnumClubPlanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClubPlan[]'>
     
 
 
