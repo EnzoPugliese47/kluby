@@ -28,6 +28,11 @@ const FOREGROUND: Record<string, number> = {
 
 const BG = { r: 0, g: 0, b: 0, alpha: 1 as const };
 
+/** Legacy launcher: logo ~70% del cuadrado (similar a Telegram, X, etc.). */
+const LAUNCHER_INSET = 0.14;
+/** Adaptive foreground: safe zone Android 66/108 ≈ 19% margen por lado. */
+const FOREGROUND_INSET = 0.19;
+
 async function writeIcon(
   folder: string,
   name: string,
@@ -52,13 +57,13 @@ async function main(): Promise<void> {
   }
 
   for (const [folder, size] of Object.entries(LAUNCHER)) {
-    await writeIcon(folder, "ic_launcher", size, 0.02);
-    await writeIcon(folder, "ic_launcher_round", size, 0.02);
+    await writeIcon(folder, "ic_launcher", size, LAUNCHER_INSET);
+    await writeIcon(folder, "ic_launcher_round", size, LAUNCHER_INSET);
     console.log(`  ✓ ${folder} launcher ${size}px`);
   }
 
   for (const [folder, size] of Object.entries(FOREGROUND)) {
-    await writeIcon(folder, "ic_launcher_foreground", size, 0.06);
+    await writeIcon(folder, "ic_launcher_foreground", size, FOREGROUND_INSET);
     console.log(`  ✓ ${folder} foreground ${size}px`);
   }
 

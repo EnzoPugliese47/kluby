@@ -76,17 +76,17 @@ async function main(): Promise<void> {
   console.log(`  ✓ web ${path.relative(ROOT, WEB)} (${info.width}x${info.height}, sin fondo)`);
 
   await sharp(cropped)
-    .resize(992, 992, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 1 } })
+    .resize(680, 680, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 1 } })
     .extend({
-      top: 16,
-      bottom: 16,
-      left: 16,
-      right: 16,
+      top: 172,
+      bottom: 172,
+      left: 172,
+      right: 172,
       background: { r: 0, g: 0, b: 0, alpha: 1 },
     })
     .png()
     .toFile(ICON);
-  console.log(`  ✓ icon ${path.relative(ROOT, ICON)} (1024, ~97% fill, fondo negro)`);
+  console.log(`  ✓ icon ${path.relative(ROOT, ICON)} (1024, ~66% fill, fondo negro — safe zone Android)`);
   console.log("\n[logo] Listo. Corré: npm run icons:android && npm run cap:sync");
 }
 
