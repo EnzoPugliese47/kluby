@@ -47,6 +47,7 @@ import {
 } from "../services/klubyPayment.service";
 import { isMercadoPagoSandbox } from "../services/mercadopago.service";
 import { parseClubRefundTiers } from "../utils/clubRefundPolicy";
+import { assertClientActor } from "../utils/clientActor";
 
 const PAYMENT_OPTION_VALUES = Object.values(PaymentOption);
 const RESERVATION_MODE_VALUES = Object.values(ReservationMode);
@@ -62,10 +63,16 @@ export const createReservation = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const auth = getAuthUser(req);
+    assertClientActor(auth);
+
     const body = asRecord(req.body);
     const eventId = requireString(body, "eventId");
     const tableId = requireString(body, "tableId");
     const hostId = requireString(body, "hostId");
+    if (hostId !== auth.sub) {
+      throw new AppError("No autorizado", 403);
+    }
     const paymentOption = requireEnum(
       body,
       "paymentOption",
@@ -177,6 +184,7 @@ export const patchPendingReservation = async (
     const body = asRecord(req.body);
     const paymentOption = optionalEnum(body, "paymentOption", PAYMENT_OPTION_VALUES);
     const auth = getAuthUser(req);
+    assertClientActor(auth);
 
     const current = await prisma.reservation.findUnique({ where: { id } });
     if (current === null) {
@@ -223,6 +231,7 @@ export const releaseReservationHold = async (
   try {
     const id = requireParam(req.params, "id");
     const auth = getAuthUser(req);
+    assertClientActor(auth);
 
     const current = await prisma.reservation.findUnique({
       where: { id },
@@ -272,6 +281,7 @@ export const payReservation = async (
     const loyaltyPointsToRedeem =
       loyaltyPointsRaw !== undefined ? Math.floor(loyaltyPointsRaw) : 0;
     const auth = getAuthUser(req);
+    assertClientActor(auth);
 
     const useDemo = provider === "demo" || !isMercadoPagoEnabled();
 
@@ -510,8 +520,9 @@ export const cancelReservation = async (
       if (current === null) {
         throw new AppError("Reserva no encontrada", 404);
       }
-      if (
-        current.hostId !== auth.sub &&
+      if (current.hostId === auth.sub) {
+        assertClientActor(auth);
+      } else if (
         auth.role !== "SUPER_ADMIN" &&
         auth.role !== "CLUB_ADMIN"
       ) {

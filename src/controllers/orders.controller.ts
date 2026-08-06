@@ -12,6 +12,7 @@ import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
 import { getAuthUser } from "../middlewares/auth";
+import { assertClientActor } from "../utils/clientActor";
 import {
   asRecord,
   optionalString,
@@ -77,6 +78,7 @@ export const createOrder = async (
     const type = requireEnum(body, "type", ORDER_TYPE_VALUES);
     const items = parseItems(body);
     const auth = getAuthUser(req);
+    assertClientActor(auth);
 
     const orderId = await prisma.$transaction(async (tx) => {
       const reservation = await tx.reservation.findUnique({
@@ -197,6 +199,7 @@ export const payOrder = async (
     const provider = optionalString(body, "provider");
     const externalRef = optionalString(body, "externalRef");
     const auth = getAuthUser(req);
+    assertClientActor(auth);
 
     const order = await prisma.$transaction(async (tx) => {
       const current = await tx.order.findUnique({ where: { id: orderId } });

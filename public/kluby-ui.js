@@ -903,6 +903,10 @@ window.KlubyUI = (function () {
       });
   }
 
+  function isClientAppReadOnly(user) {
+    return user?.role === "CLUB_ADMIN";
+  }
+
   return {
     BRAND_LOGO_SRC,
     brandLogoHtml,
@@ -912,6 +916,7 @@ window.KlubyUI = (function () {
     getSession,
     appDest,
     isNativeApp: () => document.documentElement.classList.contains("cap-native"),
+    isClientAppReadOnly,
     markClientAppVisit,
     clearClientAppVisit,
     canAccessPath,

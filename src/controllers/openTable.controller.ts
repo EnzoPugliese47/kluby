@@ -29,6 +29,7 @@ import {
   openTablesEventCutoff,
 } from "../utils/eventTiming";
 import { parseClubZone } from "../utils/clubZones";
+import { assertClientActor } from "../utils/clientActor";
 
 /** Estados de invitado que ocupan un cupo de la mesa abierta. */
 const ACTIVE_GUEST_STATUSES: GuestStatus[] = [
@@ -95,6 +96,8 @@ export const openTable = async (
     const id = requireParam(req.params, "id");
     const body = asRecord(req.body);
     const maxGuests = requireNumber(body, "maxGuests");
+    const auth = getAuthUser(req);
+    assertClientActor(auth);
 
     if (!Number.isInteger(maxGuests) || maxGuests < 2) {
       throw new AppError(
@@ -109,6 +112,9 @@ export const openTable = async (
     });
     if (reservation === null) {
       throw new AppError("Reserva no encontrada", 404);
+    }
+    if (reservation.hostId !== auth.sub) {
+      throw new AppError("Solo el anfitrión puede abrir la mesa", 403);
     }
     if (reservation.status !== ReservationStatus.CONFIRMED) {
       throw new AppError(
@@ -271,6 +277,11 @@ export const requestToJoin = async (
     const reservationId = requireParam(req.params, "id");
     const body = asRecord(req.body);
     const userId = requireString(body, "userId");
+    const auth = getAuthUser(req);
+    assertClientActor(auth);
+    if (userId !== auth.sub) {
+      throw new AppError("No autorizado", 403);
+    }
 
     const guest = await prisma.$transaction(async (tx) => {
       const reservation = await tx.reservation.findUnique({
@@ -399,6 +410,9 @@ export const acceptGuest = async (
 ): Promise<void> => {
   try {
     const guestId = requireParam(req.params, "guestId");
+    const auth = getAuthUser(req);
+    assertClientActor(auth);
+
     const updated = await prisma.$transaction(async (tx) => {
       const guest = await tx.reservationGuest.findUnique({
         where: { id: guestId },
@@ -418,6 +432,9 @@ export const acceptGuest = async (
       });
       if (reservation === null) {
         throw new AppError("Reserva no encontrada", 404);
+      }
+      if (reservation.hostId !== auth.sub) {
+        throw new AppError("Solo el anfitrión puede gestionar postulaciones", 403);
       }
 
       const maxGuests = reservation.maxGuests ?? 0;
@@ -451,11 +468,18 @@ export const rejectGuest = async (
 ): Promise<void> => {
   try {
     const guestId = requireParam(req.params, "guestId");
+    const auth = getAuthUser(req);
+    assertClientActor(auth);
+
     const guest = await prisma.reservationGuest.findUnique({
       where: { id: guestId },
+      include: { reservation: true },
     });
     if (guest === null) {
       throw new AppError("Postulacion no encontrada", 404);
+    }
+    if (guest.reservation.hostId !== auth.sub) {
+      throw new AppError("Solo el anfitrión puede gestionar postulaciones", 403);
     }
     const rejectable: GuestStatus[] = [
       GuestStatus.REQUESTED,
@@ -493,6 +517,7 @@ export const payGuestShare = async (
     const provider =
       typeof body["provider"] === "string" ? (body["provider"] as string) : null;
     const auth = getAuthUser(req);
+    assertClientActor(auth);
 
     const useDemo = provider === "demo" || !isMercadoPagoEnabled();
 

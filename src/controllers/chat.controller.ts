@@ -4,6 +4,7 @@ import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/appError";
 import { sendSuccess } from "../utils/apiResponse";
 import { getAuthUser } from "../middlewares/auth";
+import { assertClientActor } from "../utils/clientActor";
 import { asRecord, requireParam, requireString } from "../utils/validation";
 
 /**
@@ -155,6 +156,7 @@ export const postChatMessage = async (
     const body = asRecord(req.body);
     const content = requireString(body, "content");
     const auth = getAuthUser(req);
+    assertClientActor(auth);
 
     await assertChatAccess(reservationId, auth.sub);
 
